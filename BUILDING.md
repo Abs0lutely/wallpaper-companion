@@ -36,4 +36,16 @@ EXE 的 `--self-test <报告路径>` 仅供构建验证：临时配置、低音�
 
 ## 自动发布
 
+开发顺序：先修改和本地验证、commit，再完成实际 EXE/安装流程验证，最后同步源码和 Release。不能将未经验证的改动直接推送发布。
+
+个人便携版更新使用 `scripts/update_portable.py`，默认只暂存，不会关闭程序：
+
+```powershell
+python scripts/update_portable.py --target <个人免安装目录> --archive <新版portable.zip> --sha256 <SHA256SUMS中的值>
+# 保存各页面配置，并从托盘退出旧程序后：
+python scripts/update_portable.py --target <个人免安装目录> --plan <上一步返回的plan.json> --apply
+```
+
+更新仅替换白名单内的程序/运行库/随附说明，旧程序备份到 `.program-backups`，完整新库替换旧库。data、用户插件、迁移记录、其他自定义文件及 portable.flag 保留，应用更新前后比较其哈希；运行中拒绝替换，不强制退出，失败回退程序文件。不要用覆盖整个目录或删除重装的方式更新个人版。
+
 `.github/workflows/release.yml` 支持手动运行或推送 `v*` 标签：安装固定依赖 → 单元测试 → 冻结 → 生成 ZIP/setup → EXE 自检和安装/卸载 → 发布包含校验文件的 Release。默认只打 Windows x64。版本必须匹配 pyproject.toml；只有全部验证通过才上传公开附件。
