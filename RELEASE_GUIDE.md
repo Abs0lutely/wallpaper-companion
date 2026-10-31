@@ -1,8 +1,30 @@
-# 壁纸声伴：本地打包与手动发布指南
+# 壁纸声伴：版本打包与发布指南
 
-以未来发布 **v0.6.2** 为例；实际版本以 `pyproject.toml` 为准。平时小改动只验证、提交源码，不必制作发行包。正式发布时使用下面的双击流程。
+以未来发布 **v0.6.2** 为例；实际版本以 `pyproject.toml` 为准。平时小改动只验证、提交源码，不必制作发行包。正式发布默认采用 GitHub 工作流；只有特别要求本地打包、手动上传时，才使用第二节备用流程。
 
-## 一、正常流程
+## 一、默认流程：GitHub 构建、验证并自动发布
+
+1. 完成功能开发，先在本机验证相关实际流程，并运行单元测试、compileall 和 pip check。
+2. 修改 `pyproject.toml` 的 `[project] version`，例如 `0.6.2`；这次版本修改也要提交。
+3. 本地 commit，推送待发布代码到 `main`。到 Actions 确认该提交的 **Windows checks** 通过。
+4. 进入仓库 **Actions → Windows release**。若停用，点击 **Enable workflow**。
+5. 点击 **Run workflow**，分支选 `main`，tag 输入与版本对应的 `v0.6.2`，启动运行。默认不要提前单独创建或推送这个标签，避免重复触发。
+6. 等待本次运行成功：云端会安装构建依赖、运行测试、制作便携 ZIP 和安装包、验证真实 EXE 及安装卸载，最后自动创建公开 Release。
+7. 到 Releases 确认版本和三个附件：portable.zip、setup.exe、SHA256SUMS.txt；按需完善更新说明，下载并核对校验值。
+
+**启动 Windows release 就是在启动正式发布，而不只是试打包。** 新版本使用未发布过的版本号；若对应 Release 已存在，当前工作流保留其原附件，不自动替换。测试失败时先修复并重新验证，不手动发布失败产物。
+
+这条默认路线无需在本机双击打包，也无需手动上传附件或暂停自动工作流。GitHub 工作流不会更新你电脑上的个人版，个人版按第四节另行安全更新。
+
+本机源码检查示例（项目根目录，已准备好环境）：
+
+```powershell
+.\.conda\python.exe -m unittest discover -s tests -p "test_*.py" -v
+.\.conda\python.exe -m compileall -q companion main.py scripts
+.\.conda\python.exe -m pip check
+```
+
+## 二、备用流程：本地双击打包与手动发布
 
 ### 1. 完成功能并设置版本号
 
@@ -104,7 +126,7 @@ Get-FileHash .\WallpaperCompanion-0.6.2-windows-x64-setup.exe -Algorithm SHA256
 
 结果应和 `SHA256SUMS.txt` 相同。GitHub 自动附带的 Source code ZIP 是源码，不能代替 portable.zip。
 
-## 二、首次准备
+## 三、首次准备
 
 安装 Miniconda/Anaconda。若双击时找不到 Conda，在 Anaconda/Miniconda PowerShell Prompt 进入克隆后的项目目录，运行一次 `setup.cmd`。环境准备好后再次双击 `build_release.cmd`。
 
@@ -129,7 +151,7 @@ git merge --allow-unrelated-histories --no-edit origin/main
 
 这不是日常拉取命令。若出现冲突，处理后重新验证，不能强制推送覆盖远端。
 
-## 三、个人版数据与可选更新
+## 四、个人版数据与可选更新
 
 打包脚本不会更新个人版。免安装版数据在 EXE 旁 `data/`；安装版数据在 `%LOCALAPPDATA%\WallpaperCompanion`，正常升级和卸载保留数据。两种使用方式的数据不会自动互相迁移。
 
@@ -151,7 +173,7 @@ $plan = "实际返回的plan.json完整路径"
 
 仅替换程序，备份旧程序并比较用户文件哈希；保留配置、壁纸绑定、台词、音频、个人插件和迁移记录。运行中拒绝替换，不强制结束编辑实例。移动已有个人目录后，原配置的绝对音频路径可能需要重新选择。
 
-## 四、常见报错
+## 五、常见报错（主要针对备用本地流程）
 
 | 表现 | 处理 |
 | --- | --- |
@@ -171,7 +193,7 @@ $plan = "实际返回的plan.json完整路径"
 | 安装版看不到便携版配置 | 两者数据目录不同，先检查旧数据并安排迁移，不表示数据已删除。 |
 | 便携版不能启动 | 完整解压 ZIP，保留 `_internal` 与 `portable.flag`，不要只运行单个 EXE。 |
 
-## 五、脚本与参考
+## 六、脚本与参考
 
 - 双击入口：`build_release.cmd`；本地编排：`scripts/release_local.py`。
 - 完整构建：`scripts/build_windows.py`；实际包验证：`scripts/verify_windows.py`。
