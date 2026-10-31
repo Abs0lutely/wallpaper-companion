@@ -1060,7 +1060,8 @@ class Window(LibraryMixin, DialogueMixin, AudioLibraryMixin, CharacterMixin, Spe
     def update_api_controls(self):
         from .managed_api import api
         local = self.provider_choice.currentData() == "gpt_sovits"
-        self.start_api_button.setText("关闭自建 API" if local and api.owns_service() is True else "启动本地 API")
+        self.api_close_mode = local and api.owns_service() is True
+        self.start_api_button.setText("关闭自建 API" if self.api_close_mode else "启动本地 API")
         self.start_api_button.setToolTip("启动本机 API，或关闭本程序启动的 API 进程树。外部服务不会被关闭或切换；加载和生成期间不可操作。")
         busy = self.api_busy or self.tts_busy
         self.start_api_button.setEnabled(not busy)
@@ -1095,7 +1096,8 @@ class Window(LibraryMixin, DialogueMixin, AudioLibraryMixin, CharacterMixin, Spe
         if provider.id == "gpt_sovits":
             from .managed_api import api
             settings = {**settings, "_tts_status": self.api_stage.emit}
-            closing = api.owns_service() is True
+            # Honor the displayed action even if the process exited while idle.
+            closing = self.api_close_mode
             self.api_busy = True
             self.api_message("正在关闭自建 API 并回收进程…" if closing else "正在启动或连接本地 API、等待模型加载，请稍候…")
             self.submit(api.close_owned if closing else lambda: api.start(settings, self.store.protected()), self.api_finished, self.api_error)

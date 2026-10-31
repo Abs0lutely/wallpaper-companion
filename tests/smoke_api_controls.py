@@ -61,9 +61,14 @@ with patch("companion.managed_api.api") as api, patch("companion.secrets.read_se
         w.tts_busy = False; w.update_api_controls()
         w.start_api_button.click(); wait(lambda: not w.api_busy)
         report["close_resets_start_action"] = not state["owned"] and w.start_api_button.text() == "启动本地 API" and "已关闭" in w.tts_status.text()
+        state["owned"] = True; w.update_api_controls()
+        state["owned"] = False  # Process exits after the close button was rendered.
+        start_calls = api.start.call_count
+        w.start_api_button.click(); wait(lambda: not w.api_busy)
+        report["stale_close_never_unexpectedly_starts_api"] = api.start.call_count == start_calls and w.start_api_button.text() == "启动本地 API"
         api.start.side_effect = lambda *_: "已连接外部 API；不会关闭外部服务"
         w.start_api_button.click(); wait(lambda: not w.api_busy)
-        report["external_service_never_gets_close_action"] = w.start_api_button.text() == "启动本地 API" and "外部" in w.tts_status.text() and api.close_owned.call_count == 1
+        report["external_service_never_gets_close_action"] = w.start_api_button.text() == "启动本地 API" and "外部" in w.tts_status.text() and api.close_owned.call_count == 2
         api.start.side_effect = ValueError("fixture startup failure")
         w.start_api_button.click(); wait(lambda: not w.api_busy)
         report["startup_error_restores_controls"] = w.start_api_button.isEnabled() and w.generate_button.isEnabled() and "fixture startup failure" in w.tts_status.text()
