@@ -71,6 +71,16 @@ def run(destination):
         window.show()
         checks["redesigned_navigation_present"] = {0, 2, 3, 4, 5, 6, 7}.issubset(window.navigation)
         checks["character_model_controls_present"] = window.provider_widgets["gpt_weights"].isEditable() and window.provider_widgets["sovits_weights"].isEditable()
+        from .managed_api import api
+        checks["manual_api_controls_present"] = window.start_api_button.text() == "启动本地 API" and window.check_api_button.isEnabled() and not api.owns_service()
+        window.tts_busy = True
+        window.begin_generation(2)
+        window.generation_update(dict(completed=1, total=2, message="打包自检：已保存一条（无合成调用）"))
+        window.finish_generation_progress(False, "自检结束；没有调用语音服务")
+        window.tts_busy = False
+        checks["generation_progress_preserves_partial_result"] = window.tts_progress.value() == 1 and window.tts_progress.maximum() == 2 and "已保存一条" in window.tts_stage_output.toPlainText()
+        from .motion import ButtonScaleEffect
+        checks["button_motion_and_feedback_loaded"] = isinstance(window.start_api_button.graphicsEffect(), ButtonScaleEffect) and bool(window.action_feedback.buttons)
         from .sovits_config import model_key
         checks["model_config_dependency_available"] = model_key({}) is None
         window.audio.message.connect(lambda s: report["media_errors"].append(s) if "失败" in s else None)
