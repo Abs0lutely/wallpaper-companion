@@ -36,7 +36,7 @@ EXE 的 `--self-test <报告路径>` 仅供构建验证：临时配置、低音�
 
 ## 自动发布
 
-开发顺序：先修改和本地验证、commit，再完成实际 EXE/安装流程验证，最后同步源码和 Release。不能将未经验证的改动直接推送发布。
+小功能和小修复先本地验证、commit，再直接推送代码；不逐项制作 EXE、ZIP、setup.exe，不自动更新 Release 或个人免安装版。新增大功能先本地完成、验证、commit，取得用户允许后再推送。只有进入获准的二进制发布阶段，才统一打包、验证实际 EXE/安装流程并同步 Release 和个人版。不能将未经验证的改动直接推送发布。
 
 个人便携版更新使用 `scripts/update_portable.py`，默认只暂存，不会关闭程序：
 
@@ -48,4 +48,4 @@ python scripts/update_portable.py --target <个人免安装目录> --plan <上�
 
 更新仅替换白名单内的程序/运行库/随附说明，旧程序备份到 `.program-backups`，完整新库替换旧库。data、用户插件、迁移记录、其他自定义文件及 portable.flag 保留，应用更新前后比较其哈希；运行中拒绝替换，不强制退出，失败回退程序文件。不要用覆盖整个目录或删除重装的方式更新个人版。
 
-`.github/workflows/release.yml` 支持手动运行或推送 `v*` 标签：安装固定依赖 → 单元测试 → 冻结 → 生成 ZIP/setup → EXE 自检和安装/卸载 → 发布包含校验文件的 Release。默认只打 Windows x64。版本必须匹配 pyproject.toml；只有全部验证通过才上传公开附件。
+`.github/workflows/release.yml` 只在手动运行或推送 `v*` 标签时打包：安装固定依赖 → 单元测试 → 冻结 → 生成 ZIP/setup → EXE 自检和安装/卸载 → 发布包含校验文件的 Release。普通代码推送只运行 Windows checks，不生成分发包。未获准发布时，不触发该工作流或创建发布标签。默认只打 Windows x64，版本必须匹配 pyproject.toml；只有全部验证通过才上传公开附件。
