@@ -7,6 +7,37 @@ from .core import writable_path
 from .dialogues import normalize_dialogues, starter_dialogues
 
 
+def shared_root(store):
+    return Path(store.config.get("shared_asset_dir") or store.path.parent / "audio" / "shared").expanduser().resolve()
+
+
+def private_root(store, profile):
+    return (store.path.parent / "audio" / profile["id"]).resolve()
+
+
+def channel_resources(profile, shared, private, modes, protected=()):
+    """Reference shared folders directly, or create private folders; never move audio."""
+    shared_values = resource_paths(shared, protected)
+    private_values = resource_paths(private, protected)
+    result = copy.deepcopy(profile)
+    for key in ("voice_dir", "bgm_dir", "dialogue_file"):
+        mode = modes.get(key, "custom")
+        if mode not in {"shared", "private", "custom"}:
+            raise ValueError("未知资源目录模式")
+        value = shared_values[key] if mode == "shared" else private_values[key] if mode == "private" else profile.get(key, "")
+        if not value:
+            raise ValueError("自定义目录为空，请选择共享或专用模式")
+        result[key] = str(writable_path(value, protected))
+    result["asset_dir"] = private_values["asset_dir"]
+    entries = load_dialogues(result)
+    for key in ("voice_dir", "bgm_dir"):
+        Path(result[key]).mkdir(parents=True, exist_ok=True)
+    if not Path(result["dialogue_file"]).exists():
+        write_dialogues(result["dialogue_file"], entries, protected)
+    result["dialogues"] = entries
+    return result
+
+
 def load_dialogues(profile):
     value = profile.get("dialogue_file", "")
     if value and Path(value).is_file():

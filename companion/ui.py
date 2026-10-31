@@ -288,7 +288,9 @@ class Window(LibraryMixin, DialogueMixin, QMainWindow):
             form.addRow(label, w)
         form.addRow("重新绑定", button("将此配置绑定到当前壁纸", self.rebind_current))
         form.addRow("资源根目录（可共享）", path_field(self.asset_dir))
+        self.asset_dir.setPlaceholderText("默认使用 data 下的资源目录；需要自定义时再修改")
         form.addRow("", button("按此根目录绑定音频、BGM 和台词库", self.use_asset_directory))
+        form.addRow("资源共享方式", button("分别设置语音 / BGM / 台词的共享或专用模式…", self.configure_resources))
         form.addRow("共用台词文件", self.dialogue_file)
         form.addRow("原壁纸音频策略", self.original_audio_policy)
         form.addRow("手动覆盖检测", self.original_audio_override)
@@ -632,7 +634,12 @@ class Window(LibraryMixin, DialogueMixin, QMainWindow):
             return False
 
     def add_profile(self):
-        p = new_profile()
+        from .assets import attach_resources, shared_root
+        try:
+            p = attach_resources(new_profile(), shared_root(self.store), self.store.protected())
+        except Exception as exc:
+            self.report_error(str(exc))
+            return
         self.store.config["profiles"].append(p)
         self.store.save()
         self.refresh_profiles(p["id"])
@@ -646,11 +653,15 @@ class Window(LibraryMixin, DialogueMixin, QMainWindow):
             self.refresh_profiles(p["id"])
             self.tabs.setCurrentIndex(0)
             return
-        p = new_profile(self.current["title"], self.current["path"])
+        from .assets import attach_resources, shared_root
+        try:
+            p = attach_resources(new_profile(self.current["title"], self.current["path"]), shared_root(self.store), self.store.protected())
+        except Exception as exc:
+            self.report_error(str(exc))
+            return
         self.store.config["profiles"].append(p)
         self.store.save()
         self.refresh_profiles(p["id"])
-        self.make_audio_dirs()
         self.tabs.setCurrentIndex(0)
 
     def rebind_current(self):
@@ -692,30 +703,38 @@ class Window(LibraryMixin, DialogueMixin, QMainWindow):
             self.report_error(str(exc))
 
     def make_audio_dirs(self):
+        self.configure_resources(dedicated=True)
+
+    def configure_resources(self, dedicated=False):
         if not self.editing_id:
             self.report_error("请先新建或绑定配置")
             return
         try:
-            root = writable_path(DATA / "audio" / self.editing_id, self.store.protected())
-            self.asset_dir.setText(str(root))
-            self.use_asset_directory()
-            self.tts_output.setText(self.voice_dir.text())
+            from .resources_ui import ResourceDialog
+            dialog = ResourceDialog(self.store, self.draft_profile(), self, dedicated)
+            if dialog.exec():
+                self.apply_resource_profile(dialog.apply())
         except Exception as exc:
             self.report_error(str(exc))
 
     def use_asset_directory(self):
         try:
             from .assets import attach_resources
-            if not self.asset_dir.text().strip():
-                raise ValueError("请选择资源根目录")
-            attached = attach_resources(self.draft_profile(), self.asset_dir.text().strip(), self.store.protected())
-            for widget, key in [(self.asset_dir, "asset_dir"), (self.voice_dir, "voice_dir"), (self.bgm_dir, "bgm_dir"), (self.dialogue_file, "dialogue_file")]:
-                widget.setText(attached[key])
-            self.edit_dialogues = attached["dialogues"]
-            self.render_dialogues()
-            self.save_profile()
+            from .assets import shared_root
+            attached = attach_resources(self.draft_profile(), self.asset_dir.text().strip() or shared_root(self.store), self.store.protected())
+            self.apply_resource_profile(attached)
         except Exception as exc:
             self.report_error(str(exc))
+
+    def apply_resource_profile(self, attached):
+        for widget, key in [(self.asset_dir, "asset_dir"), (self.voice_dir, "voice_dir"), (self.bgm_dir, "bgm_dir"), (self.dialogue_file, "dialogue_file")]:
+            widget.setText(attached[key])
+        self.edit_dialogues = attached["dialogues"]
+        self.render_dialogues()
+        if self.save_profile():
+            self.tts_output.setText(self.voice_dir.text())
+            return True
+        return False
 
     def live_bgm_volume(self, value):
         if self.editing_id != self.active_id or not self.active_id:

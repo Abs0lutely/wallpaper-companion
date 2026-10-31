@@ -12,7 +12,7 @@ CONTROL_HELP = {
     "wallpaper_path": "当前配置绑定的壁纸入口，只读；用重新绑定按钮更换。",
     "voice_dir": "播放语音的总目录，包含子目录；支持手动放入下载音频。",
     "bgm_dir": "伴随 BGM 的音乐目录，包含子目录；留空则没有伴随音乐。",
-    "asset_dir": "根目录下统一使用 voice、bgm 和 dialogues.json；多个配置可选择同一根目录。",
+    "asset_dir": "新配置默认使用 data 下的共享资源，无需填写；可选自定义目录，或通过目录模式弹窗分别选择共享和专用。",
     "dialogue_file": "共享台词 JSON 文件；保存台词会影响引用同一文件的其他配置。",
     "profile_enabled": "关闭后此配置的自动语音和伴随 BGM 都停止。",
     "bgm_enabled": "仅控制此配置是否播放伴随 BGM，互动语音仍可使用。",

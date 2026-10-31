@@ -28,6 +28,9 @@ class BatchBindDialog(QDialog):
         self.mode.addItem("共用完整资源目录（含台词库）", "shared_root")
         self.mode.addItem("为每张壁纸建立独立目录", "separate")
         self.asset = QLineEdit(selected.get("asset_dir", "") if selected else "")
+        if parent is not None and hasattr(parent, "store"):
+            from .assets import shared_root
+            self.asset.setText(str(shared_root(parent.store)))
         self.voice = QLineEdit(selected.get("voice_dir", "") if selected else "")
         self.bgm = QLineEdit(selected.get("bgm_dir", "") if selected else "")
         self.template = QComboBox()
@@ -51,8 +54,7 @@ class BatchBindDialog(QDialog):
         controls.rejected.connect(self.reject)
         layout.addWidget(controls)
         self.mode.currentIndexChanged.connect(self.update_mode)
-        if not self.voice.text():
-            self.mode.setCurrentIndex(2)
+        self.mode.setCurrentIndex(1)
         self.update_mode()
 
     def update_mode(self):

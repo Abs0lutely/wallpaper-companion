@@ -92,7 +92,7 @@ def new_profile(name="新的壁纸配置", wallpaper="") -> dict:
 def defaults() -> dict:
     we_dir, workshop_dir = discover_wallpaper_engine()
     return dict(version=4, we_dir=we_dir, workshop_dir=workshop_dir, library_roots=[], library_backend="wallpaper_engine", ffprobe="",
-                monitor=0, poll_seconds=4, manual_profile="", profiles=[], hover_help=True,
+                monitor=0, poll_seconds=4, manual_profile="", profiles=[], hover_help=True, shared_asset_dir="",
                 wallpaper_backend="wallpaper_engine", audio_backend="qt", input_backend="pynput",
                 enabled_plugins=[], tts_provider="gpt_sovits", tts_providers={}, audio_detector="builtin",
                 tts=dict(url="http://127.0.0.1:9880", project=os.environ.get("GPT_SOVITS_DIR", ""),

@@ -106,9 +106,7 @@ def plan_bindings(config, records, *, mode="shared", voice_dir="", bgm_dir="", a
             updated["profiles"].append(profile)
             created += 1
         if mode in {"separate", "shared_root"}:
-            if mode == "shared_root" and not asset_dir:
-                raise ValueError("请选择共享资源根目录")
-            base = Path(asset_dir) if mode == "shared_root" else Path(data_root or DATA) / "audio" / profile["id"]
+            base = Path(asset_dir or config.get("shared_asset_dir") or Path(data_root or DATA) / "audio/shared") if mode == "shared_root" else Path(data_root or DATA) / "audio" / profile["id"]
             values = resource_paths(base, protected)
             entries = dialogue_files.get(values["dialogue_file"])
             if entries is None:
