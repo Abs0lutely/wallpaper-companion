@@ -27,6 +27,7 @@ def check_exe(exe, report, env):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--release-dir", type=Path, default=ROOT / "dist/release")
+    parser.add_argument("--report-dir", type=Path, default=ROOT / "output")
     args = parser.parse_args()
     if sys.platform != "win32":
         parser.error("Windows verification requires Windows")
@@ -45,8 +46,8 @@ def main():
             for line in (args.release_dir / "SHA256SUMS.txt").read_text(encoding="utf-8").splitlines()}
     for file in [archive, installer]:
         assert hashlib.sha256(file.read_bytes()).hexdigest() == sums[file.name], "SHA256 mismatch"
-    output = ROOT / "output"
-    output.mkdir(exist_ok=True)
+    output = args.report_dir.resolve()
+    output.mkdir(parents=True, exist_ok=True)
     with tempfile.TemporaryDirectory(prefix="release 中文 ", dir=output) as temporary:
         temp = Path(temporary)
         env = {k: v for k, v in os.environ.items() if not k.upper().startswith(("PYTHON", "CONDA", "QT", "QML"))

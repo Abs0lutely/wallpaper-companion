@@ -15,7 +15,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from companion.core import writable_path
 
 PROGRAM_ROOTS = {"WallpaperCompanion.exe", "_internal", "examples", "licenses", "README.md", "USER_GUIDE.md",
-                 "EXTENSIONS.md", "THIRD_PARTY.md", "LICENSE", "BUILDING.md"}
+                 "EXTENSIONS.md", "THIRD_PARTY.md", "LICENSE", "BUILDING.md", "RELEASE_GUIDE.md"}
 UPDATE_ROOTS = {".program-updates", ".program-backups"}
 
 

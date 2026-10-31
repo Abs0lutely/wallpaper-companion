@@ -7,7 +7,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 TOP = ["main.py", "README.md", "USER_GUIDE.md", "AGENTS.md", "EXTENSIONS.md", "THIRD_PARTY.md", "LICENSE", "requirements.txt",
        "pyproject.toml", ".gitignore", "setup.ps1", "setup.cmd", "start.cmd", "debug.cmd", "plugins/.gitkeep",
-       "PROJECT_HANDOFF.md", "BUILDING.md", "requirements-build.txt", ".gitattributes"]
+       "PROJECT_HANDOFF.md", "BUILDING.md", "RELEASE_GUIDE.md", "build_release.cmd", "requirements-build.txt", ".gitattributes"]
 files = [ROOT / name for name in TOP]
 for folder in ["companion", "examples", "tests", "scripts", ".github", "packaging"]:
     files.extend(p for p in (ROOT / folder).rglob("*") if p.is_file()

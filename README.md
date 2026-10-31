@@ -28,6 +28,8 @@
 - **安装版**：下载 `*-setup.exe`，按向导安装，无需管理员权限。用户数据位于 `%LOCALAPPDATA%\WallpaperCompanion`，升级和卸载均保留数据。
 - 同一 Release 提供 `SHA256SUMS.txt`。二进制未数字签名；下载和构建说明见 [BUILDING.md](BUILDING.md)。
 
+开发者准备正式发行时可双击 `build_release.cmd`，验证通过后输出安装包和便携 ZIP；推送与发布由自己手动操作，步骤见 [发布指南](RELEASE_GUIDE.md)。
+
 以下为**源码运行**方式，需要 Miniconda/Anaconda（推荐）或 Python 3.11+。克隆仓库或下载源码 ZIP 后解压。
 
 在能使用 `conda` 的 PowerShell 中进入项目目录执行：

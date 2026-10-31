@@ -10,6 +10,10 @@
 
 ## 自行构建
 
+**推荐双击项目根目录 `build_release.cmd`**：自动检查/补齐依赖、运行源码测试、完整构建，并验证实际便携 EXE 和安装/卸载。只有全部通过才将本次三个发行文件放进 `dist/verified/<版本>/<本次编号>/` 并打开该目录；失败保留日志在 `output/local-release/<本次编号>/`，不生成本次已验证目录。脚本不操作 Git/GitHub，也不更新个人版。首次需要能发现 Conda，或先在 Anaconda Prompt 运行 setup.cmd。正常操作与常见报错见 [RELEASE_GUIDE.md](RELEASE_GUIDE.md)。
+
+以下是底层手动命令（输出 `dist/release/`，需自己确认验证通过；不要与双击脚本并行运行）：
+
 在 Windows x64、Python 3.11 的项目环境执行（源码安装方式见 README）：
 
 ```powershell

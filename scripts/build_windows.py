@@ -87,6 +87,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--iscc", type=Path, default=ROOT / "build/tools/inno/ISCC.exe")
     parser.add_argument("--skip-freeze", action="store_true", help="Reuse existing frozen binaries after documentation-only changes")
+    parser.add_argument("--release-dir", type=Path, default=ROOT / "dist/release")
     args = parser.parse_args()
     if sys.platform != "win32" or struct.calcsize("P") != 8:
         parser.error("Build on Windows x64 using 64-bit Python")
@@ -96,13 +97,13 @@ def main():
                         "--workpath", str(ROOT / "build/pyinstaller"), str(ROOT / "packaging/wallpaper-companion.spec")], cwd=ROOT, check=True)
     bundle = ROOT / "dist/WallpaperCompanion"
     assert (bundle / "WallpaperCompanion.exe").is_file()
-    for name in ["README.md", "USER_GUIDE.md", "EXTENSIONS.md", "THIRD_PARTY.md", "LICENSE", "BUILDING.md"]:
+    for name in ["README.md", "USER_GUIDE.md", "EXTENSIONS.md", "THIRD_PARTY.md", "LICENSE", "BUILDING.md", "RELEASE_GUIDE.md"]:
         shutil.copy2(ROOT / name, bundle / name)
     shutil.copytree(ROOT / "examples", bundle / "examples", ignore=shutil.ignore_patterns("__pycache__"), dirs_exist_ok=True)
     (bundle / "plugins").mkdir(exist_ok=True)
     copy_licenses(bundle)
-    release = ROOT / "dist/release"
-    release.mkdir(exist_ok=True)
+    release = args.release_dir.resolve()
+    release.mkdir(parents=True, exist_ok=True)
     prefix = f"WallpaperCompanion-{version()}-windows-x64"
     archive = release / (prefix + "-portable.zip")
     with zipfile.ZipFile(archive, "w", zipfile.ZIP_DEFLATED, compresslevel=6) as z:
