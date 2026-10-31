@@ -93,6 +93,7 @@ def defaults() -> dict:
     we_dir, workshop_dir = discover_wallpaper_engine()
     return dict(version=4, we_dir=we_dir, workshop_dir=workshop_dir, library_roots=[], library_backend="wallpaper_engine", ffprobe="",
                 monitor=0, poll_seconds=4, manual_profile="", profiles=[], hover_help=True, shared_asset_dir="",
+                appearance=dict(background="", accent="#edb2c4", auto_color=True),
                 wallpaper_backend="wallpaper_engine", audio_backend="qt", input_backend="pynput",
                 enabled_plugins=[], tts_provider="gpt_sovits", tts_providers={}, audio_detector="builtin",
                 tts=dict(url="http://127.0.0.1:9880", project=os.environ.get("GPT_SOVITS_DIR", ""),
@@ -109,6 +110,8 @@ class Store:
                 if not isinstance(saved, dict) or not isinstance(saved.get("profiles", []), list):
                     raise ValueError("配置结构错误")
                 self.config.update(saved)
+                from .appearance import normalize_appearance
+                self.config["appearance"] = normalize_appearance(self.config.get("appearance"))
                 self.config["tts"] = {**defaults()["tts"], **saved.get("tts", {})}
                 if "gpt_sovits" not in self.config["tts_providers"]:
                     self.config["tts_providers"]["gpt_sovits"] = self.config["tts"].copy()

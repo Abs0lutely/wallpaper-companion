@@ -20,7 +20,10 @@ store = Store(Path(fixture.name) / "config.json")
 app = QApplication([])
 app.setStyle("Fusion"); app.setStyleSheet(STYLE)
 w = Window(store, hooks=False)
+w.show_home_section(2)
 w.show()
+app.processEvents()
+w.profile_sections.widget(1).ensureWidgetVisible(w.voice_dir)
 # Drain native show/activation/leave events before synthesizing the hover.
 # Otherwise a queued OS Leave can cancel the timer after our synthetic Enter.
 assert QTest.qWaitForWindowExposed(w, 5000)
@@ -34,10 +37,17 @@ try:
     with patch("companion.help_ui.QCursor.pos", return_value=point), patch("companion.help_ui.QApplication.widgetAt", return_value=w.voice_dir), patch("companion.help_ui.QToolTip.showText") as show:
         QApplication.sendEvent(w.voice_dir, QEvent(QEvent.Type.Enter))
         report["hover_starts_timer"] = w.hover_help.timer.isActive()
-        for _ in range(40):
-            if show.called:
-                break
-            QTest.qWait(50)
+        # Pointer location is simulated above. Ignore unrelated native Leave
+        # events while waiting on the actual one-second Qt timer, without
+        # moving the user's cursor or changing the product's hover behavior.
+        app.removeEventFilter(w.hover_help)
+        try:
+            for _ in range(40):
+                if show.called:
+                    break
+                QTest.qWait(50)
+        finally:
+            app.installEventFilter(w.hover_help)
         report["hover_shows_explanation"] = show.called and "播放语音" in show.call_args.args[1]
         w.help_button.click()
         report["switch_off_persisted"] = not w.hover_help.enabled and not Store(store.path).config["hover_help"]

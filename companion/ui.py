@@ -34,35 +34,10 @@ EVENTS = {
     "scheduled": "每天固定时刻",
 }
 
-STYLE = """
-QWidget { background:#111827; color:#e5eaf4; font-family:'Microsoft YaHei UI'; font-size:13px; }
-QMainWindow, QDialog { background:#111827; }
-QLabel#brand { font-size:25px; font-weight:700; color:#f8fafc; }
-QLabel#subtle { color:#94a3b8; }
-QLabel#current { background:#1c2940; border:1px solid #334966; border-radius:10px; padding:14px; font-size:15px; }
-QLabel#status { color:#67e8c8; padding:6px; }
-QPushButton { background:#24334b; border:1px solid #3c506c; border-radius:6px; padding:8px 13px; }
-QPushButton:hover { background:#334966; }
-QPushButton:disabled { color:#64748b; background:#1e293b; }
-QPushButton#primary { background:#0f766e; border-color:#14b8a6; font-weight:600; }
-QPushButton#primary:hover { background:#0d9488; }
-QLineEdit, QPlainTextEdit, QSpinBox, QDoubleSpinBox, QComboBox, QTimeEdit { background:#0c1525; border:1px solid #334155; border-radius:5px; padding:7px; selection-background-color:#0f766e; }
-QListWidget, QTableWidget { background:#101d30; border:1px solid #2c3e56; border-radius:6px; alternate-background-color:#152439; }
-QListWidget::item { padding:12px 8px; border-radius:5px; }
-QListWidget::item:selected, QTableWidget::item:selected { background:#164e63; }
-QHeaderView::section { background:#1e3049; border:0; padding:8px; }
-QTabWidget::pane { border:1px solid #2c3e56; border-radius:7px; }
-QTabBar::tab { background:#17243a; padding:11px 19px; }
-QTabBar::tab:selected { background:#23425a; color:#8df0d7; }
-QCheckBox { spacing:8px; padding:5px 0; }
-QCheckBox::indicator { width:17px; height:17px; border:1px solid #64748b; border-radius:3px; background:#0c1525; }
-QCheckBox::indicator:checked { background:#0d9488; border:2px solid #5eead4; }
-QMenu { background:#1e293b; border:1px solid #475569; padding:5px; }
-QMenu::item { padding:8px 20px; }
-QMenu::item:selected { background:#0f766e; }
-QScrollArea { border:0; }
-QToolTip { color:#f8fafc; background:#334155; border:1px solid #64748b; }
-"""
+from .theme_ui import stylesheet
+from .shell_ui import CompanionShellMixin
+
+STYLE = stylesheet()
 
 
 def button(text, fn, primary=False):
@@ -113,10 +88,10 @@ def app_icon():
     pixmap.fill(Qt.GlobalColor.transparent)
     painter = QPainter(pixmap)
     painter.setRenderHint(QPainter.RenderHint.Antialiasing)
-    painter.setBrush(QColor("#14b8a6"))
+    painter.setBrush(QColor("#edb2c4"))
     painter.setPen(Qt.PenStyle.NoPen)
     painter.drawRoundedRect(3, 3, 58, 58, 16, 16)
-    painter.setBrush(QColor("#0f172a"))
+    painter.setBrush(QColor("#281821"))
     for x, height in [(16, 16), (25, 34), (34, 44), (43, 24)]:
         painter.drawRoundedRect(x, (64 - height) // 2, 5, height, 2, 2)
     painter.end()
@@ -126,7 +101,7 @@ def app_icon():
 from .rules_ui import RuleDialog
 
 
-class Window(LibraryMixin, DialogueMixin, AudioLibraryMixin, QMainWindow):
+class Window(LibraryMixin, DialogueMixin, AudioLibraryMixin, CompanionShellMixin, QMainWindow):
     job_done = Signal(object, object, object)
     hook_event = Signal(str, str)
     progress = Signal(str)
@@ -198,137 +173,11 @@ class Window(LibraryMixin, DialogueMixin, AudioLibraryMixin, QMainWindow):
         QTimer.singleShot(500, self.scan_library)
 
     def build_ui(self):
-        root = QWidget()
-        self.setCentralWidget(root)
-        layout = QVBoxLayout(root)
-        layout.setContentsMargins(24, 20, 24, 16)
-        title = QLabel("壁纸声伴")
-        title.setObjectName("brand")
-        self.pause_button = button("暂停伴随", self.toggle_pause)
-        self.help_button = button("悬停说明：开启" if self.store.config.get("hover_help", True) else "悬停说明：关闭", self.toggle_hover_help)
-        layout.addWidget(row(title, hint("让当前壁纸拥有声音与回应"), self.help_button,
-                             button("打开使用手册", lambda: self.open_document("USER_GUIDE.md")), self.pause_button))
-        self.current_label = QLabel("正在检测…")
-        self.current_label.setObjectName("current")
-        self.current_label.setWordWrap(True)
-        layout.addWidget(row(self.current_label, button("立即检测", lambda: self.detect(command=True))))
-        self.status_label = QLabel()
-        self.status_label.setObjectName("status")
-        layout.addWidget(self.status_label)
-        splitter = QSplitter()
-        sidebar = QWidget()
-        side = QVBoxLayout(sidebar)
-        side.setContentsMargins(0, 0, 10, 0)
-        side.addWidget(QLabel("壁纸配置"))
-        self.profiles = QListWidget()
-        self.profiles.setSelectionMode(QAbstractItemView.SelectionMode.ExtendedSelection)
-        self.profiles.currentRowChanged.connect(self.select_profile)
-        side.addWidget(self.profiles)
-        side.addWidget(button("＋ 绑定当前壁纸", self.bind_current, True))
-        side.addWidget(button("扫描 / 批量绑定壁纸…", lambda: self.tabs.setCurrentIndex(self.library_tab_index)))
-        side.addWidget(row(button("新建", self.add_profile), button("删除", self.delete_profile)))
-        self.manual = QCheckBox("手动使用选中配置")
-        self.manual.setToolTip("关闭时随 Wallpaper Engine 当前壁纸自动切换；开启可独立测试声音。")
-        self.manual.toggled.connect(self.set_manual)
-        side.addWidget(self.manual)
-        side.addWidget(hint("自动模式只为已绑定的壁纸播放声音。\n关闭窗口后留在系统托盘。"))
-        splitter.addWidget(sidebar)
-        self.tabs = QTabWidget()
-        splitter.addWidget(self.tabs)
-        splitter.setSizes([245, 865])
-        layout.addWidget(splitter, 1)
-        self.build_profile_tab()
-        self.build_tts_tab()
-        self.build_settings_tab()
-        self.build_library_tab()
-        self.build_dialogue_tab()
-        self.build_audio_library_tab()
-        self.logs = QPlainTextEdit()
-        self.logs.setReadOnly(True)
-        self.logs.setMaximumBlockCount(500)
-        self.tabs.addTab(self.logs, "运行记录")
-        self.footer = hint("独立伴随 · 音频、配置保存在自己的目录 · 输入监听不记录输入文本")
-        layout.addWidget(self.footer)
+        self.build_companion_shell()
 
     def build_profile_tab(self):
-        page = QWidget()
-        outer = QVBoxLayout(page)
-        scroll = QScrollArea()
-        scroll.setWidgetResizable(True)
-        inner = QWidget()
-        content = QVBoxLayout(inner)
-        form = QFormLayout()
-        self.profile_name = QLineEdit()
-        self.wallpaper_path = QLineEdit()
-        self.wallpaper_path.setReadOnly(True)
-        self.voice_dir = QLineEdit()
-        self.bgm_dir = QLineEdit()
-        self.asset_dir = QLineEdit()
-        self.dialogue_file = QLineEdit()
-        self.dialogue_file.setReadOnly(True)
-        self.original_audio_policy = QComboBox()
-        for label, value in [("防冲突：有声音证据或无法确认时暂停 BGM", "safe"), ("仅发现声音证据时暂停 BGM", "detected"), ("允许伴随 BGM 播放", "allow")]:
-            self.original_audio_policy.addItem(label, value)
-        self.original_audio_override = QComboBox()
-        for label, value in [("自动检测", "auto"), ("我确认原壁纸无声 / 已静音", "no"), ("我确认原壁纸有声音", "yes")]:
-            self.original_audio_override.addItem(label, value)
-        self.original_audio_label = hint("尚未检测原壁纸音频")
-        self.bgm_pause_button = button("暂停当前 BGM", self.toggle_bgm)
-        self.profile_enabled = QCheckBox("启用此配置")
-        self.desktop_only = QCheckBox("鼠标和键盘仅在桌面前台时触发")
-        self.fullscreen_mute = QCheckBox("全屏应用前台时暂停伴随声音")
-        self.bgm_enabled = QCheckBox("启用文件夹 BGM")
-        self.shuffle = QCheckBox("随机播放 BGM（关闭则按文件名顺序）")
-        self.voice_volume = spin(0, 100, 80, "%")
-        self.bgm_volume = spin(0, 100, 25, "%")
-        self.bgm_volume.valueChanged.connect(self.live_bgm_volume)
-        self.duck = spin(0, 100, 25, "%")
-        self.global_cooldown = spin(0, 3600, 8, " 秒")
-        for label, w in [("配置名称", self.profile_name), ("绑定壁纸", self.wallpaper_path),
-                         ("语音文件夹", path_field(self.voice_dir)), ("BGM 文件夹", path_field(self.bgm_dir)),
-                         ("播放开关", row(self.profile_enabled, self.bgm_enabled)), ("输入范围", self.desktop_only),
-                         ("全屏时", self.fullscreen_mute), ("BGM 顺序", self.shuffle),
-                         ("音量", row(QLabel("语音"), self.voice_volume, QLabel("BGM"), self.bgm_volume)),
-                         ("说话时 BGM 保留", self.duck), ("语音全局冷却", self.global_cooldown)]:
-            form.addRow(label, w)
-        form.addRow("重新绑定", button("将此配置绑定到当前壁纸", self.rebind_current))
-        form.addRow("资源根目录（可共享）", path_field(self.asset_dir))
-        self.asset_dir.setPlaceholderText("默认使用 data 下的资源目录；需要自定义时再修改")
-        form.addRow("", button("按此根目录绑定音频、BGM 和台词库", self.use_asset_directory))
-        form.addRow("资源共享方式", button("共享 / 专用目录设置…", self.configure_resources))
-        form.addRow("共用台词文件", self.dialogue_file)
-        form.addRow("原壁纸音频策略", self.original_audio_policy)
-        form.addRow("手动覆盖检测", self.original_audio_override)
-        form.addRow("当前播放的音频检测", self.original_audio_label)
-        form.addRow("音频检测", button("重新检测原壁纸声音", self.probe_original_audio))
-        content.addLayout(form)
-        content.addWidget(row(button("建立专用音频目录", self.make_audio_dirs),
-                              button("打开语音目录", lambda: self.open_folder(self.voice_dir.text())),
-                              button("打开 BGM 目录", lambda: self.open_folder(self.bgm_dir.text()))))
-        content.addWidget(hint("可放入 WAV / MP3 / OGG / FLAC / M4A 等音频，包含子目录。新增、删除文件会在下次选曲时生效。"))
-        content.addWidget(hint("到“互动规则”标签中设置鼠标、快捷键和按时间段随机播放。修改后请保存配置。"))
-        scroll.setWidget(inner)
-        outer.addWidget(scroll, 1)
-        outer.addWidget(row(button("保存配置", self.save_profile, True), button("随机试听语音", self.preview_voice),
-                            self.bgm_pause_button, button("下一首 BGM", self.audio.next_bgm), button("停止试听", self.audio.voice.stop)))
-        self.tabs.addTab(page, "声音与互动")
-        rules_page = QWidget()
-        rules_layout = QVBoxLayout(rules_page)
-        rules_layout.addWidget(hint("规则属于左侧选中的配置。可用不同子目录和时间段安排早安、晚安、点击回应。\n"
-                                   "语音播放中不会叠加其他语音；桌面范围和全局冷却在“声音与互动”中设置。"))
-        self.rules_table = QTableWidget(0, 5)
-        self.rules_table.setHorizontalHeaderLabels(["启用", "规则", "触发", "时段", "来源 / 筛选"])
-        self.rules_table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
-        self.rules_table.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
-        self.rules_table.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
-        self.rules_table.setMinimumHeight(165)
-        self.rules_table.cellDoubleClicked.connect(lambda r, c: self.edit_rule())
-        rules_layout.addWidget(self.rules_table, 1)
-        rules_layout.addWidget(row(button("＋ 添加规则", self.add_rule), button("编辑", self.edit_rule),
-                              button("删除规则", self.delete_rule), button("试听选中规则", self.preview_rule)))
-        rules_layout.addWidget(button("保存配置与规则", self.save_profile, True))
-        rules_layout.addWidget(row(button("导入互动配置…", self.import_interaction_preset), button("导出选中配置…", self.export_interaction_preset)))
-        self.tabs.addTab(rules_page, "互动规则")
+        from .profile_ui import build_profile
+        build_profile(self)
 
     def build_tts_tab(self):
         page = QWidget()
@@ -538,6 +387,7 @@ class Window(LibraryMixin, DialogueMixin, AudioLibraryMixin, QMainWindow):
         self.profiles.setCurrentRow(target)
         self.profiles.blockSignals(False)
         self.select_profile(target)
+        self.refresh_shell()
         self.manual.blockSignals(True)
         self.manual.setChecked(bool(self.store.config["manual_profile"]))
         self.manual.blockSignals(False)
@@ -1039,6 +889,7 @@ class Window(LibraryMixin, DialogueMixin, AudioLibraryMixin, QMainWindow):
         title = "继续当前 BGM" if getattr(self.audio, "bgm_paused", False) else "暂停当前 BGM"
         if self.bgm_pause_button.text() != title:
             self.bgm_pause_button.setText(title)
+        self.refresh_shell()
 
     def render_current_wallpaper(self):
         if not self.isVisible():
@@ -1245,6 +1096,8 @@ class Window(LibraryMixin, DialogueMixin, AudioLibraryMixin, QMainWindow):
         if self.quitting:
             return
         self.quitting = True
+        self.commit_player_volume()
+        self.player_volume_timer.stop()
         self.generation_cancel.set()
         from .managed_api import api
         try:
