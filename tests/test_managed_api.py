@@ -26,12 +26,16 @@ class ManagedAPITests(unittest.TestCase):
         script.write_text('''import argparse, json, subprocess, sys, io, wave
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from pathlib import Path
-p=argparse.ArgumentParser(); p.add_argument('-a'); p.add_argument('-p',type=int); a=p.parse_args()
+p=argparse.ArgumentParser(); p.add_argument('-a'); p.add_argument('-p',type=int); p.add_argument('-c',default=''); a=p.parse_args()
+if a.c: Path('startup-config.yaml').write_bytes(Path(a.c).read_bytes())
 child=subprocess.Popen([sys.executable,'-c','import time; time.sleep(120)'])
 Path('child.pid').write_text(str(child.pid))
 class Handler(BaseHTTPRequestHandler):
  def log_message(self,*args): pass
  def do_GET(self):
+  if self.path.startswith('/set_'):
+   with Path('model-switches.log').open('a',encoding='utf-8') as f: f.write(self.path+'\\n')
+   self.send_response(200); self.end_headers(); self.wfile.write(b'{"message":"success"}'); return
   self.send_response(200); self.end_headers(); self.wfile.write(b'{"paths":{"/tts":{}}}')
  def do_POST(self):
   self.rfile.read(int(self.headers['Content-Length']))
@@ -115,3 +119,32 @@ HTTPServer((a.a,a.p),Handler).serve_forever()
                 api.ensure(settings, [api.data_dir])
             launch.assert_not_called()
         self.assertIsNone(api.process)
+
+    def test_owned_api_starts_with_selected_models_and_keeps_original_config(self):
+        import yaml
+        root, settings, api = self.fixture()
+        for name in ("a.ckpt", "a.pth", "b.ckpt", "b.pth"):
+            (root / name).write_bytes(b"fixture")
+        source = root / "GPT_SoVITS/configs/tts_infer.yaml"
+        source.parent.mkdir(parents=True)
+        source.write_text("custom:\n  version: v2\n  device: cpu\n  is_half: false\n", encoding="utf-8")
+        original = source.read_bytes()
+        settings.update(gpt_weights="a.ckpt", sovits_weights="a.pth")
+        api.synthesize(settings, "first")
+        private = api.runtime_config
+        startup = yaml.safe_load((root / "startup-config.yaml").read_text(encoding="utf-8"))
+        self.assertEqual(startup["custom"]["t2s_weights_path"], str((root / "a.ckpt").resolve()))
+        self.assertFalse((root / "model-switches.log").exists())
+        process = api.process
+        api.synthesize({**settings, "gpt_weights": "b.ckpt", "sovits_weights": "b.pth"}, "second")
+        self.assertIsNot(api.process, process)
+        self.assertIsNotNone(process.poll())
+        self.assertFalse(private.exists())
+        self.assertFalse((root / "model-switches.log").exists())
+        startup = yaml.safe_load((root / "startup-config.yaml").read_text(encoding="utf-8"))
+        self.assertEqual(startup["custom"]["t2s_weights_path"], str((root / "b.ckpt").resolve()))
+        self.assertEqual(source.read_bytes(), original)
+        current_private = api.runtime_config
+        self.assertTrue(current_private.exists())
+        api.shutdown()
+        self.assertFalse(current_private.exists())

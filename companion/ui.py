@@ -26,6 +26,7 @@ from .services import InputHooks, api_status, current_wallpaper, foreground_stat
 from .extensions import load_extensions
 from .library_ui import LibraryMixin, DialogueMixin
 from .audio_library_ui import AudioLibraryMixin
+from .characters_ui import CharacterMixin
 
 EVENTS = {
     "key": "快捷键", "mouse_left": "鼠标左键", "mouse_right": "鼠标右键", "mouse_middle": "鼠标中键",
@@ -126,7 +127,7 @@ def app_icon():
 from .rules_ui import RuleDialog
 
 
-class Window(LibraryMixin, DialogueMixin, AudioLibraryMixin, QMainWindow):
+class Window(LibraryMixin, DialogueMixin, AudioLibraryMixin, CharacterMixin, QMainWindow):
     job_done = Signal(object, object, object)
     hook_event = Signal(str, str)
     progress = Signal(str)
@@ -346,6 +347,7 @@ class Window(LibraryMixin, DialogueMixin, AudioLibraryMixin, QMainWindow):
         self.provider_widgets = {}
         self.provider_cache = {}
         self.rendered_provider = ""
+        layout.addWidget(self.build_character_tools())
         provider_scroll.setWidget(self.provider_fields_widget)
         layout.addWidget(provider_scroll, 2)
         self.tts_output = QLineEdit()
@@ -373,6 +375,10 @@ class Window(LibraryMixin, DialogueMixin, AudioLibraryMixin, QMainWindow):
                     values[key] = widget.toPlainText().strip()
                 elif isinstance(widget, QDoubleSpinBox):
                     values[key] = widget.value()
+                elif isinstance(widget, QComboBox):
+                    values[key] = widget.currentText().strip()
+                elif isinstance(widget, QCheckBox):
+                    values[key] = widget.isChecked()
                 else:
                     values[key] = widget.text().strip()
             self.provider_cache[self.rendered_provider] = values
@@ -395,6 +401,17 @@ class Window(LibraryMixin, DialogueMixin, AudioLibraryMixin, QMainWindow):
                 widget.setRange(.5, 2)
                 widget.setSingleStep(.1)
                 widget.setValue(float(value))
+            elif field.kind == "bool":
+                widget = QCheckBox()
+                widget.setChecked(value is True)
+            elif field.kind in {"gpt_model", "sovits_model"}:
+                widget = QComboBox()
+                widget.setEditable(True)
+                widget.setMinimumContentsLength(16)
+                widget.setSizeAdjustPolicy(QComboBox.SizeAdjustPolicy.AdjustToMinimumContentsLengthWithIcon)
+                widget.addItem("")
+                widget.setCurrentText(str(value))
+                widget.lineEdit().setPlaceholderText("留空沿用当前模型；可扫描选择或浏览")
             else:
                 widget = QLineEdit(str(value))
                 if field.kind == "password":
@@ -411,9 +428,12 @@ class Window(LibraryMixin, DialogueMixin, AudioLibraryMixin, QMainWindow):
                 widget.setPlaceholderText(field.help)
             self.provider_widgets[field.key] = widget
             display = path_field(widget, field.kind == "directory") if field.kind in {"file", "directory"} else widget
+            if field.kind in {"gpt_model", "sovits_model"}:
+                display = self.model_path_field(widget)
             self.provider_form.addRow(field.label, display)
         self.provider_description.setText(provider.description)
         self.start_api_button.setVisible(provider.start is not None and provider.id != "gpt_sovits")
+        self.character_provider_changed()
         from .help_ui import annotate_controls
         annotate_controls(self)
 
@@ -1151,6 +1171,8 @@ class Window(LibraryMixin, DialogueMixin, AudioLibraryMixin, QMainWindow):
             self.store.config["tts_provider"] = self.provider_choice.currentData()
             self.store.config["tts_providers"] = sanitized
             self.store.config["tts"] = sanitized.get("gpt_sovits", self.store.config["tts"])
+            if self.provider_choice.currentData() == "gpt_sovits":
+                self.store.config["tts_character"] = self.character_choice.currentData() or ""
             self.store.save()
             self.log("语音扩展设置已保存")
             return True
@@ -1245,6 +1267,7 @@ class Window(LibraryMixin, DialogueMixin, AudioLibraryMixin, QMainWindow):
         if self.quitting:
             return
         self.quitting = True
+        self.character_scan_timer.stop()
         self.generation_cancel.set()
         from .managed_api import api
         try:

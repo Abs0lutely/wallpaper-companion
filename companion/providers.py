@@ -40,17 +40,8 @@ def request_audio(url, *, headers=None, payload=None, body=None):
 
 
 def gpt_sovits(settings, text):
-    from .services import local_url
-    reference = Path(settings.get("reference", ""))
-    if not reference.is_file() or not settings.get("prompt", "").strip():
-        raise ValueError("请选择参考音频，并填写逐字对应的参考原文")
-    payload = dict(text=text, text_lang=settings.get("text_lang", "zh"), ref_audio_path=str(reference.resolve()),
-                   prompt_text=settings["prompt"], prompt_lang=settings.get("prompt_lang", "zh"),
-                   speed_factor=float(settings.get("speed", 1)), media_type="wav", streaming_mode=False,
-                   text_split_method="cut5", batch_size=1, seed=-1)
     from .managed_api import api
-    api.ensure(settings, settings.get("_protected_dirs", ()))
-    return request_audio(local_url(settings["url"]) + "/tts", payload=payload)
+    return api.synthesize(settings, text)
 
 
 def compatible(settings, text):
@@ -91,10 +82,13 @@ def builtin_providers():
         SpeechProvider("gpt_sovits", "本地 GPT-SoVITS", [
             Field("url", "API 地址", default="http://127.0.0.1:9880"),
             Field("project", "项目目录", "directory"), Field("python", "Python 可执行文件（可选）", "file"),
+            Field("gpt_weights", "GPT 模型 (.ckpt)", "gpt_model", help="与 SoVITS 配套选择；两项同时留空可沿用当前模型"),
+            Field("sovits_weights", "SoVITS 模型 (.pth)", "sovits_model", help="扫描后选择或自行浏览，只有生成时才加载"),
             Field("reference", "参考音频", "file"), Field("prompt", "参考音频原文", "multiline"),
             Field("text_lang", "目标语言代码", default="zh"), Field("prompt_lang", "参考语言代码", default="zh"),
-            Field("speed", "语速", "float", 1.0)], gpt_sovits, api_status,
-            "仅在生成时自动启动本地 API，退出声伴时停止自建 API；已运行的外部接口只复用。参考音频与原文必须对应，沿用当前模型。", start_api),
+            Field("speed", "语速", "float", 1.0),
+            Field("allow_external_model_switch", "允许切换外部 API 模型（会影响其他使用者）", "bool", False)], gpt_sovits, api_status,
+            "扫描/保存不启动 API。仅在生成时加载所选模型；自建服务使用独立推理配置并随声伴退出。外部服务切换需显式勾选允许。", start_api),
         SpeechProvider("azure_speech", "微软 Azure Speech", [
             Field("url", "完整合成接口地址", default="", help="例如 https://eastasia.tts.speech.microsoft.com/cognitiveservices/v1"),
             *secret_fields, Field("voice", "音色 ID", default="zh-CN-XiaoxiaoNeural"),

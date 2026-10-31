@@ -9,7 +9,7 @@ description = "Extensible Windows audio companion for Wallpaper Engine"
 readme = "README.md"
 requires-python = ">=3.11"
 license = {text = "MIT"}
-dependencies = ["PySide6==6.10.0", "pynput==1.8.1", "requests==2.32.5", "psutil==7.1.2", "keyring==25.6.0"]
+dependencies = ["PySide6==6.10.0", "pynput==1.8.1", "requests==2.32.5", "psutil==7.1.2", "keyring==25.6.0", "PyYAML==6.0.3"]
 
 [tool.setuptools.packages.find]
 include = ["companion*"]

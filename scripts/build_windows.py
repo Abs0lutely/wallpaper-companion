@@ -49,7 +49,7 @@ def copy_licenses(bundle):
     from packaging.requirements import Requirement
     target = bundle / "licenses"
     shutil.copytree(ROOT / "packaging/licenses", target, dirs_exist_ok=True)
-    pending = ["PySide6", "pynput", "requests", "psutil", "keyring", "PyInstaller"]
+    pending = ["PySide6", "pynput", "requests", "psutil", "keyring", "PyYAML", "PyInstaller"]
     seen = set()
     distributions = []
     while pending:
