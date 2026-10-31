@@ -1,0 +1,230 @@
+[
+  {
+    "id": "starter_0",
+    "category": "点击回应",
+    "text": "嗯？我在这里。",
+    "enabled": true
+  },
+  {
+    "id": "starter_1",
+    "category": "点击回应",
+    "text": "有什么新发现吗？",
+    "enabled": true
+  },
+  {
+    "id": "starter_2",
+    "category": "点击回应",
+    "text": "收到啦，继续陪你。",
+    "enabled": true
+  },
+  {
+    "id": "starter_3",
+    "category": "点击回应",
+    "text": "别着急，我们慢慢来。",
+    "enabled": true
+  },
+  {
+    "id": "starter_4",
+    "category": "点击回应",
+    "text": "今天也一起加油吧。",
+    "enabled": true
+  },
+  {
+    "id": "starter_5",
+    "category": "点击回应",
+    "text": "休息一下再继续也可以。",
+    "enabled": true
+  },
+  {
+    "id": "starter_6",
+    "category": "点击回应",
+    "text": "你一叫我，我就来啦。",
+    "enabled": true
+  },
+  {
+    "id": "starter_7",
+    "category": "点击回应",
+    "text": "要不要换个心情，听首歌？",
+    "enabled": true
+  },
+  {
+    "id": "starter_8",
+    "category": "返回桌面",
+    "text": "欢迎回来，今天也辛苦了。",
+    "enabled": true
+  },
+  {
+    "id": "starter_9",
+    "category": "返回桌面",
+    "text": "回来啦，刚好可以歇一会儿。",
+    "enabled": true
+  },
+  {
+    "id": "starter_10",
+    "category": "返回桌面",
+    "text": "事情处理得还顺利吗？",
+    "enabled": true
+  },
+  {
+    "id": "starter_11",
+    "category": "返回桌面",
+    "text": "桌面已经准备好，接下来做什么？",
+    "enabled": true
+  },
+  {
+    "id": "starter_12",
+    "category": "返回桌面",
+    "text": "又见面啦，继续一起忙吧。",
+    "enabled": true
+  },
+  {
+    "id": "starter_13",
+    "category": "返回桌面",
+    "text": "欢迎回来，先伸个懒腰吧。",
+    "enabled": true
+  },
+  {
+    "id": "starter_14",
+    "category": "早晨",
+    "text": "早安，新的一天开始啦。",
+    "enabled": true
+  },
+  {
+    "id": "starter_15",
+    "category": "早晨",
+    "text": "早安，先给自己一点准备时间。",
+    "enabled": true
+  },
+  {
+    "id": "starter_16",
+    "category": "早晨",
+    "text": "早安，今天也一步一步来。",
+    "enabled": true
+  },
+  {
+    "id": "starter_17",
+    "category": "早晨",
+    "text": "早安，别忘了吃早餐。",
+    "enabled": true
+  },
+  {
+    "id": "starter_18",
+    "category": "早晨",
+    "text": "早安，希望今天有让你开心的小事。",
+    "enabled": true
+  },
+  {
+    "id": "starter_19",
+    "category": "早晨",
+    "text": "早安，我们从一件小事开始吧。",
+    "enabled": true
+  },
+  {
+    "id": "starter_20",
+    "category": "白天",
+    "text": "下午好，记得喝点水。",
+    "enabled": true
+  },
+  {
+    "id": "starter_21",
+    "category": "白天",
+    "text": "忙了一阵子，让眼睛休息一下吧。",
+    "enabled": true
+  },
+  {
+    "id": "starter_22",
+    "category": "白天",
+    "text": "不必一次做完所有事，先完成眼前这一件。",
+    "enabled": true
+  },
+  {
+    "id": "starter_23",
+    "category": "白天",
+    "text": "今天已经有一点进展了，继续就好。",
+    "enabled": true
+  },
+  {
+    "id": "starter_24",
+    "category": "白天",
+    "text": "如果有点累，就换个姿势坐一会儿。",
+    "enabled": true
+  },
+  {
+    "id": "starter_25",
+    "category": "白天",
+    "text": "窗外的光线不错，有空看看远处吧。",
+    "enabled": true
+  },
+  {
+    "id": "starter_26",
+    "category": "夜间",
+    "text": "晚安，记得早点休息哦。",
+    "enabled": true
+  },
+  {
+    "id": "starter_27",
+    "category": "夜间",
+    "text": "夜深啦，今天就先到这里吧。",
+    "enabled": true
+  },
+  {
+    "id": "starter_28",
+    "category": "夜间",
+    "text": "晚安，剩下的事情明天再慢慢处理。",
+    "enabled": true
+  },
+  {
+    "id": "starter_29",
+    "category": "夜间",
+    "text": "忙完这一小段，就准备休息吧。",
+    "enabled": true
+  },
+  {
+    "id": "starter_30",
+    "category": "夜间",
+    "text": "晚安，愿你今晚睡个好觉。",
+    "enabled": true
+  },
+  {
+    "id": "starter_31",
+    "category": "夜间",
+    "text": "今天辛苦了，给自己留一点安静的时间。",
+    "enabled": true
+  },
+  {
+    "id": "starter_32",
+    "category": "闲置陪伴",
+    "text": "安静待一会儿也很好。",
+    "enabled": true
+  },
+  {
+    "id": "starter_33",
+    "category": "闲置陪伴",
+    "text": "不用急着回应，我会在这里。",
+    "enabled": true
+  },
+  {
+    "id": "starter_34",
+    "category": "闲置陪伴",
+    "text": "要不要整理一下桌面，换个轻松的开始？",
+    "enabled": true
+  },
+  {
+    "id": "starter_35",
+    "category": "闲置陪伴",
+    "text": "听着音乐，慢慢做就好。",
+    "enabled": true
+  },
+  {
+    "id": "starter_36",
+    "category": "闲置陪伴",
+    "text": "偶尔放空一下，也算是在补充精神。",
+    "enabled": true
+  },
+  {
+    "id": "starter_37",
+    "category": "闲置陪伴",
+    "text": "等你准备好，我们再继续。",
+    "enabled": true
+  }
+]

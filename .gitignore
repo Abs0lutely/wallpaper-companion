@@ -1,0 +1,12 @@
+.conda/
+.venv/
+__pycache__/
+data/
+output/
+*.log
+dist/
+build/
+*.egg-info/
+.env
+.env.*
+plugins/*.py
