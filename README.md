@@ -202,6 +202,7 @@ API 版本 1，入口为 `register(registry)`，可注册：
 ## 测试
 
 ```powershell
+.\.conda\python.exe scripts\validate_ui.py
 .\.conda\python.exe -m unittest discover -s tests -p 'test_*.py' -v
 .\.conda\python.exe tests\smoke_ui.py
 .\.conda\python.exe tests\smoke_library.py
@@ -211,7 +212,7 @@ API 版本 1，入口为 `register(registry)`，可注册：
 .\.conda\python.exe tests\check_hooks.py
 ```
 
-协议测试访问本机 mock，不调用收费 API。UI 测试验证播放、保存、配置切换、动态表单、密钥不落盘。`check_hooks.py` 发送一次 F24 验证原生热键，勿在给 F24 绑定系统动作后运行。Windows CI 运行无硬件依赖的测试。
+推荐先用 `scripts/validate_ui.py`：在当前 worktree 独立测试目录运行全部单元及十组界面流程，审计配置与资源路径，禁止连接真实 9880 服务。下面的单项命令仅供按需重跑。协议测试访问本机 mock，不调用收费 API。UI 测试验证播放、保存、配置切换、角色预设、动态表单、密钥不落盘。`check_hooks.py` 发送一次 F24 验证原生热键，勿在给 F24 绑定系统动作后运行。Windows CI 运行无硬件依赖的测试。
 
 
 接口依据：[WE](https://help.wallpaperengine.io/en/functionality/cli.html)、[GPT-SoVITS](https://github.com/RVC-Boss/GPT-SoVITS/blob/main/api_v2.py)、[Azure Speech](https://learn.microsoft.com/azure/ai-services/speech-service/rest-text-to-speech)、[Speech 兼容格式](https://developers.openai.com/api/reference/resources/audio/subresources/speech/methods/create)。

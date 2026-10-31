@@ -34,6 +34,8 @@ python scripts/verify_windows.py
 
 ## 打包验证
 
+正式发布前在源码 worktree 用 `.\.conda\python.exe scripts/validate_ui.py` 完成隔离回归，覆盖新版界面、角色预设、配置共存、规则、音频及资源目录；测试使用临时模拟服务，拒绝连接真实 9880。云端后续验证实际 EXE 时会额外检查新版导航、模型选择控件和配置字段。
+
 verify_windows.py 从 ZIP 解压到带中文和空格的隔离目录，使用只含 Windows 系统目录的 PATH、移除 Python/Conda/Qt 环境变量，执行真实 EXE 自检；随后静默安装到另一个隔离目录、执行安装后 EXE、自卸载，核对数据保留。
 
 EXE 的 `--self-test <报告路径>` 仅供构建验证：临时配置、低音量 WAV、双播放器/压低/暂停、界面保存、规则预设、凭据后端发现、输入监听器和扩展示例。不会调用 TTS、写密钥或开启自启。测试窗口可短暂出现，不发送系统快捷键。详细结果保留在本机 output/，不作为 Release 附件，以免上传本机路径。

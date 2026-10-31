@@ -1,14 +1,14 @@
 # 壁纸声伴：版本打包与发布指南
 
-以发布 **v0.7.0** 为例；实际版本以 `pyproject.toml` 为准。平时小改动只验证、提交源码，不必制作发行包。正式发布默认采用 GitHub 工作流；只有特别要求本地打包、手动上传时，才使用第二节备用流程。
+以发布 **v0.8.0** 为例；实际版本以 `pyproject.toml` 为准。平时小改动只验证、提交源码，不必制作发行包。正式发布默认采用 GitHub 工作流；只有特别要求本地打包、手动上传时，才使用第二节备用流程。
 
 ## 一、默认流程：GitHub 构建、验证并自动发布
 
 1. 完成功能开发，先在本机验证相关实际流程，并运行单元测试、compileall 和 pip check。
-2. 修改 `pyproject.toml` 的 `[project] version`，例如 `0.7.0`；这次版本修改也要提交。
+2. 修改 `pyproject.toml` 的 `[project] version`，例如 `0.8.0`；这次版本修改也要提交。
 3. 本地 commit，推送待发布代码到 `main`。到 Actions 确认该提交的 **Windows checks** 通过。
 4. 进入仓库 **Actions → Windows release**。若停用，点击 **Enable workflow**。
-5. 点击 **Run workflow**，分支选 `main`，tag 输入与版本对应的 `v0.7.0`，启动运行。默认不要提前单独创建或推送这个标签，避免重复触发。
+5. 点击 **Run workflow**，分支选 `main`，tag 输入与版本对应的 `v0.8.0`，启动运行。默认不要提前单独创建或推送这个标签，避免重复触发。
 6. 等待本次运行成功：云端会安装构建依赖、运行测试、制作便携 ZIP 和安装包、验证真实 EXE 及安装卸载，最后自动创建公开 Release。
 7. 到 Releases 确认版本和三个附件：portable.zip、setup.exe、SHA256SUMS.txt；按需完善更新说明，下载并核对校验值。
 
@@ -34,10 +34,10 @@
 
 ```toml
 [project]
-version = "0.7.0"
+version = "0.8.0"
 ```
 
-文件中不加 `v`，GitHub 标签使用 `v0.7.0`。构建脚本自动读取版本，无需手动改 EXE、ZIP、安装包文件名。已经正式发布的版本不要重复使用。
+文件中不加 `v`，GitHub 标签使用 `v0.8.0`。构建脚本自动读取版本，无需手动改 EXE、ZIP、安装包文件名。已经正式发布的版本不要重复使用。
 
 ### 2. 双击打包与验证
 
@@ -64,9 +64,9 @@ EXE 验证必须先有临时包，因此第 5 步会先构建；**只有第 6 �
 只使用本次成功窗口显示、自动打开的目录。例如：
 
 ```text
-dist/verified/0.7.0/<本次编号>/
-  WallpaperCompanion-0.7.0-windows-x64-portable.zip
-  WallpaperCompanion-0.7.0-windows-x64-setup.exe
+dist/verified/0.8.0/<本次编号>/
+  WallpaperCompanion-0.8.0-windows-x64-portable.zip
+  WallpaperCompanion-0.8.0-windows-x64-setup.exe
   SHA256SUMS.txt
 ```
 
@@ -84,7 +84,7 @@ dist/verified/0.7.0/<本次编号>/
 git status --short
 git add .
 git diff --cached --stat
-git commit -m "release: prepare v0.7.0"
+git commit -m "release: prepare v0.8.0"
 git push -u origin main
 ```
 
@@ -103,7 +103,7 @@ gh workflow disable release.yml --repo Abs0lutely/wallpaper-companion
 然后打开 [项目 Releases 页面](https://github.com/Abs0lutely/wallpaper-companion/releases)：
 
 1. 点击 **Draft a new release**。
-2. 创建标签 `v0.7.0`，Target 选择包含本版代码的 `main`。
+2. 创建标签 `v0.8.0`，Target 选择包含本版代码的 `main`。
 3. 填写版本标题、更新说明与实际验证范围。
 4. 上传第 3 步**本次 verified 目录里的三个文件**，等待上传完成。
 5. 保存为草稿，核对版本、标签及附件；正式版不勾选 Pre-release。
@@ -120,8 +120,8 @@ gh workflow enable release.yml --repo Abs0lutely/wallpaper-companion
 从刚发布的 Release 重新下载两个包与校验文件，到下载目录检查：
 
 ```powershell
-Get-FileHash .\WallpaperCompanion-0.7.0-windows-x64-portable.zip -Algorithm SHA256
-Get-FileHash .\WallpaperCompanion-0.7.0-windows-x64-setup.exe -Algorithm SHA256
+Get-FileHash .\WallpaperCompanion-0.8.0-windows-x64-portable.zip -Algorithm SHA256
+Get-FileHash .\WallpaperCompanion-0.8.0-windows-x64-setup.exe -Algorithm SHA256
 ```
 
 结果应和 `SHA256SUMS.txt` 相同。GitHub 自动附带的 Source code ZIP 是源码，不能代替 portable.zip。
