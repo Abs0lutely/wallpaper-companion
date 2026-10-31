@@ -14,7 +14,9 @@ def poll(config, now):
     return False
 ```
 
-复制到 `plugins/my_extension.py`，启动使其出现在运行设置，勾选保存并重启。`poll` 在 GUI 线程每秒调用，应快速返回 bool，不做网络和阻塞操作；自行节流、去重。True 进入宿主规则、时段、冷却匹配。
+复制到 `plugins/my_extension.py`，启动使其出现在运行设置，勾选保存并重启。安装版使用 `%LOCALAPPDATA%\WallpaperCompanion\plugins`；源码/便携版使用程序旁的 plugins。以界面“打开扩展目录”按钮为准。EXE 只内置本程序和现有依赖；插件需要额外第三方库时，需维护者重新打包，或改用源码环境安装该依赖。
+
+`poll` 在 GUI 线程每秒调用，应快速返回 bool，不做网络和阻塞操作；自行节流、去重。True 进入宿主规则、时段、冷却匹配。
 
 ## 语音提供方
 

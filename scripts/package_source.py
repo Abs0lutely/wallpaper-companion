@@ -6,11 +6,12 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 TOP = ["main.py", "README.md", "USER_GUIDE.md", "AGENTS.md", "EXTENSIONS.md", "THIRD_PARTY.md", "LICENSE", "requirements.txt",
-       "pyproject.toml", ".gitignore", "setup.ps1", "setup.cmd", "start.cmd", "debug.cmd", "plugins/.gitkeep"]
+       "pyproject.toml", ".gitignore", "setup.ps1", "setup.cmd", "start.cmd", "debug.cmd", "plugins/.gitkeep",
+       "PROJECT_HANDOFF.md", "BUILDING.md", "requirements-build.txt", ".gitattributes"]
 files = [ROOT / name for name in TOP]
-for folder in ["companion", "examples", "tests", "scripts", ".github"]:
+for folder in ["companion", "examples", "tests", "scripts", ".github", "packaging"]:
     files.extend(p for p in (ROOT / folder).rglob("*") if p.is_file()
-                 and "__pycache__" not in p.parts and p.suffix in {".py", ".yml", ".md", ".json"}
+                 and "__pycache__" not in p.parts and p.suffix in {".py", ".yml", ".md", ".json", ".ps1", ".spec", ".iss", ".isl", ".txt"}
                  and p.name != "prepare_demo.py")
 files = sorted(set(files))
 dist = ROOT / "dist"

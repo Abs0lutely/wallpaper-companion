@@ -1,6 +1,8 @@
 # 壁纸声伴：功能和输入框使用手册
 
-适用于 v0.5。程序独立运行，配置和音频保存在自己的数据目录，不修改 Wallpaper Engine（WE）本体或下载的壁纸。
+适用于 v0.6。程序独立运行，配置和音频保存在自己的数据目录，不修改 Wallpaper Engine（WE）本体或下载的壁纸。
+
+免安装 ZIP 请完整解压后运行 WallpaperCompanion.exe，保留 _internal 和 portable.flag；数据在旁边的 data/。setup.exe 安装版无需管理员权限，数据在 `%LOCALAPPDATA%\WallpaperCompanion`，卸载保留数据。两者均不需要 Python/Conda；更新前从托盘退出程序。详细下载和构建说明见 [BUILDING.md](BUILDING.md)。
 
 ## 先完成一次基本设置
 

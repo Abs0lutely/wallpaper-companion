@@ -5,6 +5,7 @@ import shutil
 import struct
 import subprocess
 from pathlib import Path
+from .external import run_external
 
 AUDIO_SUFFIXES = {".wav", ".mp3", ".ogg", ".flac", ".m4a", ".aac", ".wma", ".opus"}
 VIDEO_SUFFIXES = {".mp4", ".webm", ".mkv", ".avi", ".wmv", ".mov", ".m4v"}
@@ -54,7 +55,7 @@ def detect_original_audio(config, wallpaper):
         if not probe:
             return dict(state="unknown", detail="未找到 ffprobe；可在运行设置中选择，或手动覆盖检测结果")
         try:
-            result = subprocess.run([str(probe), "-v", "error", "-select_streams", "a", "-show_entries", "stream=codec_type", "-of", "json", str(path)],
+            result = run_external([str(probe), "-v", "error", "-select_streams", "a", "-show_entries", "stream=codec_type", "-of", "json", str(path)],
                                     capture_output=True, timeout=10, creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0))
             if result.returncode:
                 raise ValueError("ffprobe 未能读取视频音轨")

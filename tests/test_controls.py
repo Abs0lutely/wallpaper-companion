@@ -65,10 +65,10 @@ class OriginalAudioTests(unittest.TestCase):
             path.write_bytes(b"fixture")
             settings = dict(ffprobe="fixture-ffprobe")
             for streams, expected in [([], "no"), ([{"codec_type": "audio"}], "yes")]:
-                with patch("companion.original_audio.subprocess.run", return_value=SimpleNamespace(returncode=0, stdout=json.dumps({"streams": streams}).encode())) as run:
+                with patch("companion.original_audio.run_external", return_value=SimpleNamespace(returncode=0, stdout=json.dumps({"streams": streams}).encode())) as run:
                     self.assertEqual(detect_original_audio(settings, str(path))["state"], expected)
                     self.assertIn("-select_streams", run.call_args.args[0])
-            with patch("companion.original_audio.subprocess.run", side_effect=OSError("probe failed")):
+            with patch("companion.original_audio.run_external", side_effect=OSError("probe failed")):
                 self.assertEqual(detect_original_audio(settings, str(path))["state"], "unknown")
 
     def test_package_index_only_is_positive_evidence_not_live_bgm(self):

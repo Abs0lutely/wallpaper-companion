@@ -11,9 +11,11 @@ import uuid
 from datetime import datetime
 from pathlib import Path
 from .paths import discover_wallpaper_engine, protected_directories
+from .runtime import LAYOUT
 
-ROOT = Path(__file__).resolve().parent.parent
-DATA = Path(os.environ.get("WALLPAPER_COMPANION_DATA", str(ROOT / "data"))).expanduser().resolve()
+ROOT = LAYOUT.app_dir
+DATA = LAYOUT.data_dir
+PLUGIN_DIR = LAYOUT.plugin_dir
 AUDIO_EXTENSIONS = {".wav", ".mp3", ".ogg", ".flac", ".m4a", ".aac", ".wma", ".opus"}
 
 

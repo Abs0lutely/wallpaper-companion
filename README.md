@@ -22,7 +22,13 @@
 
 ## 安装与启动
 
-需要 Windows 10/11、Miniconda/Anaconda（推荐）或 Python 3.11+。克隆仓库或下载源码 ZIP 后解压。
+普通用户可直接从 [GitHub Releases](https://github.com/Abs0lutely/wallpaper-companion/releases/latest) 下载 Windows 10/11 x64 版本，**无需安装 Python 或 Conda**：
+
+- **免安装版**：下载 `*-portable.zip`，完整解压，双击 `WallpaperCompanion.exe`。保留 `_internal` 和 `portable.flag`；数据位于解压目录的 `data/`。
+- **安装版**：下载 `*-setup.exe`，按向导安装，无需管理员权限。用户数据位于 `%LOCALAPPDATA%\WallpaperCompanion`，升级和卸载均保留数据。
+- 同一 Release 提供 `SHA256SUMS.txt`。二进制未数字签名；下载和构建说明见 [BUILDING.md](BUILDING.md)。
+
+以下为**源码运行**方式，需要 Miniconda/Anaconda（推荐）或 Python 3.11+。克隆仓库或下载源码 ZIP 后解压。
 
 在能使用 `conda` 的 PowerShell 中进入项目目录执行：
 
@@ -169,13 +175,13 @@ API 版本 1，入口为 `register(registry)`，可注册：
 - `register_library(id, title, scan)`：其他本地壁纸库发现方式。
 - `register_audio_detector(id, title, detect)`：其他原壁纸声音证据检测方式。
 
-将可信 `.py` 放入 `plugins/`，重启使其显示在“运行设置”，勾选保存并重启加载。扩展拥有本程序的文件/网络权限，不要启用未知源码。
+将可信 `.py` 放入“运行设置 → 打开扩展目录”所打开的目录，重启使其显示，勾选保存并重启加载。源码/便携版为程序旁 `plugins/`，安装版为用户数据目录下 `plugins/`。扩展拥有本程序的文件/网络权限，不要启用未知源码。
 
 提供 `examples/plugins/hourly_chime.py`、`custom_http_tts.py`。详见 [EXTENSIONS.md](EXTENSIONS.md)。本项目代码为 MIT，依赖许可见 [THIRD_PARTY.md](THIRD_PARTY.md)。
 
 ## 数据与边界
 
-数据默认在源码目录 `data/`，可用 `WALLPAPER_COMPANION_DATA` 指定。`WALLPAPER_ENGINE_DIR` 可提示 WE 自动发现，`GPT_SOVITS_DIR` 可预填本机项目。界面输入优先，绝对路径只在用户配置中保存。
+源码/便携版数据默认在程序目录 `data/`；安装版在 `%LOCALAPPDATA%\WallpaperCompanion`。均可用 `WALLPAPER_COMPANION_DATA` 指定。`WALLPAPER_ENGINE_DIR` 可提示 WE 自动发现，`GPT_SOVITS_DIR` 可预填本机项目。界面输入优先，绝对路径只在用户配置中保存。
 
 声伴不写 WE/工坊目录，并对发现和配置的目录设置生成写入保护。不切换、暂停、静音 WE 本身。
 

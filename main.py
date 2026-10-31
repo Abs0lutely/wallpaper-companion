@@ -1,14 +1,23 @@
 import os
 import sys
 
-from PySide6.QtCore import QLockFile
-from PySide6.QtWidgets import QApplication, QMessageBox
-
-from companion.core import DATA, Store, writable_path
-from companion.ui import STYLE, Window
-
-
 def main():
+    if len(sys.argv) == 3 and sys.argv[1] == "--self-test":
+        try:
+            from companion.diagnostics import run
+            return run(sys.argv[2])
+        except Exception:
+            import json
+            import traceback
+            from pathlib import Path
+            target = Path(sys.argv[2])
+            target.parent.mkdir(parents=True, exist_ok=True)
+            target.write_text(json.dumps({"passed": False, "error": traceback.format_exc()}), encoding="utf-8")
+            return 1
+    from PySide6.QtCore import QLockFile
+    from PySide6.QtWidgets import QApplication, QMessageBox
+    from companion.core import DATA, Store, writable_path
+    from companion.ui import STYLE, Window
     app = QApplication(sys.argv)
     app.setApplicationName("Wallpaper Companion")
     app.setStyle("Fusion")

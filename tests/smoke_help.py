@@ -21,7 +21,10 @@ app = QApplication([])
 app.setStyle("Fusion"); app.setStyleSheet(STYLE)
 w = Window(store, hooks=False)
 w.show()
-app.processEvents()
+# Drain native show/activation/leave events before synthesizing the hover.
+# Otherwise a queued OS Leave can cancel the timer after our synthetic Enter.
+assert QTest.qWaitForWindowExposed(w, 5000)
+QTest.qWait(250)
 report = {}
 try:
     report["default_help_enabled"] = w.hover_help.enabled
@@ -31,7 +34,10 @@ try:
     with patch("companion.help_ui.QCursor.pos", return_value=point), patch("companion.help_ui.QApplication.widgetAt", return_value=w.voice_dir), patch("companion.help_ui.QToolTip.showText") as show:
         QApplication.sendEvent(w.voice_dir, QEvent(QEvent.Type.Enter))
         report["hover_starts_timer"] = w.hover_help.timer.isActive()
-        QTest.qWait(1150)
+        for _ in range(40):
+            if show.called:
+                break
+            QTest.qWait(50)
         report["hover_shows_explanation"] = show.called and "播放语音" in show.call_args.args[1]
         w.help_button.click()
         report["switch_off_persisted"] = not w.hover_help.enabled and not Store(store.path).config["hover_help"]
