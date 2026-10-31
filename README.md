@@ -155,7 +155,7 @@ python main.py
 | 微软 Azure Speech | 完整 endpoint、Key/密钥环境变量、voice ID、语言区域、语速 |
 | OpenAI 兼容 TTS | 完整 `/audio/speech` endpoint、可选 Key/环境变量、服务方模型与音色 ID、语速 |
 
-GPT-SoVITS 默认地址为 `http://127.0.0.1:9880`；**没有写死任何人的安装路径、参考音频或角色**。选择自己的项目与参考，程序沿用 API 已加载模型，不自动切换。“启动本地 API”默认查找项目内 `runtime/python.exe`，也可指定其他 Python。
+GPT-SoVITS 默认地址为 `http://127.0.0.1:9880`；**没有写死任何人的安装路径、参考音频或角色**。选择自己的项目与参考，程序沿用 API 已加载模型，不自动切换。仅在实际生成时按需启动并等待 API，默认查找项目内 `runtime/python.exe`，也可指定其他 Python；退出声伴回收自建进程树，原本由其他软件启动的服务只复用、不关闭。
 
 Azure endpoint 示例：`https://eastasia.tts.speech.microsoft.com/cognitiveservices/v1`，以自己的资源 endpoint 为准。云端会收到台词，并可能按账户计费。“检测连接”对本地检查真实接口，对云端只校验地址格式；鉴权需生成短台词验证。
 
@@ -189,7 +189,7 @@ API 版本 1，入口为 `register(registry)`，可注册：
 
 部分 WE 版本 `getWallpaper` 没有 stdout，此时**只读**读取当前显示器的 `selectedwallpapers`，并标明“已保存配置”。若 WE 延迟写入，跟随也会延迟；可用手动模式。不会拿历史壁纸冒充当前。一次跟随一台显示器，不检测 WE 全部内部暂停原因。
 
-不记录键盘文本、窗口标题。本机 GPT-SoVITS 不把参考发送到云端；云服务会收到你填写的台词及其协议要求字段。退出不会停止可能共享的本地 API。
+不记录键盘文本、窗口标题。本机 GPT-SoVITS 不把参考发送到云端；云服务会收到你填写的台词及其协议要求字段。退出只停止由本次声伴启动的本地 API，保留外部服务。
 
 ## 测试
 

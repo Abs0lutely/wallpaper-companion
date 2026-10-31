@@ -5,6 +5,7 @@ import os
 import random
 import time
 import traceback
+import threading
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime
 from pathlib import Path
@@ -142,6 +143,7 @@ class Window(LibraryMixin, DialogueMixin, QMainWindow):
         self.progress.connect(self.log)
         self.query_busy = False
         self.tts_busy = False
+        self.generation_cancel = threading.Event()
         self.quitting = False
         self.editing_id = None
         self.edit_rules = []
@@ -404,7 +406,7 @@ class Window(LibraryMixin, DialogueMixin, QMainWindow):
             display = path_field(widget, field.kind == "directory") if field.kind in {"file", "directory"} else widget
             self.provider_form.addRow(field.label, display)
         self.provider_description.setText(provider.description)
-        self.start_api_button.setVisible(provider.start is not None)
+        self.start_api_button.setVisible(provider.start is not None and provider.id != "gpt_sovits")
         from .help_ui import annotate_controls
         annotate_controls(self)
 
@@ -1110,6 +1112,9 @@ class Window(LibraryMixin, DialogueMixin, QMainWindow):
     def launch_api(self):
         settings = self.tts_settings()
         provider = self.registry.speech[self.provider_choice.currentData()]
+        if provider.id == "gpt_sovits":
+            self.api_message("本地 API 会在点击生成时自动启动，无需提前启动。")
+            return
         if provider.start:
             self.submit(lambda: provider.start(settings, self.store.protected()), self.api_message, self.api_error)
 
@@ -1140,9 +1145,11 @@ class Window(LibraryMixin, DialogueMixin, QMainWindow):
             self.report_error(str(exc))
             return
         self.tts_busy = True
+        self.generation_cancel.clear()
         self.generate_button.setEnabled(False)
         self.tts_status.setText(f"正在生成 {len(lines)} 条语音，请稍候…")
-        self.submit(lambda: generate(settings, lines, output, self.store.protected(), self.progress.emit, provider), self.generated, self.generation_error)
+        protected = self.store.protected()
+        self.submit(lambda: generate(settings, lines, output, protected, self.progress.emit, provider, self.generation_cancel), self.generated, self.generation_error)
 
     def generated(self, paths):
         self.tts_busy = False
@@ -1160,6 +1167,8 @@ class Window(LibraryMixin, DialogueMixin, QMainWindow):
     def closeEvent(self, event):
         if self.quitting or not QSystemTrayIcon.isSystemTrayAvailable():
             event.accept()
+            self.cleanup()
+            QApplication.quit()
         else:
             event.ignore()
             self.hide()
@@ -1169,8 +1178,8 @@ class Window(LibraryMixin, DialogueMixin, QMainWindow):
 
     def quit_app(self):
         if self.tts_busy:
-            QMessageBox.information(self, "正在生成语音", "请等待当前生成结束后退出；关闭窗口仍可在托盘继续生成。")
-            return
+            if QMessageBox.question(self, "退出并取消生成", "退出将取消剩余生成并停止声伴启动的本地 API；已经保存的音频保留。继续退出？") != QMessageBox.StandardButton.Yes:
+                return
         self.cleanup()
         QApplication.quit()
 
@@ -1178,6 +1187,12 @@ class Window(LibraryMixin, DialogueMixin, QMainWindow):
         if self.quitting:
             return
         self.quitting = True
+        self.generation_cancel.set()
+        from .managed_api import api
+        try:
+            api.shutdown()
+        except Exception as exc:
+            self.log("停止自建 API 失败：" + str(exc))
         self.poll.stop()
         self.tick.stop()
         self.hooks.stop()

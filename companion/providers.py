@@ -48,6 +48,8 @@ def gpt_sovits(settings, text):
                    prompt_text=settings["prompt"], prompt_lang=settings.get("prompt_lang", "zh"),
                    speed_factor=float(settings.get("speed", 1)), media_type="wav", streaming_mode=False,
                    text_split_method="cut5", batch_size=1, seed=-1)
+    from .managed_api import api
+    api.ensure(settings)
     return request_audio(local_url(settings["url"]) + "/tts", payload=payload)
 
 
@@ -92,7 +94,7 @@ def builtin_providers():
             Field("reference", "参考音频", "file"), Field("prompt", "参考音频原文", "multiline"),
             Field("text_lang", "目标语言代码", default="zh"), Field("prompt_lang", "参考语言代码", default="zh"),
             Field("speed", "语速", "float", 1.0)], gpt_sovits, api_status,
-            "本机生成；参考音频和原文必须对应，沿用 API 当前模型。", start_api),
+            "仅在生成时自动启动本地 API，退出声伴时停止自建 API；已运行的外部接口只复用。参考音频与原文必须对应，沿用当前模型。", start_api),
         SpeechProvider("azure_speech", "微软 Azure Speech", [
             Field("url", "完整合成接口地址", default="", help="例如 https://eastasia.tts.speech.microsoft.com/cognitiveservices/v1"),
             *secret_fields, Field("voice", "音色 ID", default="zh-CN-XiaoxiaoNeural"),

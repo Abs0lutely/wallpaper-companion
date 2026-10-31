@@ -418,10 +418,11 @@ class DialogueMixin:
             self.report_error(str(exc))
             return
         self.tts_busy = True
+        self.generation_cancel.clear()
         self.generate_button.setEnabled(False)
         self.tts_status.setText(f"正在按分类生成 {len(entries)} 条台词…")
         self.tabs.setCurrentIndex(2)
-        self.submit(lambda: generate_dialogue_entries(settings, entries, folder, protected, self.progress.emit, provider, skip), self.dialogue_generated, self.generation_error)
+        self.submit(lambda: generate_dialogue_entries(settings, entries, folder, protected, self.progress.emit, provider, skip, self.generation_cancel), self.dialogue_generated, self.generation_error)
 
     def dialogue_generated(self, result):
         self.generated(result["paths"])

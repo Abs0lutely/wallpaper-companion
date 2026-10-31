@@ -146,36 +146,13 @@ def api_status(settings):
     return "GPT-SoVITS 接口已就绪"
 
 
-_api_process = None
-_api_start_lock = threading.Lock()
-
-
 def start_api(settings, protected=()):
-    global _api_process
-    with _api_start_lock:
-        try:
-            return api_status(settings)
-        except (requests.RequestException, ValueError):
-            pass
-        if _api_process is not None and _api_process.poll() is None:
-            return "API 正在加载模型，请稍后点击检测连接。"
-        project = Path(settings["project"])
-        python = Path(settings["python"]) if settings.get("python") else project / "runtime/python.exe"
-        script = project / "api_v2.py"
-        if not python.is_file() or not script.is_file():
-            raise ValueError("未找到 GPT-SoVITS 的 Python 或 api_v2.py；可在界面指定 Python 路径")
-        parsed = urlparse(local_url(settings["url"]))
-        logpath = writable_path(DATA / "sovits-api.log", protected)
-        logpath.parent.mkdir(parents=True, exist_ok=True)
-        with logpath.open("ab") as log:
-            _api_process = popen_external([str(python), "-u", str(script), "-a", "127.0.0.1", "-p", str(parsed.port or 80)],
-                                           cwd=project, stdout=log, stderr=log, stdin=subprocess.DEVNULL,
-                                           creationflags=NO_WINDOW,
-                                           env={k: v for k, v in os.environ.items() if k not in {"PYTHONPATH", "PYTHONHOME"}})
-        return "已启动 API，首次加载需要一些时间；请稍后检测连接。日志：" + str(logpath)
+    """Compatibility entry point; normal UI starts only during synthesis."""
+    from .managed_api import api
+    return api.ensure(settings, protected)
 
 
-def generate(settings, lines, output, protected=(), progress=None, provider=None):
+def generate(settings, lines, output, protected=(), progress=None, provider=None, cancel=None):
     writable_path(output, protected)
     if provider is None:
         from .providers import builtin_providers
@@ -183,7 +160,11 @@ def generate(settings, lines, output, protected=(), progress=None, provider=None
     paths = []
     for index, text in enumerate(lines):
         try:
+            if cancel is not None and cancel.is_set():
+                raise RuntimeError("语音生成已取消")
             data = provider.synthesize(settings, text)
+            if cancel is not None and cancel.is_set():
+                raise RuntimeError("语音生成已取消")
             path = save_generated(output, text, data, protected)
             paths.append(str(path))
             if progress:
@@ -193,7 +174,7 @@ def generate(settings, lines, output, protected=(), progress=None, provider=None
     return paths
 
 
-def generate_dialogue_entries(settings, entries, output, protected=(), progress=None, provider=None, skip_existing=True):
+def generate_dialogue_entries(settings, entries, output, protected=(), progress=None, provider=None, skip_existing=True, cancel=None):
     from .core import filename_for, AUDIO_EXTENSIONS
     from .dialogues import normalize_dialogues
     entries = [entry for entry in normalize_dialogues(entries) if entry["enabled"]]
@@ -205,6 +186,8 @@ def generate_dialogue_entries(settings, entries, output, protected=(), progress=
     for category, folder in folders.items():
         existing[category] = {p.stem.casefold() for p in folder.iterdir() if p.is_file() and p.suffix.lower() in AUDIO_EXTENSIONS and p.stat().st_size > 0} if folder.is_dir() else set()
     for i, entry in enumerate(entries):
+        if cancel is not None and cancel.is_set():
+            raise RuntimeError("语音生成已取消")
         category, text = entry["category"], entry["text"]
         stem = Path(filename_for(text)).stem.casefold()
         if skip_existing and stem in existing[category]:
@@ -213,7 +196,7 @@ def generate_dialogue_entries(settings, entries, output, protected=(), progress=
                 progress(f"{i + 1}/{len(entries)} 已有音频，跳过：{text}")
             continue
         try:
-            generated = generate(settings, [text], folders[category], protected, provider=provider)
+            generated = generate(settings, [text], folders[category], protected, provider=provider, cancel=cancel)
             paths.extend(generated)
             existing[category].add(stem)
             if progress:
