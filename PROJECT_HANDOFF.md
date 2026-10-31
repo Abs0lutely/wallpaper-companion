@@ -4,9 +4,11 @@
 
 ## 项目与架构
 
-Windows 独立 Wallpaper Engine 音频伴随程序，Python 3.11+、PySide6、pynput、requests、psutil、keyring。应用版本 0.6.1；没有 SQL 数据库，使用本机 JSON 和系统凭据存储。
+Windows 独立 Wallpaper Engine 音频伴随程序，Python 3.11+、PySide6、pynput、requests、psutil、keyring。源码版本 0.7.0；没有 SQL 数据库，使用本机 JSON 和系统凭据存储。
 
-当前进入下一大版本的本地开发阶段：用户明确要求逐项实现、验证并本地提交，暂不推送 GitHub、不构建或发布 Release，不替换现用个人版。正式发布时才恢复既定 GitHub 工作流。版本号尚未提升。
+用户已本地试用本轮功能通过，并授权在“建立专用音频目录”增加二次确认、本地验证后推送 GitHub，启动工作流发布 v0.7.0。只在 GitHub 构建，不重复本地打包；不替换现用个人版。开发仓库 data 下的音频/BGM 已由用户明确声明可用于测试，授权不涉及旧项目或个人便携版数据。
+
+专用目录流程现为：选择模式并保存 → 查看配置名及实际路径的二次确认（默认否）→ 确认后才创建/保存。`tests/smoke_resource_confirmation.py` 实测真实 QMessageBox 是/否按钮；设置弹窗取消或二次取消均保留配置字节且不创建目录，确认后创建并保存，原共享文件保留，7 项检查通过。全部 69 项单元/模拟协议测试、compileall、pip check 通过；GitHub 最终包验证结果以对应 Actions 运行记录为准。
 
 - `main.py`：Qt 入口、单实例锁、托盘启动。
 - `companion/ui.py`：界面、活动配置匹配、后台任务编排。

@@ -717,6 +717,12 @@ class Window(LibraryMixin, DialogueMixin, AudioLibraryMixin, QMainWindow):
             from .resources_ui import ResourceDialog
             dialog = ResourceDialog(self.store, self.draft_profile(), self, dedicated)
             if dialog.exec():
+                if dedicated and QMessageBox.question(
+                    self, "确认建立专用音频目录", dialog.confirmation_text(),
+                    QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+                    QMessageBox.StandardButton.No,
+                ) != QMessageBox.StandardButton.Yes:
+                    return
                 self.apply_resource_profile(dialog.apply())
         except Exception as exc:
             self.report_error(str(exc))

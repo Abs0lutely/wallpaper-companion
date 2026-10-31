@@ -1,7 +1,7 @@
 """Explicit per-channel sharing choices without moving or duplicating audio."""
 from pathlib import Path
 from PySide6.QtWidgets import QComboBox, QDialog, QDialogButtonBox, QFormLayout, QLineEdit, QVBoxLayout
-from .assets import channel_resources, private_root, shared_root
+from .assets import channel_resources, private_root, resource_paths, shared_root
 from .core import identity
 
 
@@ -41,3 +41,15 @@ class ResourceDialog(QDialog):
             raise ValueError("专用根目录不能为空；可使用默认 data 路径")
         return channel_resources(self.profile, self.shared, self.root.text().strip(),
                                  {key: combo.currentData() for key, combo in self.modes.items()}, self.store.protected())
+
+    def confirmation_text(self):
+        if not self.root.text().strip():
+            raise ValueError("专用根目录不能为空")
+        shared = resource_paths(self.shared, self.store.protected())
+        private = resource_paths(self.root.text().strip(), self.store.protected())
+        lines = ["将为配置“" + self.profile["name"] + "”应用以下资源目录："]
+        for key, label in [("voice_dir", "语音"), ("bgm_dir", "BGM"), ("dialogue_file", "台词库")]:
+            mode = self.modes[key].currentData()
+            path = shared[key] if mode == "shared" else private[key] if mode == "private" else self.profile.get(key, "")
+            lines.append(f"{label}（{self.modes[key].currentText()}）：{path}")
+        return "\n\n".join(lines) + "\n\n确认后才创建目录并保存绑定。原有音频不会移动、复制或删除。是否继续？"
