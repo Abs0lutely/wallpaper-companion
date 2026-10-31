@@ -34,7 +34,7 @@ SpeechProvider(
 )
 ```
 
-`Field` 支持 text/password/file/directory/multiline/float，可设 default/help。密码字段写入 OS 凭据管理器并从 JSON 移除；合成时以临时 settings 传给扩展，勿记入日志。
+`Field` 支持 text/password/file/directory/multiline/float/bool，可设 default/help。bool 字段以复选框展示并保存为 JSON 布尔值。内置 GPT-SoVITS 还使用 gpt_model/sovits_model 构建可扫描的模型路径选择器。密码字段写入 OS 凭据管理器并从 JSON 移除；合成时以临时 settings 传给扩展，勿记入日志。
 
 合成、检测、启动在工作线程执行。合成只返回 WAV，不自行写文件；宿主处理验证、命名、重名、壁纸目录保护。抛异常停止批次并保留先前文件。`request_audio` 提供 HTTPS、超时、禁止重定向；按服务协议改 payload 即可。
 

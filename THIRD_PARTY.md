@@ -9,6 +9,7 @@
 | requests 2.32.5 | 连接本机 GPT-SoVITS HTTP API | https://github.com/psf/requests ，Apache-2.0 |
 | psutil 7.1.2 | 只在 WE 已运行时查询当前壁纸，避免查询导致启动 WE | https://github.com/giampaolo/psutil ，BSD-3-Clause |
 | keyring 25.6.0 | 系统凭据管理器保存 API 密钥 | https://github.com/jaraco/keyring ，MIT |
+| PyYAML 6.0.3 | 安全读取推理 YAML，并在声伴数据目录生成配置副本 | https://github.com/yaml/pyyaml ，MIT；发行包附带其许可证 |
 
 接口与实现参考：
 

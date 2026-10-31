@@ -6,6 +6,7 @@ import locale
 import os
 import subprocess
 import threading
+import uuid
 from pathlib import Path
 from urllib.parse import urlparse
 
@@ -163,7 +164,7 @@ def generate(settings, lines, output, protected=(), progress=None, provider=None
         from .providers import builtin_providers
         provider = next(p for p in builtin_providers() if p.id == "gpt_sovits")
     if getattr(provider, "id", "") == "gpt_sovits":
-        settings = {**settings, "_protected_dirs": list(protected)}
+        settings = {**settings, "_protected_dirs": list(protected), "_tts_batch_id": settings.get("_tts_batch_id") or uuid.uuid4().hex}
     paths = []
     for index, text in enumerate(lines):
         try:
@@ -182,6 +183,7 @@ def generate(settings, lines, output, protected=(), progress=None, provider=None
 
 
 def generate_dialogue_entries(settings, entries, output, protected=(), progress=None, provider=None, skip_existing=True, cancel=None):
+    settings = {**settings, "_tts_batch_id": uuid.uuid4().hex}
     from .core import filename_for, AUDIO_EXTENSIONS
     from .dialogues import normalize_dialogues
     entries = [entry for entry in normalize_dialogues(entries) if entry["enabled"]]

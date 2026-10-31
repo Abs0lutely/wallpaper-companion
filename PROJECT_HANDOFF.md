@@ -2,6 +2,21 @@
 
 此文件描述可公开的源码状态，不包含开发者本机配置和路径。
 
+## 当前功能分支：GPT-SoVITS 角色与模型选择
+
+本轮在 `feature/gpt-sovits-characters` 本地开发，不推送、不发布、不打包。UI 重设计位于独立 `ui/redesign` worktree，不包含在本轮功能改动中。版本号仍为 0.7.1，尚未进入新版本发布阶段。
+
+- `companion/characters.py`：只读扫描模型及参考音频，按名称、目录、版本提示生成唯一配对候选；角色预设增删改、字段白名单校验和同名原文读取。不读取权重内容，不猜测参考原文。自动配对不等于验证模型兼容性。
+- `companion/characters_ui.py`、`companion/ui.py`：角色保存/另存为/选择/删除、模型下拉及浏览、项目扫描和参考音频选择。扫描在后台执行，保存、扫描和切换角色不启动 API；修改角色字段后切换有放弃确认。
+- `companion/core.py`：JSON 新增 `tts_characters`（id/name/settings 列表）和 `tts_character`（当前角色 ID），保留配置版本 4 并对旧配置提供默认值。角色记录包含项目、Python、两项模型、参考音频、原文、两种语言和语速；API 地址及外部切换许可属于接口设置，不随角色切换。
+- `companion/sovits_config.py`、`companion/managed_api.py`：生成时才启动并加载所选模型；在数据目录 `tts-runtime/` 创建私有 YAML，不改 AI 项目原配置。同模型复用自建 API，模型改变时回收旧自建服务再启动；退出回收自建进程树与临时配置。外部服务不会被关闭，只有显式布尔许可为 true 才允许切换其全局模型；加载失败不发合成请求。模型加载与合成串行化，批量内复用同一模型。
+- `companion/providers.py`、`companion/services.py`、`companion/extensions.py`：模型字段、布尔开关和批量快照接入现有提供方接口。角色不随共享互动 JSON 导出；删除角色只删元数据。
+- `README.md`、`USER_GUIDE.md`、`EXTENSIONS.md`、`companion/help_ui.py`：补充模型、角色、外部服务和控件说明。新增依赖 PyYAML 6.0.3，已同步依赖清单和发行许可证收集代码；本轮未执行打包。
+
+验证：隔离数据下 87 项单元/模拟协议测试通过；外部模型切换许可收紧后，相关 5 项再次通过（包含字符串/数字许可拒绝）。`tests/smoke_characters.py` 在 Qt offscreen 环境下 13 项流程检查通过，覆盖扫描不启动、完整角色保存恢复、模拟生成按台词命名及删除保留文件；`tests/smoke_polling_flicker.py` 的 11 项定时器/托盘回归通过。`pip check` 通过。首次受限环境完整回归曾在测试 HTTP 服务处超时，改用允许本机回环的验证环境后通过；真实语音服务未参与测试。原 data 中音频等 39 个资源文件哈希保持一致；验证期间检测到运行配置的 hover_help 字段改变及 app.lock 移除，用户已确认由其操作并退出原程序造成，保留当前设置未回滚，详情仅记录在本机隔离验证报告中。
+
+尚未验证：真实 GPT-SoVITS 权重的模型加载、跨版本兼容性、实际合成音质，以及新的二进制发行包。后续如需实机合成，应明确安排独立端口和测试输出目录，不影响已有服务。UI 分支整合需要显式合并并重新验证，不能复制覆盖两个 worktree 的共享文件。
+
 ## 项目与架构
 
 Windows 独立 Wallpaper Engine 音频伴随程序，Python 3.11+、PySide6、pynput、requests、psutil、keyring。源码版本 0.7.1；没有 SQL 数据库，使用本机 JSON 和系统凭据存储。
