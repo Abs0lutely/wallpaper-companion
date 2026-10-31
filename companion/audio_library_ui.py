@@ -47,7 +47,7 @@ class AudioLibraryMixin:
         layout.addWidget(row(button("目标目录用于当前壁纸语音", lambda: self.reference_audio_target("voice_dir")),
                              button("目标目录用于当前壁纸 BGM", lambda: self.reference_audio_target("bgm_dir"))))
         self.shared_audio_root = QLineEdit(str(shared_root(self.store)))
-        self.shared_audio_root.setToolTip("默认位于当前数据目录的 audio/shared；修改只影响新绑定及下次显式选择共享目录，不重写已有路径。")
+        self.shared_audio_root.setToolTip("默认位于程序安装目录的 shared；修改只影响新绑定及下次显式选择共享目录，不重写或搬动已有资源。")
         layout.addWidget(row(QLabel("共享根目录（可选更改）"), path_field(self.shared_audio_root), button("保存共享根目录", self.save_shared_audio_root)))
         layout.addWidget(button("设置当前壁纸共享 / 专用目录…", self.configure_resources))
         self.audio_library_status = hint("选择此页或刷新时扫描；不会启动语音 API。")
@@ -230,6 +230,9 @@ class AudioLibraryMixin:
             return
         previous = self.store.config.get("shared_asset_dir", "")
         try:
+            if not self.editing_id and self.shared_dialogue_snapshot is not None and self.collect_dialogues() != self.shared_dialogue_snapshot:
+                if not self.save_dialogue_library():
+                    return
             value = self.shared_audio_root.text().strip()
             if value:
                 value = str(writable_path(value, self.store.protected()))
@@ -238,6 +241,8 @@ class AudioLibraryMixin:
             self.shared_audio_root.setText(str(shared_root(self.store)))
             self.log("共享根目录已保存；已有配置的目录绑定保持不变。")
             self.refresh_audio_library()
+            if not self.editing_id:
+                self.load_shared_dialogue_library()
         except Exception as exc:
             self.store.config["shared_asset_dir"] = previous
             self.report_error(str(exc))

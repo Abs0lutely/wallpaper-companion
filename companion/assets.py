@@ -8,7 +8,9 @@ from .dialogues import normalize_dialogues, starter_dialogues
 
 
 def shared_root(store):
-    return Path(store.config.get("shared_asset_dir") or store.path.parent / "audio" / "shared").expanduser().resolve()
+    from .runtime import LAYOUT
+    default = LAYOUT.shared_dir if store.path.resolve() == (LAYOUT.data_dir / "config.json").resolve() else store.path.parent / "shared"
+    return Path(store.config.get("shared_asset_dir") or default).expanduser().resolve()
 
 
 def private_root(store, profile):

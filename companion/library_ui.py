@@ -271,9 +271,12 @@ class DialogueMixin:
     def build_dialogue_tab(self):
         from .ui import button, hint, row
         self.edit_dialogues = []
+        self.shared_dialogue_snapshot = None
+        self.shared_dialogue_error = False
         page = QWidget()
         layout = QVBoxLayout(page)
-        layout.addWidget(hint("台词属于左侧选中的壁纸配置。内置 38 条原创短句，可自行编辑或新增；保存文字不会自动调用语音服务。"))
+        self.dialogue_context = hint("未选择壁纸时编辑共享台词；选择壁纸后编辑其台词库。保存文字不会调用语音服务。")
+        layout.addWidget(self.dialogue_context)
         self.dialogue_table = QTableWidget(0, 3)
         self.dialogue_table.setHorizontalHeaderLabels(["生成", "分类", "台词（双击可编辑）"])
         self.dialogue_table.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
@@ -284,7 +287,7 @@ class DialogueMixin:
         self.dialogue_table.cellDoubleClicked.connect(lambda r, c: self.edit_dialogue())
         layout.addWidget(self.dialogue_table, 1)
         layout.addWidget(row(button("＋ 新台词", self.add_dialogue), button("编辑", self.edit_dialogue), button("删除", self.delete_dialogues),
-                             button("补充默认台词", self.add_starter_dialogues), button("保存台词库", self.save_profile, True)))
+                             button("补充默认台词", self.add_starter_dialogues), button("保存台词库", self.save_dialogue_library, True)))
         self.skip_existing_dialogue_audio = QCheckBox("生成时跳过已存在的同名音频")
         self.skip_existing_dialogue_audio.setChecked(True)
         layout.addWidget(self.skip_existing_dialogue_audio)
@@ -296,12 +299,43 @@ class DialogueMixin:
                               "应用分类规则会替换当前编辑中的规则，保存后生效。原始下载音频无需台词库，也能直接播放。"))
         self.dialogue_tab_index = self.tabs.addTab(page, "台词库")
 
+    def load_shared_dialogue_library(self):
+        from .assets import load_dialogues, shared_root
+        self.shared_dialogue_error = False
+        try:
+            self.edit_dialogues = load_dialogues(dict(dialogue_file=str(shared_root(self.store) / "dialogues.json")))
+        except (ValueError, OSError) as exc:
+            self.shared_dialogue_error = True
+            self.edit_dialogues = []
+            self.report_error("共享台词文件读取失败，原文件未改动：" + str(exc))
+        self.shared_dialogue_snapshot = copy.deepcopy(self.edit_dialogues)
+        self.render_dialogues()
+
+    def save_dialogue_library(self):
+        if self.editing_id:
+            return self.save_profile()
+        from .assets import shared_root, write_dialogues
+        try:
+            if self.shared_dialogue_error:
+                raise ValueError("原共享台词文件读取失败，请先修复它或在音频库选择另一共享目录；未覆盖原文件。")
+            entries = normalize_dialogues(self.collect_dialogues())
+            write_dialogues(shared_root(self.store) / "dialogues.json", entries, self.store.protected())
+            self.shared_dialogue_snapshot = copy.deepcopy(entries)
+            self.dialogue_context.setText(f"已保存共享台词库 · {len(entries)} 条；新共享绑定将使用这些台词。")
+            self.log(self.dialogue_context.text())
+            return True
+        except Exception as exc:
+            self.report_error(str(exc))
+            return False
+
     def collect_dialogues(self):
         for i, entry in enumerate(self.edit_dialogues):
             entry["enabled"] = self.dialogue_table.item(i, 0).checkState() == Qt.CheckState.Checked
         return copy.deepcopy(self.edit_dialogues)
 
     def render_dialogues(self):
+        scope = "壁纸台词库：" + self.profile_name.text() if self.editing_id else "共享台词库（无需先绑定壁纸）"
+        self.dialogue_context.setText(f"{scope} · {len(self.edit_dialogues)} 条；修改后点击保存台词库。")
         self.dialogue_table.setRowCount(len(self.edit_dialogues))
         for i, entry in enumerate(self.edit_dialogues):
             check = QTableWidgetItem()
@@ -314,9 +348,6 @@ class DialogueMixin:
                 self.dialogue_table.setItem(i, j, item)
 
     def add_dialogue(self):
-        if not self.editing_id:
-            self.report_error("请先选择一个壁纸配置")
-            return
         self.collect_dialogues()
         dialog = DialogueDialog(parent=self)
         if dialog.exec():
@@ -339,15 +370,16 @@ class DialogueMixin:
         self.render_dialogues()
 
     def add_starter_dialogues(self):
-        if not self.editing_id:
-            return
         self.collect_dialogues()
+        before = len(self.edit_dialogues)
         existing = {(entry["category"], entry["text"]) for entry in self.edit_dialogues}
         for entry in starter_dialogues():
             if (entry["category"], entry["text"]) not in existing:
                 entry["id"] = uuid.uuid4().hex
                 self.edit_dialogues.append(entry)
         self.render_dialogues()
+        added = len(self.edit_dialogues) - before
+        self.dialogue_context.setText(f"已补充 {added} 条默认台词，请保存台词库。" if added else "默认台词已齐全，无需重复添加。")
 
     def selected_dialogues(self):
         return [entry for entry in normalize_dialogues(self.collect_dialogues()) if entry["enabled"]]
@@ -355,11 +387,16 @@ class DialogueMixin:
     def send_dialogues_to_tts(self):
         lines = self.selected_dialogues()
         self.lines.setPlainText("\n".join(entry["text"] for entry in lines))
-        self.use_voice_dir()
+        if self.editing_id:
+            self.use_voice_dir()
+        else:
+            from .assets import shared_root
+            self.tts_output.setText(str(shared_root(self.store) / "voice"))
         self.tabs.setCurrentIndex(2)
 
     def install_dialogue_rules(self):
         if not self.editing_id:
+            self.report_error("应用触发规则前，请先绑定壁纸或新建一个壁纸配置；共享台词本身不启动播放。")
             return
         if QMessageBox.question(self, "应用分类触发规则", "将当前编辑的规则替换为 F8/中键回应、壁纸切入问候、早晨/白天/夜间随机语音？保存配置后生效。") == QMessageBox.StandardButton.Yes:
             self.edit_rules = dialogue_rules()
@@ -367,8 +404,6 @@ class DialogueMixin:
             self.log("已填入分类规则，点击保存配置后生效。")
 
     def import_dialogues(self):
-        if not self.editing_id:
-            return
         path, _ = QFileDialog.getOpenFileName(self, "导入台词", "", "台词文件 (*.json *.txt)")
         if not path:
             return
@@ -389,8 +424,6 @@ class DialogueMixin:
             self.report_error(str(exc))
 
     def export_dialogues(self):
-        if not self.editing_id:
-            return
         path, _ = QFileDialog.getSaveFileName(self, "导出台词", "dialogues.json", "JSON (*.json)")
         if path:
             try:
@@ -405,15 +438,17 @@ class DialogueMixin:
             return
         try:
             entries = self.selected_dialogues()
-            if not entries or not self.voice_dir.text().strip():
+            from .assets import shared_root
+            folder = self.voice_dir.text().strip() if self.editing_id else str(shared_root(self.store) / "voice")
+            if not entries or not folder:
                 raise ValueError("请勾选台词，并先在声音与互动页选择语音目录")
-            if not self.save_profile():
+            if not self.save_dialogue_library():
                 return
             settings = self.tts_settings()
             if not self.save_tts():
                 return
             provider = self.registry.speech[self.provider_choice.currentData()]
-            folder = str(writable_path(self.voice_dir.text().strip(), self.store.protected()))
+            folder = str(writable_path(folder, self.store.protected()))
             skip = self.skip_existing_dialogue_audio.isChecked()
             protected = self.store.protected()
         except Exception as exc:

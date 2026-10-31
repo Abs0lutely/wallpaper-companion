@@ -41,6 +41,19 @@ def run(destination):
     code = 1
     try:
         root = Path(fixture.name)
+        from .assets import shared_root, load_dialogues
+        checks["default_shared_location"] = shared_root(Store()) == LAYOUT.shared_dir
+        fresh_store = Store(root / "fresh/config.json")
+        fresh = Window(fresh_store, hooks=False)
+        try:
+            checks["fresh_install_shows_default_dialogues_without_binding"] = not fresh.editing_id and fresh.dialogue_table.rowCount() == 38
+            fresh.edit_dialogues = []
+            fresh.render_dialogues()
+            fresh.add_starter_dialogues()
+            checks["fresh_install_supplement_and_save_work"] = fresh.save_dialogue_library() and len(load_dialogues(dict(dialogue_file=str(shared_root(fresh_store) / "dialogues.json")))) == 38
+        finally:
+            fresh.cleanup()
+            shiboken6.delete(fresh)
         for name in ["voice", "bgm"]:
             (root / name).mkdir()
             with wave.open(str(root / name / "测试语音.wav"), "wb") as wav:
@@ -62,7 +75,8 @@ def run(destination):
         checks["model_config_dependency_available"] = model_key({}) is None
         window.audio.message.connect(lambda s: report["media_errors"].append(s) if "失败" in s else None)
         checks["manual_and_examples_present"] = all((ROOT / name).exists() for name in
-                                                   ["USER_GUIDE.md", "README.md", "examples/interaction-preset.json"])
+                                                   ["USER_GUIDE.md", "README.md", "examples/interaction-preset.json", "readme-assets/home.png",
+                                                    "readme-assets/dialogues.png", "readme-assets/rules.png", "examples/dialogues/heartfelt-zh-CN.json"])
         checks["internal_manual_opens"] = window.open_document("USER_GUIDE.md") and "功能和输入框使用手册" in window.document_viewer.browser.toPlainText()
         from PySide6.QtCore import QUrl
         window.document_viewer.follow_link(QUrl("BUILDING.md"))

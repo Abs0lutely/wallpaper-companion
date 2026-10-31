@@ -53,6 +53,6 @@ jobs:
           if ($LASTEXITCODE -eq 0) {
             Write-Host 'Release already exists; preserving its verified assets. Build artifacts are available in this workflow.'
           } else {
-            gh release create $env:RELEASE_TAG dist/release/* --target $env:GITHUB_SHA --title "Wallpaper Companion $env:RELEASE_TAG" --generate-notes
+            gh release create $env:RELEASE_TAG dist/release/* examples/dialogues/heartfelt-zh-CN.json examples/dialogues/heartfelt-zh-CN.txt --target $env:GITHUB_SHA --title "Wallpaper Companion $env:RELEASE_TAG" --generate-notes
             if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           }

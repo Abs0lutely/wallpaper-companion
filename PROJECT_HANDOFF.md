@@ -2,6 +2,18 @@
 
 此文件描述可公开的源码状态，不包含开发者本机配置和路径。
 
+## v0.8.1 小版本修复
+
+分支 `fix/v0.8.1-dialogue-library` 从 v0.8.0 main 创建，用户已授权测试后推送和发布。本轮不卸载、删除或迁移现用安装版及其个人数据；v0.8.0 的一次性清理已经完成，不能重复执行。
+
+- 根因：无配置时 `ui.select_profile(-1)` 清空台词，补充/导入等动作又因 `editing_id` 为空直接返回。现由 `library_ui.DialogueMixin` 加载共享默认台词，不必先绑定壁纸即可补充、编辑、保存、导入导出及分类生成；操作有明确反馈。初次仅展示默认值，用户保存才写 JSON；损坏文件不会被静默覆盖。创建首个绑定或更换共享根目录前保存共享草稿，写入失败阻止切换。
+- `runtime.Layout.shared_dir`、`assets.shared_root`：实际安装版/便携版默认程序目录 `shared`，配置仍在原数据目录；临时 Store 与显式 WALLPAPER_COMPANION_DATA 使用隔离数据目录下 shared。批量绑定接入同一默认解析，不移动旧路径或音频。`.gitignore` 排除 shared。
+- 安装器不分发用户 shared 数据，卸载保留用户创建的 shared；更新器同样保护 shared。实际安装/卸载验证新增 shared 保留检查；EXE 自检增加无绑定台词恢复/保存和默认共享位置，避免只验证已有配置。
+- README 已重写并附三张真实演示截图。`scripts/capture_readme.py` 在临时配置下可重建图片；发行包包含 readme-assets，便携更新器识别其为程序文档资源。
+- `examples/dialogues/heartfelt-zh-CN.json` / TXT 为 72 条原创中文台词，六类各 12 条，单独提交。JSON 保留分类、重复导入去重；v0.8.0 可先新建配置导入。正式工作流额外提供这两个独立附件，同时仍保留三个主程序发行文件；主程序 SHA256SUMS 仍校验 ZIP 和安装包。
+
+验证：96 项隔离单元测试、十一组原生界面流程通过；新增首次启动流程 14 项，包括实际 72 条台词包导入去重、无绑定模拟分类生成、共享草稿保护和坏 JSON 不覆盖。源码自检 24 项、compileall、pip check 通过。未调用用户 9880、未生成这批台词的真实音频；云端实际便携/安装版验证结果以对应 v0.8.1 工作流为准。
+
 ## v0.8.0 整合状态
 
 用户已明确授权合并、推送并正式发布。整合分支 `integrate/v0.8.0` 从原 main 创建，依次通过 Git 合并功能分支 `92d1438` 与 UI 分支 `d247382`，保留双方历史。UI worktree 仅有已知的本地 AGENTS.md 隔离规则修改，已备份并原样保留，没有混入发布提交。
@@ -12,7 +24,7 @@
 
 合并版语音回归使用模拟 API，未调用或切换用户独立启动的 9880 服务。下文神里绫华实机记录发生于合并前的功能分支，不作为合并版重复实测。云服务鉴权、其他角色/跨版本真实切换及人工音质听评仍未验证。正式包仅由 GitHub 构建，在 Windows checks 与实际分发包验证通过后自动发布；最终结果以对应 Actions/Release 为准，不提前宣称发布成功。
 
-本轮另获授权在发布验证完成后删除个人便携版及其数据、清理两个开发 worktree 中旧安装包；此授权不改变面向普通用户的升级/卸载默认保留数据行为，不删除 worktree、分支或独立 AI 项目。执行清理前核实目录与进程，不强制结束运行中的应用。本机新安装包仅从本次验证通过的 Release 下载并校验，不重新构建。
+v0.8.0 当次授权的个人便携版/数据及旧发行包清理已经完成，不是后续任务的持续删除许可。普通升级/卸载仍默认保留数据；两个开发 worktree、分支及独立 AI 项目保留。本机安装包从验证通过的 Release 下载并校验，没有重新构建。
 
 ## GPT-SoVITS 角色与模型选择实现
 
@@ -31,7 +43,7 @@
 
 ## 项目与架构
 
-Windows 独立 Wallpaper Engine 音频伴随程序，Python 3.11+、PySide6、pynput、requests、psutil、keyring、PyYAML。源码版本 0.8.0；没有 SQL 数据库，使用本机 JSON 和系统凭据存储。
+Windows 独立 Wallpaper Engine 音频伴随程序，Python 3.11+、PySide6、pynput、requests、psutil、keyring、PyYAML。源码版本 0.8.1；没有 SQL 数据库，使用本机 JSON 和系统凭据存储。
 
 用户已本地试用本轮功能通过，并授权在“建立专用音频目录”增加二次确认、本地验证后推送 GitHub，启动工作流发布 v0.7.0。只在 GitHub 构建，不重复本地打包；不替换现用个人版。开发仓库 data 下的音频/BGM 已由用户明确声明可用于测试，授权不涉及旧项目或个人便携版数据。
 
@@ -57,7 +69,7 @@ v0.7.0 已通过 GitHub 工作流发布。其后修复用户反馈的整个窗�
 - `companion/diagnostics.py`：实际 EXE 的隔离自检；`scripts/build_windows.py`、`scripts/verify_windows.py`、`packaging/`：冻结、安装包及验证；详情见 BUILDING.md。
 - `companion/documents_ui.py`：程序内 Markdown 手册与本地文档导航，避免依赖 Windows 文件关联；`scripts/update_portable.py`：仅暂存/替换程序、备份、用户文件哈希保护和失败回退。
 - `companion/managed_api.py`：按需启动及等待 GPT-SoVITS，只记录并清理声伴自建的进程树；`providers.gpt_sovits` 在实际合成前接入，`ui.cleanup` 设置取消并清理 API。已有外部服务只复用，不终止。
-- `companion/resources_ui.py`、`assets.channel_resources`：语音/BGM/台词分别选择直接共享、专用或保留旧路径。默认共享 `Store.path.parent/audio/shared`，默认专用 `audio/<配置ID>`，自定义专用根记录在 profile.private_asset_dir。切换不移动文件。
+- `companion/resources_ui.py`、`assets.channel_resources`：语音/BGM/台词分别选择直接共享、专用或保留旧路径。默认共享 `程序目录 shared（隔离 Store 使用其数据目录下 shared）`，默认专用 `audio/<配置ID>`，自定义专用根记录在 profile.private_asset_dir。切换不移动文件。
 - `companion/audio_library.py`、`audio_library_ui.py`：共享和各壁纸目录去重清单、搜索/范围、真实试听、复制导入/分类目录、直接引用目标目录、Qt 系统回收站；不永久删除，不自动重写旧绑定。
 
 长期规则见 `AGENTS.md`，使用方式及所有控件说明见 `README.md`、`USER_GUIDE.md`，扩展接口见 `EXTENSIONS.md`。
@@ -75,7 +87,7 @@ v0.6 的便携版以 portable.flag 识别，数据在 EXE 旁 data/；安装版�
 默认 `data/config.json`，可由 `WALLPAPER_COMPANION_DATA` 改变位置。配置默认版本 4；旧配置按缺省字段兼容，不代表完整迁移。
 
 - 顶层包含路径、后端、显示器、轮询间隔、profiles、manual_profile、tts_provider/tts_providers、enabled_plugins。
-- 新增可选 shared_asset_dir（空值使用当前 Store 的 data/audio/shared）；profile 新增可选 private_asset_dir（空值使用 data/audio/配置ID）。旧音频路径保持原样，配置版本仍为 4，新增字段按缺省值兼容。
+- 新增可选 shared_asset_dir（空值使用当前 Store 的 程序目录的 shared）；profile 新增可选 private_asset_dir（空值使用 data/audio/配置ID）。旧音频路径保持原样，配置版本仍为 4，新增字段按缺省值兼容。
 - profile 包含 id/name/wallpaper、voice_dir/bgm_dir、asset_dir/dialogue_file、播放参数、dialogues 和 rules。
 - rule 包含 id/name/enabled/event/hotkey/source/keyword、start/end、cooldown、随机 interval_min/max，固定时间另有 at。
 - dialogue 包含 id/category/text/enabled。manual_profile 引用 profile.id；多个 profile 可以共享相同的资源和台词文件。

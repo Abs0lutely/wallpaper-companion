@@ -42,7 +42,10 @@ Name: "chinesesimplified"; MessagesFile: "ChineseSimplified.isl"
 Name: "desktopicon"; Description: "Create a desktop shortcut"; Flags: unchecked
 
 [Files]
-Source: "{#BundleDir}\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs; Excludes: "\portable.flag,\data\*,\plugins\*.py"
+Source: "{#BundleDir}\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs; Excludes: "\portable.flag,\data\*,\shared\*,\plugins\*.py"
+
+[Dirs]
+Name: "{app}\shared"; Flags: uninsneveruninstall
 
 [Icons]
 Name: "{group}\Wallpaper Companion"; Filename: "{app}\WallpaperCompanion.exe"; WorkingDir: "{app}"

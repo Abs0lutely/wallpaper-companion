@@ -20,7 +20,7 @@ DATA = VALIDATION / "data"
 SMOKES = (
     "smoke_redesign.py", "smoke_ui.py", "smoke_controls.py",
     "smoke_polling_flicker.py", "smoke_library.py", "smoke_rules.py",
-    "smoke_audio_library.py", "smoke_help.py", "smoke_resource_confirmation.py", "smoke_characters.py",
+    "smoke_audio_library.py", "smoke_help.py", "smoke_resource_confirmation.py", "smoke_characters.py", "smoke_fresh_dialogues.py",
 )
 
 

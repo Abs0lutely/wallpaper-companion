@@ -3,7 +3,7 @@
 普通使用者从 [Releases](https://github.com/Abs0lutely/wallpaper-companion/releases) 下载，无需 Python、Conda 或 Inno Setup。
 
 - `WallpaperCompanion-<版本>-windows-x64-portable.zip`：解压整个文件夹，运行 `WallpaperCompanion.exe`。不要只复制 EXE；`_internal` 是必需的动态运行库。`portable.flag` 使配置/音频留在同目录 `data/`，插件位于 `plugins/`。请解压到有写权限的位置。
-- `WallpaperCompanion-<版本>-windows-x64-setup.exe`：当前用户安装，无需管理员权限，默认 `%LOCALAPPDATA%\Programs\WallpaperCompanion`。用户数据在 `%LOCALAPPDATA%\WallpaperCompanion`，插件在其 `plugins/`。升级/卸载不删除用户数据或外部资源；仅清理指向本次安装的自启项。
+- `WallpaperCompanion-<版本>-windows-x64-setup.exe`：当前用户安装，无需管理员权限，默认 `%LOCALAPPDATA%\Programs\WallpaperCompanion`。配置在 `%LOCALAPPDATA%\WallpaperCompanion`，插件在其 `plugins/`；共享资源默认在安装目录 `shared/`。升级/卸载保留配置、用户创建的 shared 资源和外部资源；仅清理指向本次安装的自启项。
 - `SHA256SUMS.txt`：上述两个文件的 SHA256。
 
 支持 Windows 10/11 x64；不含 Wallpaper Engine、GPT-SoVITS 模型、参考音频、个人语音或音乐。ffprobe 仍可通过界面配置，未捆绑独立 ffprobe。云服务由用户填写接口和凭据。

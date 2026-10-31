@@ -106,7 +106,9 @@ def plan_bindings(config, records, *, mode="shared", voice_dir="", bgm_dir="", a
             updated["profiles"].append(profile)
             created += 1
         if mode in {"separate", "shared_root"}:
-            base = Path(asset_dir or config.get("shared_asset_dir") or Path(data_root or DATA) / "audio/shared") if mode == "shared_root" else Path(data_root or DATA) / "audio" / profile["id"]
+            from .runtime import LAYOUT
+            default_shared = Path(data_root) / "shared" if data_root else LAYOUT.shared_dir
+            base = Path(asset_dir or config.get("shared_asset_dir") or default_shared) if mode == "shared_root" else Path(data_root or DATA) / "audio" / profile["id"]
             values = resource_paths(base, protected)
             entries = dialogue_files.get(values["dialogue_file"])
             if entries is None:
@@ -120,6 +122,9 @@ def plan_bindings(config, records, *, mode="shared", voice_dir="", bgm_dir="", a
 
 
 def apply_bindings(store, records, **options):
+    from .assets import shared_root
+    if options.get("mode") == "shared_root" and not options.get("asset_dir"):
+        options["asset_dir"] = str(shared_root(store))
     plan = plan_bindings(store.config, records, data_root=store.path.parent, **options)
     # Validate every planned output before making any directory.
     for path in plan["directories"]:

@@ -20,6 +20,7 @@ class RuntimeTests(unittest.TestCase):
             self.assertEqual(layout.app_dir, root / "app")
             self.assertEqual(layout.data_dir, root / "local/WallpaperCompanion")
             self.assertEqual(layout.plugin_dir, layout.data_dir / "plugins")
+            self.assertEqual(layout.shared_dir, layout.app_dir / "shared")
 
     def test_portable_marker_keeps_resources_next_to_executable(self):
         with tempfile.TemporaryDirectory(dir=TEST_TEMP) as directory:
@@ -29,6 +30,7 @@ class RuntimeTests(unittest.TestCase):
             self.assertTrue(layout.portable)
             self.assertEqual(layout.data_dir, root / "data")
             self.assertEqual(layout.plugin_dir, root / "plugins")
+            self.assertEqual(layout.shared_dir, root / "shared")
 
     def test_source_and_explicit_data_override(self):
         with tempfile.TemporaryDirectory(dir=TEST_TEMP) as directory:
@@ -38,6 +40,7 @@ class RuntimeTests(unittest.TestCase):
             layout = runtime_layout(frozen=True, executable=root / "app.exe",
                                     environ={"WALLPAPER_COMPANION_DATA": str(root / "test")})
             self.assertEqual(layout.data_dir, root / "test")
+            self.assertEqual(layout.shared_dir, root / "test/shared")
 
     def test_frozen_startup_uses_executable_without_python_script(self):
         with patch("sys.frozen", True, create=True), patch("sys.executable", r"C:\Apps with spaces\WallpaperCompanion.exe"):

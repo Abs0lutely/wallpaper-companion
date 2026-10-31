@@ -417,6 +417,12 @@ class Window(LibraryMixin, DialogueMixin, AudioLibraryMixin, CharacterMixin, Com
         old = self.store.profile(self.editing_id)
         profiles = self.store.config["profiles"]
         new_id = profiles[index]["id"] if 0 <= index < len(profiles) else None
+        if not old and new_id and self.shared_dialogue_snapshot is not None and self.collect_dialogues() != self.shared_dialogue_snapshot:
+            if not self.save_dialogue_library():
+                self.profiles.blockSignals(True)
+                self.profiles.setCurrentRow(-1)
+                self.profiles.blockSignals(False)
+                return
         if old and old["id"] != new_id and self.draft_profile() != old:
             response = QMessageBox.question(self, "配置尚未保存", "当前修改尚未保存。放弃修改并切换配置？", QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No, QMessageBox.StandardButton.No)
             if response != QMessageBox.StandardButton.Yes:
@@ -435,8 +441,7 @@ class Window(LibraryMixin, DialogueMixin, AudioLibraryMixin, CharacterMixin, Com
             self.bgm_dir.clear()
             self.asset_dir.clear()
             self.dialogue_file.clear()
-            self.edit_dialogues = []
-            self.render_dialogues()
+            self.load_shared_dialogue_library()
             return
         p = self.store.config["profiles"][index]
         from .assets import load_dialogues

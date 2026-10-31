@@ -74,12 +74,16 @@ def main():
             expected_data.mkdir(parents=True, exist_ok=True)
             sentinel = expected_data / "preserve-user-data.txt"
             sentinel.write_text("do not delete", encoding="utf-8")
+            shared_sentinel = install / "shared/preserve-shared-audio.txt"
+            shared_sentinel.parent.mkdir(exist_ok=True)
+            shared_sentinel.write_text("keep shared audio", encoding="utf-8")
         finally:
             subprocess.run([str(install / "unins000.exe"), "/VERYSILENT", "/SUPPRESSMSGBOXES", "/NORESTART",
                             "/LOG=" + str(output / "uninstall-test.log")], check=True, timeout=180,
                            creationflags=subprocess.CREATE_NO_WINDOW)
         assert not (install / "WallpaperCompanion.exe").exists()
         assert sentinel.read_text(encoding="utf-8") == "do not delete"
+        assert shared_sentinel.read_text(encoding="utf-8") == "keep shared audio"
         try:
             with winreg.OpenKey(winreg.HKEY_CURRENT_USER, uninstall_key, 0, winreg.KEY_READ | winreg.KEY_WOW64_64KEY):
                 raise AssertionError("Installer registration not removed")
@@ -87,7 +91,7 @@ def main():
             pass
         result = {"passed": True, "portable_checks": p["checks"], "installed_checks": i["checks"],
                   "clean_path": True, "unicode_and_spaces": True, "install_and_uninstall": True,
-                  "user_data_preserved": True, "sha256_verified": True}
+                  "user_data_preserved": True, "shared_resources_preserved": True, "sha256_verified": True}
         (output / "release-verification.json").write_text(json.dumps(result, indent=2), encoding="utf-8")
         print(json.dumps(result))
 

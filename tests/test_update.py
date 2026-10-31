@@ -17,6 +17,7 @@ class UpdateTests(unittest.TestCase):
         self.target.mkdir()
         for name, content in {"portable.flag": "portable", "WallpaperCompanion.exe": "old exe", "_internal/old.dll": "old dll",
                               "data/config.json": '{"profiles":[{"id":"keep"}]}', "data/audio/line.wav": "user audio",
+                              "shared/voice/keep.wav": "shared user audio", "shared/dialogues.json": "shared user lines",
                               "plugins/custom.py": "user plugin", "迁移记录/backup.json": "original", "extra-audio/music.mp3": "external"}.items():
             path = self.target / name
             path.parent.mkdir(parents=True, exist_ok=True)

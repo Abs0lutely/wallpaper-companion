@@ -100,6 +100,7 @@ def main():
     for name in ["README.md", "USER_GUIDE.md", "EXTENSIONS.md", "THIRD_PARTY.md", "LICENSE", "BUILDING.md", "RELEASE_GUIDE.md"]:
         shutil.copy2(ROOT / name, bundle / name)
     shutil.copytree(ROOT / "examples", bundle / "examples", ignore=shutil.ignore_patterns("__pycache__"), dirs_exist_ok=True)
+    shutil.copytree(ROOT / "readme-assets", bundle / "readme-assets", dirs_exist_ok=True)
     (bundle / "plugins").mkdir(exist_ok=True)
     copy_licenses(bundle)
     release = args.release_dir.resolve()
@@ -110,7 +111,7 @@ def main():
         for file in sorted(bundle.rglob("*")):
             if file.is_file():
                 relative = file.relative_to(bundle)
-                if any(part in {"data", "output", "__pycache__"} for part in relative.parts):
+                if any(part in {"data", "shared", "output", "__pycache__"} for part in relative.parts):
                     raise ValueError("Refusing to distribute user/generated data: " + str(relative))
                 z.write(file, "WallpaperCompanion/" + relative.as_posix())
         z.writestr("WallpaperCompanion/portable.flag", "Keep this file for portable data storage.\n")

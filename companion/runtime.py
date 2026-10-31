@@ -12,6 +12,7 @@ class Layout:
     plugin_dir: Path
     frozen: bool
     portable: bool
+    shared_dir: Path
 
 
 def runtime_layout(*, frozen=None, executable=None, source_root=None, environ=None):
@@ -28,7 +29,8 @@ def runtime_layout(*, frozen=None, executable=None, source_root=None, environ=No
     else:
         data = app / "data"
     plugins = data / "plugins" if frozen and not portable else app / "plugins"
-    return Layout(app, data, plugins, frozen, portable)
+    shared = data / "shared" if env.get("WALLPAPER_COMPANION_DATA") else app / "shared"
+    return Layout(app, data, plugins, frozen, portable, shared)
 
 
 LAYOUT = runtime_layout()
