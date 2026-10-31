@@ -158,7 +158,12 @@ def start_api(settings, protected=()):
     return api.ensure(settings, protected)
 
 
-def generate(settings, lines, output, protected=(), progress=None, provider=None, cancel=None):
+def generation_status(callback, phase, completed, total, message):
+    if callback:
+        callback(dict(phase=phase, completed=completed, total=total, message=message))
+
+
+def generate(settings, lines, output, protected=(), progress=None, provider=None, cancel=None, status=None):
     writable_path(output, protected)
     if provider is None:
         from .providers import builtin_providers
@@ -166,23 +171,31 @@ def generate(settings, lines, output, protected=(), progress=None, provider=None
     if getattr(provider, "id", "") == "gpt_sovits":
         settings = {**settings, "_protected_dirs": list(protected), "_tts_batch_id": settings.get("_tts_batch_id") or uuid.uuid4().hex}
     paths = []
+    generation_status(status, "prepare", 0, len(lines), f"准备生成 {len(lines)} 条语音。")
     for index, text in enumerate(lines):
         try:
             if cancel is not None and cancel.is_set():
                 raise RuntimeError("语音生成已取消")
-            data = provider.synthesize(settings, text)
+            generation_status(status, "synthesis", index, len(lines), f"正在生成第 {index+1}/{len(lines)} 条，等待服务返回音频…")
+            current = settings
+            if getattr(provider, "id", "") == "gpt_sovits" and status:
+                current = {**settings, "_tts_status": lambda message: generation_status(status, "api", index, len(lines), message)}
+            data = provider.synthesize(current, text)
             if cancel is not None and cancel.is_set():
                 raise RuntimeError("语音生成已取消")
+            generation_status(status, "saving", index, len(lines), f"正在验证并保存第 {index+1}/{len(lines)} 条 WAV…")
             path = save_generated(output, text, data, protected)
             paths.append(str(path))
+            generation_status(status, "saved", index+1, len(lines), f"已保存 {index+1}/{len(lines)}：{path.name}")
             if progress:
                 progress(f"{index + 1}/{len(lines)} 已保存：{path.name}")
         except Exception as exc:
+            generation_status(status, "failed", len(paths), len(lines), f"第 {index+1} 条未完成；已保存 {len(paths)} 条保留。")
             raise ValueError(f"第 {index + 1} 条失败：{exc}；已保存 {len(paths)} 条保留在目录中。") from exc
     return paths
 
 
-def generate_dialogue_entries(settings, entries, output, protected=(), progress=None, provider=None, skip_existing=True, cancel=None):
+def generate_dialogue_entries(settings, entries, output, protected=(), progress=None, provider=None, skip_existing=True, cancel=None, status=None):
     settings = {**settings, "_tts_batch_id": uuid.uuid4().hex}
     from .core import filename_for, AUDIO_EXTENSIONS
     from .dialogues import normalize_dialogues
@@ -191,6 +204,7 @@ def generate_dialogue_entries(settings, entries, output, protected=(), progress=
     root = writable_path(output, protected)
     folders = {entry["category"]: writable_path(root / entry["category"], protected) for entry in entries}
     paths, skipped = [], 0
+    generation_status(status, "prepare", 0, len(entries), f"准备按分类处理 {len(entries)} 条台词。")
     existing = {}
     for category, folder in folders.items():
         existing[category] = {p.stem.casefold() for p in folder.iterdir() if p.is_file() and p.suffix.lower() in AUDIO_EXTENSIONS and p.stat().st_size > 0} if folder.is_dir() else set()
@@ -201,11 +215,15 @@ def generate_dialogue_entries(settings, entries, output, protected=(), progress=
         stem = Path(filename_for(text)).stem.casefold()
         if skip_existing and stem in existing[category]:
             skipped += 1
+            generation_status(status, "skipped", i+1, len(entries), f"{i+1}/{len(entries)} 已存在，跳过：{text}")
             if progress:
                 progress(f"{i + 1}/{len(entries)} 已有音频，跳过：{text}")
             continue
         try:
-            generated = generate(settings, [text], folders[category], protected, provider=provider, cancel=cancel)
+            def item_status(event):
+                completed = i+1 if event["phase"] == "saved" else i
+                generation_status(status, event["phase"], completed, len(entries), f"分类 {category} · 第{i+1}/{len(entries)}条：{event['message']}")
+            generated = generate(settings, [text], folders[category], protected, provider=provider, cancel=cancel, status=item_status if status else None)
             paths.extend(generated)
             existing[category].add(stem)
             if progress:

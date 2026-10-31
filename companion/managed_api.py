@@ -12,6 +12,12 @@ from .core import DATA, writable_path
 from .external import popen_external
 
 
+def report_stage(settings, message):
+    callback = settings.get("_tts_status")
+    if callable(callback):
+        callback(message)
+
+
 class LocalAPI:
     def __init__(self, data_dir=DATA):
         self.data_dir = Path(data_dir)
@@ -55,12 +61,14 @@ class LocalAPI:
         from .sovits_config import model_key, runtime_config
         url = local_url(settings["url"])
         selected = model_key(settings)
+        report_stage(settings, "正在检测本地 API 是否就绪…")
         if self.closed.is_set():
             raise RuntimeError("程序正在退出，已取消语音生成")
         try:
             message = api_status(settings)
             if self.closed.is_set():
                 raise RuntimeError("程序正在退出，已取消语音生成")
+            report_stage(settings, "本地 API 已就绪。")
             return message
         except requests.RequestException:
             pass
@@ -72,6 +80,7 @@ class LocalAPI:
                 if self.url != url:
                     raise ValueError("已有本程序启动的 API；请先退出并重启声伴，再更换接口端口")
             else:
+                report_stage(settings, "正在准备私有推理配置并启动 API…")
                 project = Path(settings.get("project", ""))
                 python = Path(settings["python"]) if settings.get("python") else project / "runtime/python.exe"
                 script = project / "api_v2.py"
@@ -96,6 +105,8 @@ class LocalAPI:
                 self.url = url
                 self.loaded_models = (url, selected, "owned") if selected else None
         deadline = time.monotonic() + timeout
+        notice_at = time.monotonic()
+        report_stage(settings, "API 进程已启动，等待模型加载；此阶段不提供精确百分比…")
         while not self.closed.is_set():
             process = self.process
             if process is None or process.poll() is not None:
@@ -104,12 +115,16 @@ class LocalAPI:
             try:
                 message = api_status(settings)
                 if not self.closed.is_set():
+                    report_stage(settings, "API 和模型已就绪。")
                     return message
             except requests.RequestException:
                 pass
             if time.monotonic() >= deadline:
                 self.stop()
                 raise TimeoutError("API 加载超时，已停止本程序启动的进程；请检查 sovits-api.log 后重试")
+            if time.monotonic() - notice_at >= 5:
+                report_stage(settings, f"仍在等待模型加载，已等待约 {int(timeout-(deadline-time.monotonic()))} 秒；可查看 sovits-api.log。")
+                notice_at = time.monotonic()
             self.closed.wait(.5)
         raise RuntimeError("语音生成已取消")
 
@@ -141,6 +156,7 @@ class LocalAPI:
                     try:
                         with session() as client:
                             for endpoint, weight in (("/set_sovits_weights", selected[1][0]), ("/set_gpt_weights", selected[0][0])):
+                                report_stage(settings, "正在切换 SoVITS 模型…" if endpoint == "/set_sovits_weights" else "正在切换 GPT 模型…")
                                 if self.closed.is_set():
                                     raise RuntimeError("语音生成已取消")
                                 response = client.get(url + endpoint, params={"weights_path": weight}, timeout=(5, 180), allow_redirects=False)
@@ -159,6 +175,7 @@ class LocalAPI:
                 ref_audio_path=str(project_file(settings, "reference")), prompt_text=settings["prompt"],
                 prompt_lang=settings.get("prompt_lang", "zh"), speed_factor=float(settings.get("speed", 1)),
                 media_type="wav", streaming_mode=False, text_split_method="cut5", batch_size=1, seed=-1)
+            report_stage(settings, "正在合成，等待 API 返回完整 WAV；接口没有逐帧进度。")
             return request_audio(url + "/tts", payload=payload)
 
     def stop(self):

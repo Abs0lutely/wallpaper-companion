@@ -22,6 +22,7 @@ SMOKES = (
     "smoke_polling_flicker.py", "smoke_library.py", "smoke_rules.py",
     "smoke_audio_library.py", "smoke_help.py", "smoke_resource_confirmation.py", "smoke_characters.py", "smoke_fresh_dialogues.py",
     "smoke_api_controls.py",
+    "smoke_generation_feedback.py",
 )
 
 

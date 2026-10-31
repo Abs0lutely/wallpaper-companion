@@ -27,6 +27,7 @@ from .extensions import load_extensions
 from .library_ui import LibraryMixin, DialogueMixin
 from .audio_library_ui import AudioLibraryMixin
 from .characters_ui import CharacterMixin
+from .speech_ui import SpeechFeedbackMixin
 
 EVENTS = {
     "key": "快捷键", "mouse_left": "鼠标左键", "mouse_right": "鼠标右键", "mouse_middle": "鼠标中键",
@@ -102,10 +103,12 @@ def app_icon():
 from .rules_ui import RuleDialog
 
 
-class Window(LibraryMixin, DialogueMixin, AudioLibraryMixin, CharacterMixin, CompanionShellMixin, QMainWindow):
+class Window(LibraryMixin, DialogueMixin, AudioLibraryMixin, CharacterMixin, SpeechFeedbackMixin, CompanionShellMixin, QMainWindow):
     job_done = Signal(object, object, object)
     hook_event = Signal(str, str)
     progress = Signal(str)
+    generation_state = Signal(object)
+    api_stage = Signal(str)
 
     def __init__(self, store=None, hooks=True):
         super().__init__()
@@ -118,6 +121,8 @@ class Window(LibraryMixin, DialogueMixin, AudioLibraryMixin, CharacterMixin, Com
         self.executor = ThreadPoolExecutor(max_workers=3, thread_name_prefix="companion")
         self.job_done.connect(self.finish_job)
         self.progress.connect(self.log)
+        self.generation_state.connect(self.generation_update)
+        self.api_stage.connect(self.api_message)
         self.query_busy = False
         self.tts_busy = False
         self.api_busy = False
@@ -155,6 +160,8 @@ class Window(LibraryMixin, DialogueMixin, AudioLibraryMixin, CharacterMixin, Com
         self.refresh_profiles()
         self.load_settings()
         self.load_tts()
+        from .feedback import ActionFeedback
+        self.action_feedback = ActionFeedback(self)
         from .help_ui import HoverHelp
         self.hover_help = HoverHelp(self)
         for error in self.registry.errors:
@@ -212,9 +219,7 @@ class Window(LibraryMixin, DialogueMixin, AudioLibraryMixin, CharacterMixin, Com
         layout.addWidget(self.lines, 1)
         self.generate_button = button("生成并保存语音", self.generate_audio, True)
         layout.addWidget(row(self.generate_button, button("打开保存目录", lambda: self.open_folder(self.tts_output.text()))))
-        self.tts_status = QLabel("尚未检测连接")
-        self.tts_status.setWordWrap(True)
-        layout.addWidget(self.tts_status)
+        self.build_speech_status(layout)
         self.tabs.addTab(page, "生成语音")
         self.provider_choice.currentIndexChanged.connect(self.switch_provider)
 
@@ -372,6 +377,8 @@ class Window(LibraryMixin, DialogueMixin, AudioLibraryMixin, CharacterMixin, Com
         self.activateWindow()
 
     def log(self, text):
+        if hasattr(self, "action_feedback"):
+            self.action_feedback.show_message(text)
         self.logs.appendPlainText(datetime.now().strftime("%H:%M:%S") + "  " + str(text))
 
     def submit(self, task, callback, error=None):
@@ -1085,6 +1092,7 @@ class Window(LibraryMixin, DialogueMixin, AudioLibraryMixin, CharacterMixin, Com
         provider = self.registry.speech[self.provider_choice.currentData()]
         if provider.id == "gpt_sovits":
             from .managed_api import api
+            settings = {**settings, "_tts_status": self.api_stage.emit}
             closing = api.owns_service() is True
             self.api_busy = True
             self.api_message("正在关闭自建 API 并回收进程…" if closing else "正在启动或连接本地 API、等待模型加载，请稍候…")
@@ -1129,17 +1137,19 @@ class Window(LibraryMixin, DialogueMixin, AudioLibraryMixin, CharacterMixin, Com
             return
         self.tts_busy = True
         self.update_api_controls()
+        self.begin_generation(len(lines))
         self.generation_cancel.clear()
         self.generate_button.setEnabled(False)
         self.tts_status.setText(f"正在生成 {len(lines)} 条语音，请稍候…")
         protected = self.store.protected()
-        self.submit(lambda: generate(settings, lines, output, protected, self.progress.emit, provider, self.generation_cancel), self.generated, self.generation_error)
+        self.submit(lambda: generate(settings, lines, output, protected, self.progress.emit, provider, self.generation_cancel, status=self.generation_state.emit), self.generated, self.generation_error)
 
     def generated(self, paths):
         self.tts_busy = False
         self.update_api_controls()
         self.generate_button.setEnabled(True)
         self.tts_status.setText(f"已保存 {len(paths)} 条语音。放在绑定目录中的文件会自动加入播放候选。")
+        self.finish_generation_progress(True, self.tts_status.text())
         for path in paths:
             self.log("已生成：" + path)
 
@@ -1148,6 +1158,7 @@ class Window(LibraryMixin, DialogueMixin, AudioLibraryMixin, CharacterMixin, Com
         self.update_api_controls()
         self.generate_button.setEnabled(True)
         self.tts_status.setText("生成未完成：" + str(error))
+        self.finish_generation_progress(False, self.tts_status.text())
         self.report_error(str(error))
 
     def closeEvent(self, event):
@@ -1177,6 +1188,7 @@ class Window(LibraryMixin, DialogueMixin, AudioLibraryMixin, CharacterMixin, Com
         self.commit_player_volume()
         self.player_volume_timer.stop()
         self.generation_cancel.set()
+        self.action_feedback.close()
         from .managed_api import api
         try:
             api.shutdown()
