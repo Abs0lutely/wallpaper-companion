@@ -83,7 +83,7 @@ def new_rule(event="key", name="快捷键回应") -> dict:
 def new_profile(name="新的壁纸配置", wallpaper="") -> dict:
     from .dialogues import starter_dialogues
     return dict(id=uuid.uuid4().hex, name=name, wallpaper=wallpaper, voice_dir="", bgm_dir="",
-                asset_dir="", dialogue_file="", original_audio_policy="safe", original_audio_override="auto", bgm_paused=False,
+                asset_dir="", private_asset_dir="", dialogue_file="", original_audio_policy="safe", original_audio_override="auto", bgm_paused=False,
                 enabled=True, desktop_only=True, fullscreen_mute=True, bgm_enabled=True,
                 bgm_shuffle=True, voice_volume=80, bgm_volume=25, duck_percent=25,
                 global_cooldown=8, dialogues=starter_dialogues(), rules=[new_rule(), new_rule("random", "随机陪伴 · 每 5–10 分钟")])
@@ -115,7 +115,7 @@ class Store:
                 from .dialogues import starter_dialogues
                 for profile in self.config["profiles"]:
                     profile.setdefault("dialogues", starter_dialogues())
-                    for key, value in dict(asset_dir="", dialogue_file="", original_audio_policy="safe", original_audio_override="auto", bgm_paused=False).items():
+                    for key, value in dict(asset_dir="", private_asset_dir="", dialogue_file="", original_audio_policy="safe", original_audio_override="auto", bgm_paused=False).items():
                         profile.setdefault(key, value)
             except (ValueError, OSError) as exc:
                 raise ValueError(f"无法读取配置 {self.path}：{exc}。原文件已保留。") from exc

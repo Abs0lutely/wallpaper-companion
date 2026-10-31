@@ -107,3 +107,11 @@ HTTPServer((a.a,a.p),Handler).serve_forever()
                 generate(settings, ["取消"], root / "voice", cancel=cancel)
         self.assertIsNone(api.process)
         self.assertFalse((root / "voice").exists())
+
+    def test_protected_log_directory_prevents_launch(self):
+        root, settings, api = self.fixture()
+        with patch("companion.managed_api.popen_external") as launch:
+            with self.assertRaises(ValueError):
+                api.ensure(settings, [api.data_dir])
+            launch.assert_not_called()
+        self.assertIsNone(api.process)

@@ -157,6 +157,8 @@ def generate(settings, lines, output, protected=(), progress=None, provider=None
     if provider is None:
         from .providers import builtin_providers
         provider = next(p for p in builtin_providers() if p.id == "gpt_sovits")
+    if getattr(provider, "id", "") == "gpt_sovits":
+        settings = {**settings, "_protected_dirs": list(protected)}
     paths = []
     for index, text in enumerate(lines):
         try:

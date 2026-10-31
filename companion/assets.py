@@ -12,7 +12,7 @@ def shared_root(store):
 
 
 def private_root(store, profile):
-    return (store.path.parent / "audio" / profile["id"]).resolve()
+    return Path(profile.get("private_asset_dir") or store.path.parent / "audio" / profile["id"]).expanduser().resolve()
 
 
 def channel_resources(profile, shared, private, modes, protected=()):
@@ -29,6 +29,7 @@ def channel_resources(profile, shared, private, modes, protected=()):
             raise ValueError("自定义目录为空，请选择共享或专用模式")
         result[key] = str(writable_path(value, protected))
     result["asset_dir"] = private_values["asset_dir"]
+    result["private_asset_dir"] = private_values["asset_dir"]
     entries = load_dialogues(result)
     for key in ("voice_dir", "bgm_dir"):
         Path(result[key]).mkdir(parents=True, exist_ok=True)

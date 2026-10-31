@@ -100,7 +100,7 @@ def plan_bindings(config, records, *, mode="shared", voice_dir="", bgm_dir="", a
             changed += 1
         else:
             profile = copy.deepcopy(template) if template else new_profile()
-            profile.update(id=uuid.uuid4().hex, name=record["title"], wallpaper=record["path"])
+            profile.update(id=uuid.uuid4().hex, name=record["title"], wallpaper=record["path"], private_asset_dir="")
             for rule in profile["rules"]:
                 rule["id"] = uuid.uuid4().hex
             updated["profiles"].append(profile)

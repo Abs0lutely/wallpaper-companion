@@ -25,6 +25,7 @@ from .audio import Audio
 from .services import InputHooks, api_status, current_wallpaper, foreground_state, generate, start_api
 from .extensions import load_extensions
 from .library_ui import LibraryMixin, DialogueMixin
+from .audio_library_ui import AudioLibraryMixin
 
 EVENTS = {
     "key": "快捷键", "mouse_left": "鼠标左键", "mouse_right": "鼠标右键", "mouse_middle": "鼠标中键",
@@ -125,7 +126,7 @@ def app_icon():
 from .rules_ui import RuleDialog
 
 
-class Window(LibraryMixin, DialogueMixin, QMainWindow):
+class Window(LibraryMixin, DialogueMixin, AudioLibraryMixin, QMainWindow):
     job_done = Signal(object, object, object)
     hook_event = Signal(str, str)
     progress = Signal(str)
@@ -146,6 +147,7 @@ class Window(LibraryMixin, DialogueMixin, QMainWindow):
         self.generation_cancel = threading.Event()
         self.quitting = False
         self.editing_id = None
+        self.edit_private_root = ""
         self.edit_rules = []
         self.active_id = None
         self.current = dict(path="", title="正在检测当前壁纸…", running=False)
@@ -238,6 +240,7 @@ class Window(LibraryMixin, DialogueMixin, QMainWindow):
         self.build_settings_tab()
         self.build_library_tab()
         self.build_dialogue_tab()
+        self.build_audio_library_tab()
         self.logs = QPlainTextEdit()
         self.logs.setReadOnly(True)
         self.logs.setMaximumBlockCount(500)
@@ -290,7 +293,7 @@ class Window(LibraryMixin, DialogueMixin, QMainWindow):
         form.addRow("资源根目录（可共享）", path_field(self.asset_dir))
         self.asset_dir.setPlaceholderText("默认使用 data 下的资源目录；需要自定义时再修改")
         form.addRow("", button("按此根目录绑定音频、BGM 和台词库", self.use_asset_directory))
-        form.addRow("资源共享方式", button("分别设置语音 / BGM / 台词的共享或专用模式…", self.configure_resources))
+        form.addRow("资源共享方式", button("共享 / 专用目录设置…", self.configure_resources))
         form.addRow("共用台词文件", self.dialogue_file)
         form.addRow("原壁纸音频策略", self.original_audio_policy)
         form.addRow("手动覆盖检测", self.original_audio_override)
@@ -569,6 +572,7 @@ class Window(LibraryMixin, DialogueMixin, QMainWindow):
         except (ValueError, OSError) as exc:
             self.report_error("读取台词库失败，保留配置中的原文本：" + str(exc))
         self.editing_id = p["id"]
+        self.edit_private_root = p.get("private_asset_dir", "")
         for widget, key in [(self.profile_name, "name"), (self.wallpaper_path, "wallpaper"), (self.voice_dir, "voice_dir"), (self.bgm_dir, "bgm_dir")]:
             widget.setText(p[key])
         self.asset_dir.setText(p.get("asset_dir", ""))
@@ -598,7 +602,7 @@ class Window(LibraryMixin, DialogueMixin, QMainWindow):
             raise ValueError("请先绑定当前壁纸或新建配置")
         p.update(name=self.profile_name.text().strip() or "壁纸配置", wallpaper=self.wallpaper_path.text(),
                  voice_dir=self.voice_dir.text().strip(), bgm_dir=self.bgm_dir.text().strip(),
-                 asset_dir=self.asset_dir.text().strip(), dialogue_file=self.dialogue_file.text().strip(),
+                 asset_dir=self.asset_dir.text().strip(), private_asset_dir=self.edit_private_root, dialogue_file=self.dialogue_file.text().strip(),
                  original_audio_policy=self.original_audio_policy.currentData(), original_audio_override=self.original_audio_override.currentData(),
                  enabled=self.profile_enabled.isChecked(), desktop_only=self.desktop_only.isChecked(),
                  fullscreen_mute=self.fullscreen_mute.isChecked(), bgm_enabled=self.bgm_enabled.isChecked(),
@@ -727,6 +731,7 @@ class Window(LibraryMixin, DialogueMixin, QMainWindow):
             self.report_error(str(exc))
 
     def apply_resource_profile(self, attached):
+        self.edit_private_root = attached.get("private_asset_dir", "")
         for widget, key in [(self.asset_dir, "asset_dir"), (self.voice_dir, "voice_dir"), (self.bgm_dir, "bgm_dir"), (self.dialogue_file, "dialogue_file")]:
             widget.setText(attached[key])
         self.edit_dialogues = attached["dialogues"]

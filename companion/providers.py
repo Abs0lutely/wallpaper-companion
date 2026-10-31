@@ -49,7 +49,7 @@ def gpt_sovits(settings, text):
                    speed_factor=float(settings.get("speed", 1)), media_type="wav", streaming_mode=False,
                    text_split_method="cut5", batch_size=1, seed=-1)
     from .managed_api import api
-    api.ensure(settings)
+    api.ensure(settings, settings.get("_protected_dirs", ()))
     return request_audio(local_url(settings["url"]) + "/tts", payload=payload)
 
 

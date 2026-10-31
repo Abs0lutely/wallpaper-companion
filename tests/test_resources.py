@@ -22,6 +22,9 @@ class ResourceModeTests(unittest.TestCase):
             self.assertFalse((private_root(store, p) / "voice/shared.wav").exists())
             self.assertEqual(voice.read_bytes(), b"keep")
             self.assertEqual(load_dialogues(result), p["dialogues"])
+            custom = channel_resources(p, shared_root(store), Path(tmp) / "my-private",
+                dict(voice_dir="private", bgm_dir="private", dialogue_file="private"))
+            self.assertEqual(private_root(store, custom), Path(tmp) / "my-private")
 
     def test_preserves_custom_paths_and_validates_all_before_creation(self):
         with tempfile.TemporaryDirectory() as tmp:
