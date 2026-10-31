@@ -88,7 +88,7 @@ def builtin_providers():
             Field("text_lang", "目标语言代码", default="zh"), Field("prompt_lang", "参考语言代码", default="zh"),
             Field("speed", "语速", "float", 1.0),
             Field("allow_external_model_switch", "允许切换外部 API 模型（会影响其他使用者）", "bool", False)], gpt_sovits, api_status,
-            "扫描/保存不启动 API。仅在生成时加载所选模型；自建服务使用独立推理配置并随声伴退出。外部服务切换需显式勾选允许。", start_api),
+            "扫描/保存不启动 API。生成时自动启动，也可手动启动/关闭自建 API；自建服务使用独立推理配置并随声伴退出。外部服务切换需显式勾选允许。", start_api),
         SpeechProvider("azure_speech", "微软 Azure Speech", [
             Field("url", "完整合成接口地址", default="", help="例如 https://eastasia.tts.speech.microsoft.com/cognitiveservices/v1"),
             *secret_fields, Field("voice", "音色 ID", default="zh-CN-XiaoxiaoNeural"),

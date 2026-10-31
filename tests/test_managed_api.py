@@ -112,6 +112,31 @@ HTTPServer((a.a,a.p),Handler).serve_forever()
         self.assertIsNone(api.process)
         self.assertFalse((root / "voice").exists())
 
+    def test_manual_start_close_restart_and_external_ownership(self):
+        root, settings, owner = self.fixture()
+        self.assertIn("自建", owner.start(settings))
+        self.assertTrue(owner.owns_service())
+        process = owner.process
+        guest = LocalAPI(root / "guest")
+        self.addCleanup(guest.shutdown)
+        self.assertIn("外部", guest.start(settings))
+        self.assertFalse(guest.owns_service())
+        self.assertIn("外部", guest.close_owned())
+        self.assertIsNone(process.poll())
+        self.assertIn("已关闭", owner.close_owned())
+        self.assertIsNotNone(process.poll())
+        self.assertFalse(owner.closed.is_set())
+        owner.start(settings)
+        self.assertTrue(owner.owns_service())
+        self.assertIsNot(owner.process, process)
+        owner.generation_lock.acquire()
+        try:
+            with self.assertRaisesRegex(RuntimeError, "正在"):
+                owner.close_owned()
+            self.assertTrue(owner.owns_service())
+        finally:
+            owner.generation_lock.release()
+
     def test_protected_log_directory_prevents_launch(self):
         root, settings, api = self.fixture()
         with patch("companion.managed_api.popen_external") as launch:

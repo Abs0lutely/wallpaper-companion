@@ -434,7 +434,8 @@ class DialogueMixin:
 
     def generate_dialogue_library(self):
         from .services import generate_dialogue_entries
-        if self.tts_busy:
+        if self.tts_busy or self.api_busy:
+            self.api_message("已有语音或接口任务正在进行，请等待完成。")
             return
         try:
             entries = self.selected_dialogues()
@@ -455,6 +456,7 @@ class DialogueMixin:
             self.report_error(str(exc))
             return
         self.tts_busy = True
+        self.update_api_controls()
         self.generation_cancel.clear()
         self.generate_button.setEnabled(False)
         self.tts_status.setText(f"正在按分类生成 {len(entries)} 条台词…")

@@ -23,6 +23,33 @@ class LocalAPI:
         self.loaded_models = None
         self.runtime_config = None
 
+    def owns_service(self):
+        with self.lock:
+            return self.process is not None and self.process.poll() is None
+
+    def start(self, settings, protected=()):
+        """Explicit user action; never switch or stop an externally owned API."""
+        from .services import local_url
+        from .sovits_config import model_key
+        with self.generation_lock:
+            url = local_url(settings["url"])
+            selected = model_key(settings)
+            if self.owns_service() and (self.url != url or selected and self.loaded_models != (url, selected, "owned")):
+                raise ValueError("自建 API 已运行；更换端口或模型前，请先关闭自建 API，再启动。")
+            self.ensure(settings, protected)
+            return (f"自建 API 已就绪：{url}；可生成语音，关闭按钮仅管理此自建进程。" if self.owns_service() else
+                    f"已连接外部 API：{url}；未启动新进程，也不会关闭或切换外部服务。")
+
+    def close_owned(self):
+        if not self.generation_lock.acquire(blocking=False):
+            raise RuntimeError("正在加载模型或生成语音，请等待当前任务完成后关闭 API。")
+        try:
+            owned = self.owns_service()
+            self.stop()
+            return "自建 API 已关闭并回收进程；下次可重新启动。" if owned else "没有本程序启动的 API 可关闭；外部服务请在原程序中管理。"
+        finally:
+            self.generation_lock.release()
+
     def ensure(self, settings, protected=(), timeout=180):
         from .services import api_status, local_url
         from .sovits_config import model_key, runtime_config

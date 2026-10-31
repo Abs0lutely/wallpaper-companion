@@ -120,6 +120,7 @@ class Window(LibraryMixin, DialogueMixin, AudioLibraryMixin, CharacterMixin, Com
         self.progress.connect(self.log)
         self.query_busy = False
         self.tts_busy = False
+        self.api_busy = False
         self.generation_cancel = threading.Event()
         self.quitting = False
         self.editing_id = None
@@ -202,7 +203,8 @@ class Window(LibraryMixin, DialogueMixin, AudioLibraryMixin, CharacterMixin, Com
         self.tts_output = QLineEdit()
         layout.addWidget(row(QLabel("生成保存目录"), path_field(self.tts_output)))
         self.start_api_button = button("启动本地 API", self.launch_api)
-        layout.addWidget(row(button("保存接口设置", self.save_tts), button("检测连接", self.check_api),
+        self.check_api_button = button("检测连接", self.check_api)
+        layout.addWidget(row(button("保存接口设置", self.save_tts), self.check_api_button,
                              self.start_api_button, button("使用当前配置的语音目录", self.use_voice_dir)))
         layout.addWidget(hint("每行一条台词，按台词保存 WAV，重名自动编号。密钥保存到系统凭据管理器；切换服务可分别保存设置。"))
         self.lines = QPlainTextEdit()
@@ -281,7 +283,8 @@ class Window(LibraryMixin, DialogueMixin, AudioLibraryMixin, CharacterMixin, Com
                 display = self.model_path_field(widget)
             self.provider_form.addRow(field.label, display)
         self.provider_description.setText(provider.description)
-        self.start_api_button.setVisible(provider.start is not None and provider.id != "gpt_sovits")
+        self.start_api_button.setVisible(provider.start is not None or provider.id == "gpt_sovits")
+        self.update_api_controls()
         self.character_provider_changed()
         from .help_ui import annotate_controls
         annotate_controls(self)
@@ -1030,40 +1033,84 @@ class Window(LibraryMixin, DialogueMixin, AudioLibraryMixin, CharacterMixin, Com
             if self.provider_choice.currentData() == "gpt_sovits":
                 self.store.config["tts_character"] = self.character_choice.currentData() or ""
             self.store.save()
-            self.log("语音扩展设置已保存")
+            self.api_message("语音接口设置已保存。保存设置不会启动 API 或生成音频。")
             return True
         except Exception as exc:
             self.report_error(str(exc))
             return False
 
     def use_voice_dir(self):
-        self.tts_output.setText(self.voice_dir.text())
+        from .assets import shared_root
+        value = self.voice_dir.text().strip() if self.editing_id else str(shared_root(self.store) / "voice")
+        if not value:
+            self.api_message("当前配置尚未设置语音目录，请先在资源与绑定中选择。")
+            return
+        self.tts_output.setText(value)
+        self.api_message("生成保存目录已切换为：" + value)
+
+    def update_api_controls(self):
+        from .managed_api import api
+        local = self.provider_choice.currentData() == "gpt_sovits"
+        self.start_api_button.setText("关闭自建 API" if local and api.owns_service() is True else "启动本地 API")
+        self.start_api_button.setToolTip("启动本机 API，或关闭本程序启动的 API 进程树。外部服务不会被关闭或切换；加载和生成期间不可操作。")
+        busy = self.api_busy or self.tts_busy
+        self.start_api_button.setEnabled(not busy)
+        self.check_api_button.setEnabled(not busy)
+        self.provider_choice.setEnabled(not busy)
+        self.generate_button.setEnabled(not busy)
 
     def check_api(self):
+        if self.api_busy or self.tts_busy:
+            self.api_message("已有语音或接口任务正在进行，请等待完成。")
+            return
         settings = self.tts_settings()
-        self.tts_status.setText("正在检测…")
+        self.api_busy = True
+        self.api_message("正在检测连接，检测不会自动启动 API…")
         provider = self.registry.speech[self.provider_choice.currentData()]
-        self.submit(lambda: provider.check(settings), self.api_message, self.api_error)
+        def check():
+            import requests
+            try:
+                return provider.check(settings)
+            except (requests.ConnectionError, requests.Timeout) as exc:
+                if provider.id == "gpt_sovits":
+                    raise ValueError("本地 API 尚未启动或暂时无法连接。请点击“启动本地 API”，等待就绪后再检测；也可直接生成以自动启动。请同时核对地址和端口。") from exc
+                raise ValueError("接口连接失败，请检查服务地址与网络。") from exc
+        self.submit(check, self.api_finished, self.api_error)
 
     def launch_api(self):
+        if self.api_busy or self.tts_busy:
+            self.api_message("已有语音或接口任务正在进行，请等待完成。")
+            return
         settings = self.tts_settings()
         provider = self.registry.speech[self.provider_choice.currentData()]
         if provider.id == "gpt_sovits":
-            self.api_message("本地 API 会在点击生成时自动启动，无需提前启动。")
+            from .managed_api import api
+            closing = api.owns_service() is True
+            self.api_busy = True
+            self.api_message("正在关闭自建 API 并回收进程…" if closing else "正在启动或连接本地 API、等待模型加载，请稍候…")
+            self.submit(api.close_owned if closing else lambda: api.start(settings, self.store.protected()), self.api_finished, self.api_error)
             return
         if provider.start:
-            self.submit(lambda: provider.start(settings, self.store.protected()), self.api_message, self.api_error)
+            self.api_busy = True
+            self.api_message("正在启动所选接口…")
+            self.submit(lambda: provider.start(settings, self.store.protected()), self.api_finished, self.api_error)
+
+    def api_finished(self, message):
+        self.api_busy = False
+        self.api_message(message)
 
     def api_message(self, message):
         self.tts_status.setText(str(message))
         self.log(str(message))
+        self.update_api_controls()
 
     def api_error(self, error):
-        self.tts_status.setText("连接或启动失败：" + str(error))
-        self.log(self.tts_status.text())
+        self.api_busy = False
+        self.api_message("接口操作未完成：" + str(error))
 
     def generate_audio(self):
-        if self.tts_busy:
+        if self.tts_busy or self.api_busy:
+            self.api_message("已有语音或接口任务正在进行，请等待完成。")
             return
         lines = [line.strip() for line in self.lines.toPlainText().splitlines() if line.strip()]
         output = self.tts_output.text().strip()
@@ -1081,6 +1128,7 @@ class Window(LibraryMixin, DialogueMixin, AudioLibraryMixin, CharacterMixin, Com
             self.report_error(str(exc))
             return
         self.tts_busy = True
+        self.update_api_controls()
         self.generation_cancel.clear()
         self.generate_button.setEnabled(False)
         self.tts_status.setText(f"正在生成 {len(lines)} 条语音，请稍候…")
@@ -1089,6 +1137,7 @@ class Window(LibraryMixin, DialogueMixin, AudioLibraryMixin, CharacterMixin, Com
 
     def generated(self, paths):
         self.tts_busy = False
+        self.update_api_controls()
         self.generate_button.setEnabled(True)
         self.tts_status.setText(f"已保存 {len(paths)} 条语音。放在绑定目录中的文件会自动加入播放候选。")
         for path in paths:
@@ -1096,6 +1145,7 @@ class Window(LibraryMixin, DialogueMixin, AudioLibraryMixin, CharacterMixin, Com
 
     def generation_error(self, error):
         self.tts_busy = False
+        self.update_api_controls()
         self.generate_button.setEnabled(True)
         self.tts_status.setText("生成未完成：" + str(error))
         self.report_error(str(error))

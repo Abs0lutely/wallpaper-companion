@@ -201,7 +201,7 @@ class CharacterMixin:
             else:
                 widget.setText(value)
         self.sync_scanned_character()
-        self.character_status.setText("已选择角色：" + entry["name"] + "。只有点击生成才启动 API 并加载模型。")
+        self.character_status.setText("已选择角色：" + entry["name"] + "。选择本身不加载模型；生成或手动启动 API 时加载。")
 
     def save_current_character(self, as_new=False):
         if self.rendered_provider != "gpt_sovits":
