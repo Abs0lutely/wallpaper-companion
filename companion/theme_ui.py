@@ -60,5 +60,8 @@ QScrollBar::handle:vertical { background:#55495d; min-height:28px; border-radius
 QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical { height:0; }
 QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical { background:transparent; }
 QToolTip { background:#322a39; color:#f3edf0; border:1px solid #67566f; padding:6px; }
+QProgressBar { border:1px solid #514653; border-radius:5px; background:#211d27; color:#f3edf0; text-align:center; min-height:16px; }
+QProgressBar::chunk { background:SOFT; border-radius:4px; }
+QStatusBar { background:#211d27; color:#c5b8c9; border-top:1px solid #39333e; }
 QSplitter::handle { background:#39333e; }
 """.replace("ACCENT", accent).replace("SOFT", soft)

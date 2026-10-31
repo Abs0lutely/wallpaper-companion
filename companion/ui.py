@@ -162,6 +162,8 @@ class Window(LibraryMixin, DialogueMixin, AudioLibraryMixin, CharacterMixin, Spe
         self.load_tts()
         from .feedback import ActionFeedback
         self.action_feedback = ActionFeedback(self)
+        from .motion import ButtonMotion
+        self.button_motion = ButtonMotion(self)
         from .help_ui import HoverHelp
         self.hover_help = HoverHelp(self)
         for error in self.registry.errors:
@@ -1189,6 +1191,7 @@ class Window(LibraryMixin, DialogueMixin, AudioLibraryMixin, CharacterMixin, Spe
         self.player_volume_timer.stop()
         self.generation_cancel.set()
         self.action_feedback.close()
+        self.button_motion.close()
         from .managed_api import api
         try:
             api.shutdown()

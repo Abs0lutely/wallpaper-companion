@@ -1,6 +1,7 @@
 """Honest item-level progress plus indeterminate current-stage activity."""
 import time
-from PySide6.QtWidgets import QLabel, QPlainTextEdit, QProgressBar
+from PySide6.QtCore import QTimer
+from PySide6.QtWidgets import QLabel, QPlainTextEdit, QProgressBar, QScrollArea
 
 
 class SpeechFeedbackMixin:
@@ -29,6 +30,13 @@ class SpeechFeedbackMixin:
         self.tts_progress.setFormat("%v / %m 条已处理（保存或跳过）")
         self.tts_stage_output.clear(); self.tts_activity.show()
         self.generation_update(dict(completed=0, total=total, message="正在准备生成任务…"))
+        QTimer.singleShot(0, self.reveal_generation_progress)
+
+    def reveal_generation_progress(self):
+        if not self.quitting and self.tabs.currentIndex() == 2:
+            page = self.tabs.widget(2)
+            if isinstance(page, QScrollArea):
+                page.ensureWidgetVisible(self.tts_stage_output, 0, 16)
 
     def generation_update(self, event):
         if not self.tts_busy or self.quitting:
