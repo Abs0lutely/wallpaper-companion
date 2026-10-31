@@ -53,7 +53,7 @@ class ResourceModeTests(unittest.TestCase):
     def test_installed_default_shared_is_beside_app_without_moving_existing_resources(self):
         from companion.runtime import runtime_layout
         with tempfile.TemporaryDirectory() as tmp:
-            root = Path(tmp)
+            root = Path(tmp).resolve()
             layout = runtime_layout(frozen=True, executable=root / "installed/app.exe", environ={"LOCALAPPDATA": str(root / "local")})
             store = Store(layout.data_dir / "config.json")
             legacy = attach_resources(new_profile("原绑定"), root / "legacy")
