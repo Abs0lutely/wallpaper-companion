@@ -7,9 +7,9 @@ from pathlib import Path
 from unittest.mock import patch
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-from PySide6.QtCore import QEvent, QPoint
+from PySide6.QtCore import QEvent, QPoint, QUrl
 from PySide6.QtTest import QTest
-from PySide6.QtWidgets import QApplication
+from PySide6.QtWidgets import QApplication, QPushButton
 from companion.core import ROOT, Store
 from companion.ui import Window, RuleDialog, STYLE
 
@@ -55,6 +55,21 @@ try:
     report["dialog_fields_have_help"] = "录制" in dialog.hotkey.toolTip() and "最短" in dialog.low.toolTip()
     dialog.close()
     report["user_guide_exists"] = (ROOT / "USER_GUIDE.md").is_file()
+    manual = next(b for b in w.findChildren(QPushButton) if b.text() == "打开使用手册")
+    with patch("companion.documents_ui.QDesktopServices.openUrl") as external:
+        manual.click(); app.processEvents()
+        viewer = w.document_viewer
+        report["manual_button_opens_in_app"] = viewer.isVisible() and "功能和输入框使用手册" in viewer.browser.toPlainText()
+        viewer.grab().save(str(output / "manual-window.png"))
+        report["manual_does_not_need_md_association"] = not external.called
+        viewer.follow_link(QUrl("BUILDING.md")); app.processEvents()
+        report["manual_local_links_work"] = viewer.current_path == ROOT / "BUILDING.md" and "自行构建" in viewer.browser.toPlainText()
+        viewer.close(); manual.click(); app.processEvents()
+        report["manual_reopens_same_window"] = w.document_viewer is viewer and viewer.current_path == ROOT / "USER_GUIDE.md" and viewer.isVisible()
+        with patch("companion.documents_ui.QMessageBox.warning") as warning:
+            viewer.follow_link(QUrl("missing-document.md"))
+            report["missing_manual_link_reports_error"] = warning.called and viewer.current_path == ROOT / "USER_GUIDE.md"
+        viewer.close()
     w.tabs.setCurrentIndex(0)
     app.processEvents(); w.grab().save(str(output / "help-toggle.png"))
     (output / "smoke-help.json").write_text(json.dumps(report, indent=2), encoding="utf-8")

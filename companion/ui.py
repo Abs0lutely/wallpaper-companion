@@ -201,7 +201,7 @@ class Window(LibraryMixin, DialogueMixin, QMainWindow):
         self.pause_button = button("暂停伴随", self.toggle_pause)
         self.help_button = button("悬停说明：开启" if self.store.config.get("hover_help", True) else "悬停说明：关闭", self.toggle_hover_help)
         layout.addWidget(row(title, hint("让当前壁纸拥有声音与回应"), self.help_button,
-                             button("打开使用手册", lambda: QDesktopServices.openUrl(QUrl.fromLocalFile(str(ROOT / "USER_GUIDE.md")))), self.pause_button))
+                             button("打开使用手册", lambda: self.open_document("USER_GUIDE.md")), self.pause_button))
         self.current_label = QLabel("正在检测…")
         self.current_label.setObjectName("current")
         self.current_label.setWordWrap(True)
@@ -463,7 +463,7 @@ class Window(LibraryMixin, DialogueMixin, QMainWindow):
                               f"配置位置：{DATA / 'config.json'}\n"
                               "复用开源组件：PySide6 / Qt Multimedia、pynput、requests、psutil。来源见 THIRD_PARTY.md。"))
         layout.addWidget(row(button("打开程序数据目录", lambda: self.open_folder(str(DATA))),
-                             button("打开使用说明", lambda: QDesktopServices.openUrl(QUrl.fromLocalFile(str(ROOT / "README.md"))))))
+                             button("打开使用说明", lambda: self.open_document("README.md"))))
         layout.addStretch()
         settings_scroll = QScrollArea()
         settings_scroll.setWidgetResizable(True)
@@ -790,6 +790,20 @@ class Window(LibraryMixin, DialogueMixin, QMainWindow):
             self.store.save()
         except Exception as exc:
             self.report_error(str(exc))
+
+    def open_document(self, name):
+        from .documents_ui import DocumentViewer
+        try:
+            if not getattr(self, "document_viewer", None):
+                self.document_viewer = DocumentViewer(ROOT, self)
+            self.document_viewer.load_document(ROOT / name)
+            self.document_viewer.show()
+            self.document_viewer.raise_()
+            self.document_viewer.activateWindow()
+            return True
+        except (OSError, ValueError) as exc:
+            QMessageBox.warning(self, "无法打开说明", "请检查程序目录内的说明文件是否完整。\n" + str(exc))
+            return False
 
     def open_folder(self, path):
         if not path or not Path(path).is_dir():

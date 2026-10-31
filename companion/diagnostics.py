@@ -59,6 +59,11 @@ def run(destination):
         window.audio.message.connect(lambda s: report["media_errors"].append(s) if "失败" in s else None)
         checks["manual_and_examples_present"] = all((ROOT / name).exists() for name in
                                                    ["USER_GUIDE.md", "README.md", "examples/interaction-preset.json"])
+        checks["internal_manual_opens"] = window.open_document("USER_GUIDE.md") and "功能和输入框使用手册" in window.document_viewer.browser.toPlainText()
+        from PySide6.QtCore import QUrl
+        window.document_viewer.follow_link(QUrl("BUILDING.md"))
+        checks["internal_manual_navigation"] = window.document_viewer.current_path == ROOT / "BUILDING.md"
+        window.document_viewer.close()
         checks["keyring_windows_backend"] = "Windows" in type(keyring.get_keyring()).__module__
         registry = load_extensions({**store.config, "enabled_plugins": ["hourly_chime", "custom_http_tts"]}, ROOT / "examples/plugins")
         checks["external_examples_load"] = len(registry.loaded) == 2 and not registry.errors

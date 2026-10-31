@@ -4,7 +4,7 @@
 
 ## 项目与架构
 
-Windows 独立 Wallpaper Engine 音频伴随程序，Python 3.11+、PySide6、pynput、requests、psutil、keyring。应用版本 0.6.0；没有 SQL 数据库，使用本机 JSON 和系统凭据存储。
+Windows 独立 Wallpaper Engine 音频伴随程序，Python 3.11+、PySide6、pynput、requests、psutil、keyring。应用版本 0.6.1；没有 SQL 数据库，使用本机 JSON 和系统凭据存储。
 
 - `main.py`：Qt 入口、单实例锁、托盘启动。
 - `companion/ui.py`：界面、活动配置匹配、后台任务编排。
@@ -20,6 +20,7 @@ Windows 独立 Wallpaper Engine 音频伴随程序，Python 3.11+、PySide6、py
 - `companion/original_audio.py`、`companion/startup.py`、`companion/help_ui.py`：原音频证据、可选登录自启、悬停帮助。
 - `companion/runtime.py`：源码/便携/安装版目录布局；`companion/external.py`：冻结后启动外部 WE/ffprobe/SoVITS 时恢复子进程 DLL 查找并清理环境。
 - `companion/diagnostics.py`：实际 EXE 的隔离自检；`scripts/build_windows.py`、`scripts/verify_windows.py`、`packaging/`：冻结、安装包及验证；详情见 BUILDING.md。
+- `companion/documents_ui.py`：程序内 Markdown 手册与本地文档导航，避免依赖 Windows 文件关联；`scripts/update_portable.py`：仅暂存/替换程序、备份、用户文件哈希保护和失败回退。
 
 长期规则见 `AGENTS.md`，使用方式及所有控件说明见 `README.md`、`USER_GUIDE.md`，扩展接口见 `EXTENSIONS.md`。
 
@@ -43,6 +44,12 @@ v0.6 的便携版以 portable.flag 识别，数据在 EXE 旁 data/；安装版�
 - 凭据保存在 keyring；冷却、下次随机时间和每日已触发标记只在内存。
 
 ## 验证与边界
+
+v0.6.1 修复手册按钮依赖外部 Markdown 打开方式且失败无反馈的问题，改为内置阅读窗口。源码手册按钮、导航、重开及缺文件报错流程已验证；48 项单元/模拟协议测试、五组原生界面流程、compileall、pip check 通过。最终便携和安装版 EXE 各通过 17 项自检，包含内置手册加载和文档跳转。
+
+更新约定见 AGENTS/BUILDING：在此公开源码工作目录先验证、本地 commit，再验证发行包后同步 GitHub/Release。个人版只更新程序，不覆盖 data、配置/绑定/台词/音频、用户插件或迁移记录。用户仍编辑时只暂存，不强制退出，也不替换运行中 EXE。更新器测试覆盖拒绝用户数据覆盖、校验、运行中阻止、保留自定义文件和失败回滚。
+
+已在隔离目录用真实 v0.6.0 便携 ZIP 升级到 v0.6.1：新 EXE 和内置手册正常，原程序备份校验正确，测试用户文件逐字节未变。证据为本机 output/upgrade-verification.json；不得把隔离验证写成已替换某位用户正在运行的个人版。
 
 v0.6 的 42 项单元/模拟协议测试、五组原生界面流程、compileall 和 pip check 已通过。最终便携 ZIP、安装后 EXE 各通过 15 项自检；移除 Python/Conda/Qt 环境和 PATH，测试中文/空格路径、安装/卸载、用户数据保留及 SHA256 均通过。具体命令见 README/BUILDING。协议测试访问 loopback mock；受限环境可能需要允许本机连接。证据位于本机 output/release-verification.json，不随源码或 Release 上传。
 
