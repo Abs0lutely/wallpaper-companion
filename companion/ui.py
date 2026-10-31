@@ -151,6 +151,8 @@ class Window(LibraryMixin, DialogueMixin, AudioLibraryMixin, QMainWindow):
         self.edit_rules = []
         self.active_id = None
         self.current = dict(path="", title="正在检测当前壁纸…", running=False)
+        self.current_display_text = "正在检测…"
+        self.current_display_tooltip = ""
         self.paused = False
         self.fullscreen = False
         self.original_audio = dict(state="unknown", detail="尚未检测原壁纸音频")
@@ -209,7 +211,7 @@ class Window(LibraryMixin, DialogueMixin, AudioLibraryMixin, QMainWindow):
         self.current_label = QLabel("正在检测…")
         self.current_label.setObjectName("current")
         self.current_label.setWordWrap(True)
-        layout.addWidget(row(self.current_label, button("立即检测", self.detect)))
+        layout.addWidget(row(self.current_label, button("立即检测", lambda: self.detect(command=True))))
         self.status_label = QLabel()
         self.status_label.setObjectName("status")
         layout.addWidget(self.status_label)
@@ -463,7 +465,8 @@ class Window(LibraryMixin, DialogueMixin, AudioLibraryMixin, QMainWindow):
         layout.addWidget(self.plugin_list)
         layout.addWidget(hint("从可信来源将扩展 .py 文件放入下方按钮打开的目录后重启即可列出。启用的 Python 扩展拥有本程序的文件/网络权限。内置功能无需勾选。"))
         layout.addWidget(button("打开扩展目录", lambda: self.open_folder(str(PLUGIN_DIR))))
-        layout.addWidget(hint("自动识别使用官方 getWallpaper 命令；不运行修改壁纸、音量或暂停 WE 的命令。\n"
+        layout.addWidget(hint("自动识别只读轮询 WE 保存的选择；点击立即检测时才尝试官方 getWallpaper 命令。\n"
+                              "不运行修改壁纸、音量或暂停 WE 的命令。\n"
                               "伴随暂停和全屏静音只控制本程序的声音。每次只跟随一台显示器。\n\n"
                               "关闭窗口会最小化到托盘；右键托盘图标可以暂停或退出。\n"
                               "开机自启由上方按钮选择，仅当前用户登录后运行；不记录键盘文本。云端语音发送台词至配置的服务。\n\n"
@@ -960,24 +963,31 @@ class Window(LibraryMixin, DialogueMixin, AudioLibraryMixin, QMainWindow):
         self.store.save()
         self.activate_profile(force=True)
 
-    def detect(self):
+    def detect(self, command=False):
         if self.query_busy:
             return
         self.query_busy = True
-        query = self.registry.wallpapers[self.store.config.get("wallpaper_backend", "wallpaper_engine")][1]
-        self.submit(lambda c=copy.deepcopy(self.store.config): query(c), self.detected, self.detect_error)
+        backend = self.store.config.get("wallpaper_backend", "wallpaper_engine")
+        query = self.registry.wallpapers[backend][1]
+        config = copy.deepcopy(self.store.config)
+        if backend == "wallpaper_engine":
+            config["_wallpaper_command_query"] = bool(command)
+        self.submit(lambda: query(config), self.detected, self.detect_error)
 
     def detected(self, result):
         self.query_busy = False
         self.current = result
-        self.current_label.setText("当前壁纸  ·  " + result["title"] + ("\n识别来源：" + result["source"] if result.get("source", "") != "官方查询" and result.get("source") else ""))
-        self.current_label.setToolTip(result["path"])
+        self.current_display_text = "当前壁纸  ·  " + result["title"] + ("\n识别来源：" + result["source"] if result.get("source", "") != "官方查询" and result.get("source") else "")
+        self.current_display_tooltip = result["path"]
+        self.render_current_wallpaper()
         self.activate_profile()
 
     def detect_error(self, error):
         self.query_busy = False
         self.current = dict(path="", title="检测失败", running=False)
-        self.current_label.setText("检测失败  ·  " + str(error))
+        self.current_display_text = "检测失败  ·  " + str(error)
+        self.current_display_tooltip = ""
+        self.render_current_wallpaper()
         if getattr(self, "last_detect_error", "") != str(error):
             self.log("壁纸检测失败：" + str(error))
         self.last_detect_error = str(error)
@@ -1005,6 +1015,8 @@ class Window(LibraryMixin, DialogueMixin, AudioLibraryMixin, QMainWindow):
         self.refresh_status()
 
     def refresh_status(self):
+        if not self.isVisible():
+            return
         p = self.store.profile(self.active_id)
         if self.paused:
             text = "已暂停伴随声音和触发"
@@ -1022,8 +1034,24 @@ class Window(LibraryMixin, DialogueMixin, AudioLibraryMixin, QMainWindow):
                 text += "  ·  BGM 已手动暂停"
             elif getattr(self.audio, "bgm_blocked", False):
                 text += "  ·  BGM 防冲突暂停"
-        self.status_label.setText(text)
-        self.bgm_pause_button.setText("继续当前 BGM" if getattr(self.audio, "bgm_paused", False) else "暂停当前 BGM")
+        if self.status_label.text() != text:
+            self.status_label.setText(text)
+        title = "继续当前 BGM" if getattr(self.audio, "bgm_paused", False) else "暂停当前 BGM"
+        if self.bgm_pause_button.text() != title:
+            self.bgm_pause_button.setText(title)
+
+    def render_current_wallpaper(self):
+        if not self.isVisible():
+            return
+        if self.current_label.text() != self.current_display_text:
+            self.current_label.setText(self.current_display_text)
+        if self.current_label.toolTip() != self.current_display_tooltip:
+            self.current_label.setToolTip(self.current_display_tooltip)
+
+    def showEvent(self, event):
+        super().showEvent(event)
+        self.render_current_wallpaper()
+        self.refresh_status()
 
     def toggle_pause(self):
         self.paused = not self.paused

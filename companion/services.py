@@ -37,6 +37,11 @@ def current_wallpaper(config):
     exe = next((Path(p["exe"]) for p in processes if p.get("exe") and Path(p["exe"]).parent == root), None)
     if not exe:
         raise ValueError("发现 Wallpaper Engine 进程，但安装目录不匹配；请在设置中选择实际目录。")
+    # Timers also run in the tray/over fullscreen applications. Never launch
+    # WE's GUI executable from a background poll: CREATE_NO_WINDOW only hides
+    # consoles, and invoking WE can activate/redraw its existing windows.
+    if not config.get("_wallpaper_command_query", False):
+        return selected_wallpaper(config, source="已保存配置（只读轮询）")
     result = run_external([str(exe), "-control", "getWallpaper", "-monitor", str(config.get("monitor", 0))],
                             capture_output=True, timeout=5, creationflags=NO_WINDOW)
     raw = result.stdout
@@ -69,7 +74,7 @@ def wallpaper_info(path, source):
     return dict(path=path, title=title, running=True, source=source)
 
 
-def selected_wallpaper(config):
+def selected_wallpaper(config, source="已保存配置（官方查询无输出）"):
     """Read only current selectedwallpapers, never recent history or last browser selection.
 
     Some Windows builds return no stdout for getWallpaper. This reports saved selection
@@ -81,14 +86,14 @@ def selected_wallpaper(config):
     account = accounts.get(os.environ.get("USERNAME", ""))
     if account is None:
         if len(accounts) != 1:
-            raise ValueError("官方查询无输出，且 WE 配置存在多个用户，无法可靠确定当前配置。")
+            raise ValueError("WE 保存配置存在多个用户，无法可靠确定当前配置。")
         account = next(iter(accounts.values()))
     selected = account["general"]["wallpaperconfig"].get("selectedwallpapers", {})
     entry = selected.get("Monitor" + str(config.get("monitor", 0)), {})
     path = entry.get("file", "")
     if not path or not Path(path).is_file():
         return dict(path="", title="该屏幕没有有效的已保存壁纸路径", running=True, source="已保存配置")
-    return wallpaper_info(path, "已保存配置（官方查询无输出）")
+    return wallpaper_info(path, source)
 
 
 def foreground_state():

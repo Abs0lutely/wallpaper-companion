@@ -1,5 +1,6 @@
 """Launch system tools without inheriting the frozen application's DLL search path."""
 import ctypes
+import copy
 import os
 import subprocess
 import sys
@@ -7,6 +8,9 @@ import threading
 from pathlib import Path
 
 _launch_lock = threading.RLock()
+# Win32 STARTUPINFO flags not exported by every Python subprocess build.
+STARTF_FORCEONFEEDBACK = 0x40
+STARTF_FORCEOFFFEEDBACK = 0x80
 
 
 def clean_environment(environ=None):
@@ -23,6 +27,14 @@ def clean_environment(environ=None):
 
 def popen_external(args, **kwargs):
     kwargs["env"] = clean_environment(kwargs.get("env"))
+    if sys.platform == "win32":
+        # These helpers launch background tools, not interactive windows.
+        # CREATE_NO_WINDOW alone is ignored by GUI executables such as WE.
+        info = copy.copy(kwargs.get("startupinfo")) if kwargs.get("startupinfo") is not None else subprocess.STARTUPINFO()
+        info.dwFlags = (info.dwFlags & ~STARTF_FORCEONFEEDBACK) | subprocess.STARTF_USESHOWWINDOW | STARTF_FORCEOFFFEEDBACK
+        info.wShowWindow = subprocess.SW_HIDE
+        kwargs["startupinfo"] = info
+        kwargs["creationflags"] = kwargs.get("creationflags", 0) | subprocess.CREATE_NO_WINDOW
     if sys.platform != "win32" or not getattr(sys, "frozen", False):
         return subprocess.Popen(args, **kwargs)
     # Only hold the process-wide change during child creation, never while

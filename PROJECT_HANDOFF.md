@@ -8,13 +8,17 @@ Windows 独立 Wallpaper Engine 音频伴随程序，Python 3.11+、PySide6、py
 
 用户已本地试用本轮功能通过，并授权在“建立专用音频目录”增加二次确认、本地验证后推送 GitHub，启动工作流发布 v0.7.0。只在 GitHub 构建，不重复本地打包；不替换现用个人版。开发仓库 data 下的音频/BGM 已由用户明确声明可用于测试，授权不涉及旧项目或个人便携版数据。
 
+v0.7.0 已通过 GitHub 工作流发布；其后的当前修复为本地未发布：用户反馈整个窗口周期性闪烁，托盘时会影响其他全屏应用，明确要求暂不推送。原自动检测每次调用 WE GUI 的 getWallpaper（默认 4 秒），即使 stdout 为空也不断启动进程；现改为自动只读 selectedwallpapers，只有“立即检测”单次尝试官方命令。外部后台工具统一 SW_HIDE、CREATE_NO_WINDOW、STARTF_FORCEOFFFEEDBACK，保留冻结 DLL/环境清理。隐藏窗口暂停状态文字更新，恢复时同步，前台相同文字不重复写入。识别仍受 WE 保存延迟影响，没有更改 WE 或工坊文件。
+
+本地闪烁修复验证：73 项测试通过（新增自动多轮不启动 GUI、配置更新/屏幕选择、损坏配置不启动进程、手动命令保留和后台启动参数检查）。`tests/smoke_polling_flicker.py` 用真实 Qt 定时器/窗口、模拟全屏前台状态与查询进程验证 11 项：前台无重复状态写入、隐藏无 Show/Paint/状态重写、后台绑定继续跟随、恢复同步、手动查询一次且临时标记不持久化。播放器/保存切换、controls、内置帮助原生流程回归通过，compileall/pip check/diff 检查通过。用户具体显卡/全屏应用下的闪烁仍需重启源码版复测；已有 Release EXE 尚不包含此次修复。不得擅自推送或重打包。
+
 专用目录流程现为：选择模式并保存 → 查看配置名及实际路径的二次确认（默认否）→ 确认后才创建/保存。`tests/smoke_resource_confirmation.py` 实测真实 QMessageBox 是/否按钮；设置弹窗取消或二次取消均保留配置字节且不创建目录，确认后创建并保存，原共享文件保留，7 项检查通过。全部 69 项单元/模拟协议测试、compileall、pip check 通过；GitHub 最终包验证结果以对应 Actions 运行记录为准。
 
 - `main.py`：Qt 入口、单实例锁、托盘启动。
 - `companion/ui.py`：界面、活动配置匹配、后台任务编排。
 - `companion/core.py`：配置 Store、路径保护、时间/事件规则和音频文件选择。
 - `companion/audio.py`：独立语音/BGM 播放、压低、暂停及音量。
-- `companion/services.py`、`companion/paths.py`：壁纸查询、只读配置回退、输入和系统集成。
+- `companion/services.py`、`companion/paths.py`：壁纸默认只读配置轮询、显式手动命令查询、输入和系统集成。
 - `companion/library.py`、`companion/library_ui.py`：只读发现壁纸、批量绑定/删除、台词编辑。
 - `companion/assets.py`、`companion/dialogues.py`：独立/共享资源、默认台词。
 - `companion/rules.py`、`companion/rules_ui.py`：分级规则编辑、按键录制和校验。
