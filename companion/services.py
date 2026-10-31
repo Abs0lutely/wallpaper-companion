@@ -13,6 +13,7 @@ import psutil
 import requests
 
 from .core import writable_path, DATA, save_generated
+from .external import run_external, popen_external
 
 NO_WINDOW = getattr(subprocess, "CREATE_NO_WINDOW", 0)
 
@@ -36,7 +37,7 @@ def current_wallpaper(config):
     exe = next((Path(p["exe"]) for p in processes if p.get("exe") and Path(p["exe"]).parent == root), None)
     if not exe:
         raise ValueError("发现 Wallpaper Engine 进程，但安装目录不匹配；请在设置中选择实际目录。")
-    result = subprocess.run([str(exe), "-control", "getWallpaper", "-monitor", str(config.get("monitor", 0))],
+    result = run_external([str(exe), "-control", "getWallpaper", "-monitor", str(config.get("monitor", 0))],
                             capture_output=True, timeout=5, creationflags=NO_WINDOW)
     raw = result.stdout
     if result.returncode:
@@ -167,7 +168,7 @@ def start_api(settings, protected=()):
         logpath = writable_path(DATA / "sovits-api.log", protected)
         logpath.parent.mkdir(parents=True, exist_ok=True)
         with logpath.open("ab") as log:
-            _api_process = subprocess.Popen([str(python), "-u", str(script), "-a", "127.0.0.1", "-p", str(parsed.port or 80)],
+            _api_process = popen_external([str(python), "-u", str(script), "-a", "127.0.0.1", "-p", str(parsed.port or 80)],
                                            cwd=project, stdout=log, stderr=log, stdin=subprocess.DEVNULL,
                                            creationflags=NO_WINDOW,
                                            env={k: v for k, v in os.environ.items() if k not in {"PYTHONPATH", "PYTHONHOME"}})

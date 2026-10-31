@@ -75,7 +75,7 @@ class Registry:
 
 
 def load_extensions(config, plugin_dir=None):
-    from .core import ROOT
+    from .core import PLUGIN_DIR
     from .audio import Audio
     from .services import InputHooks, current_wallpaper
     from .providers import builtin_providers
@@ -94,7 +94,7 @@ def load_extensions(config, plugin_dir=None):
                        ("scroll_up", "滚轮向上"), ("scroll_down", "滚轮向下"), ("any_key", "任意按键"),
                        ("random", "定时随机"), ("scheduled", "每天固定时刻"), ("startup", "绑定的壁纸开始播放")]:
         registry.register_event(key, title)
-    directory = Path(plugin_dir or ROOT / "plugins")
+    directory = Path(plugin_dir or PLUGIN_DIR)
     for identifier in config.get("enabled_plugins", []):
         if not re.fullmatch(r"[a-z][a-z0-9_]*", identifier):
             registry.errors.append("插件名称无效：" + str(identifier))

@@ -10,11 +10,15 @@ VALUE_NAME = "WallpaperVoiceCompanion"
 
 def startup_command():
     from .core import ROOT
-    python = Path(sys.executable)
-    windowed = python.with_name("pythonw.exe")
-    if windowed.is_file():
-        python = windowed
-    command = subprocess.list2cmdline([str(python), str(ROOT / "main.py"), "--tray"])
+    if getattr(sys, "frozen", False):
+        args = [sys.executable, "--tray"]
+    else:
+        python = Path(sys.executable)
+        windowed = python.with_name("pythonw.exe")
+        if windowed.is_file():
+            python = windowed
+        args = [str(python), str(ROOT / "main.py"), "--tray"]
+    command = subprocess.list2cmdline(args)
     if len(command) > 260:
         raise ValueError("程序路径过长，超出 Windows Run 启动项限制，请移到较短目录")
     return command

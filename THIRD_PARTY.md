@@ -27,4 +27,6 @@
 
 前期调研中的 spine-particle-wallpaper、Touhou_Pet、wallpaper-engine-api 没有作为运行依赖或复制源码。当前壁纸查询直接采用官方接口。
 
-Qt 自带的 FFmpeg 与传递依赖包含额外许可证；本地使用依赖环境保持原包内容。如果后续打包发布，应一并分发所需许可证、版权说明及 LGPL 所要求的材料。
+二进制发布使用 PyInstaller 6.22.3（GPL + Bootloader exception）和 Inno Setup 6.7.4（上游许可），不捆绑独立 ffprobe。安装界面的中文翻译来自 Inno Setup `is-6_7_4` 的 Files/Languages/Unofficial/ChineseSimplified.isl，原作者说明保留在 packaging/ChineseSimplified.isl。
+
+Qt 自带 FFmpeg 7.1.1 与传递依赖有各自许可。安装目录 `licenses/` 附带 LGPL/GPL、Python 和依赖的原始许可证/NOTICE；`packaging/licenses/FFmpeg-attribution.json` 保存对应 Qt 版本的上游归属信息，`packaging/licenses/README.md` 列出对应源码位置。本程序源码及构建脚本公开，Qt 等动态库置于 `_internal`，可替换兼容版本；不限制 LGPL 为调试修改后库所允许的逆向工程权利。

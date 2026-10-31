@@ -19,7 +19,7 @@ from PySide6.QtWidgets import (
     QTableWidgetItem, QTimeEdit, QVBoxLayout, QWidget, QHeaderView, QAbstractItemView,
 )
 
-from .core import DATA, ROOT, Store, RuleEngine, audio_files, candidates, identity, new_profile, new_rule, writable_path
+from .core import DATA, ROOT, PLUGIN_DIR, Store, RuleEngine, audio_files, candidates, identity, new_profile, new_rule, writable_path
 from .audio import Audio
 from .services import InputHooks, api_status, current_wallpaper, foreground_state, generate, start_api
 from .extensions import load_extensions
@@ -447,15 +447,15 @@ class Window(LibraryMixin, DialogueMixin, QMainWindow):
         self.plugin_list = QListWidget()
         self.plugin_list.setMaximumHeight(110)
         from PySide6.QtWidgets import QListWidgetItem
-        plugin_directory = ROOT / "plugins"
+        plugin_directory = PLUGIN_DIR
         for plugin in sorted(plugin_directory.glob("*.py")) if plugin_directory.exists() else []:
             item = QListWidgetItem(plugin.stem)
             item.setFlags(item.flags() | Qt.ItemFlag.ItemIsUserCheckable)
             item.setCheckState(Qt.CheckState.Checked if plugin.stem in self.store.config.get("enabled_plugins", []) else Qt.CheckState.Unchecked)
             self.plugin_list.addItem(item)
         layout.addWidget(self.plugin_list)
-        layout.addWidget(hint("从可信来源将扩展 .py 文件放入程序 plugins 目录后重启即可列出。启用的 Python 扩展拥有本程序的文件/网络权限。内置功能无需勾选。"))
-        layout.addWidget(button("打开扩展目录", lambda: self.open_folder(str(ROOT / "plugins"))))
+        layout.addWidget(hint("从可信来源将扩展 .py 文件放入下方按钮打开的目录后重启即可列出。启用的 Python 扩展拥有本程序的文件/网络权限。内置功能无需勾选。"))
+        layout.addWidget(button("打开扩展目录", lambda: self.open_folder(str(PLUGIN_DIR))))
         layout.addWidget(hint("自动识别使用官方 getWallpaper 命令；不运行修改壁纸、音量或暂停 WE 的命令。\n"
                               "伴随暂停和全屏静音只控制本程序的声音。每次只跟随一台显示器。\n\n"
                               "关闭窗口会最小化到托盘；右键托盘图标可以暂停或退出。\n"

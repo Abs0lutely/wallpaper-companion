@@ -1,0 +1,3 @@
+# Preserve upstream license/translation text; some originals contain trailing spaces.
+packaging/licenses/*.txt whitespace=-blank-at-eol
+packaging/ChineseSimplified.isl whitespace=-blank-at-eol
