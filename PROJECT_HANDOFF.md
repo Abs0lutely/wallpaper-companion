@@ -4,13 +4,13 @@
 
 ## 项目与架构
 
-Windows 独立 Wallpaper Engine 音频伴随程序，Python 3.11+、PySide6、pynput、requests、psutil、keyring。源码版本 0.7.0；没有 SQL 数据库，使用本机 JSON 和系统凭据存储。
+Windows 独立 Wallpaper Engine 音频伴随程序，Python 3.11+、PySide6、pynput、requests、psutil、keyring。源码版本 0.7.1；没有 SQL 数据库，使用本机 JSON 和系统凭据存储。
 
 用户已本地试用本轮功能通过，并授权在“建立专用音频目录”增加二次确认、本地验证后推送 GitHub，启动工作流发布 v0.7.0。只在 GitHub 构建，不重复本地打包；不替换现用个人版。开发仓库 data 下的音频/BGM 已由用户明确声明可用于测试，授权不涉及旧项目或个人便携版数据。
 
-v0.7.0 已通过 GitHub 工作流发布；其后的当前修复为本地未发布：用户反馈整个窗口周期性闪烁，托盘时会影响其他全屏应用，明确要求暂不推送。原自动检测每次调用 WE GUI 的 getWallpaper（默认 4 秒），即使 stdout 为空也不断启动进程；现改为自动只读 selectedwallpapers，只有“立即检测”单次尝试官方命令。外部后台工具统一 SW_HIDE、CREATE_NO_WINDOW、STARTF_FORCEOFFFEEDBACK，保留冻结 DLL/环境清理。隐藏窗口暂停状态文字更新，恢复时同步，前台相同文字不重复写入。识别仍受 WE 保存延迟影响，没有更改 WE 或工坊文件。
+v0.7.0 已通过 GitHub 工作流发布。其后修复用户反馈的整个窗口周期性闪烁、托盘时影响其他全屏应用的问题：原自动检测每次调用 WE GUI 的 getWallpaper（默认 4 秒），即使 stdout 为空也不断启动进程；现改为自动只读 selectedwallpapers，只有“立即检测”单次尝试官方命令。外部后台工具统一 SW_HIDE、CREATE_NO_WINDOW、STARTF_FORCEOFFFEEDBACK，保留冻结 DLL/环境清理。隐藏窗口暂停状态文字更新，恢复时同步，前台相同文字不重复写入。识别仍受 WE 保存延迟影响，没有更改 WE 或工坊文件。用户已重启实测确认不再闪烁，并明确授权推送、启动 GitHub 工作流发布 v0.7.1；不更新个人便携版，不重复本地打包。发布结果以对应 Release / Actions 记录为准。
 
-本地闪烁修复验证：73 项测试通过（新增自动多轮不启动 GUI、配置更新/屏幕选择、损坏配置不启动进程、手动命令保留和后台启动参数检查）。`tests/smoke_polling_flicker.py` 用真实 Qt 定时器/窗口、模拟全屏前台状态与查询进程验证 11 项：前台无重复状态写入、隐藏无 Show/Paint/状态重写、后台绑定继续跟随、恢复同步、手动查询一次且临时标记不持久化。播放器/保存切换、controls、内置帮助原生流程回归通过，compileall/pip check/diff 检查通过。用户具体显卡/全屏应用下的闪烁仍需重启源码版复测；已有 Release EXE 尚不包含此次修复。不得擅自推送或重打包。
+本地闪烁修复验证：73 项测试通过（新增自动多轮不启动 GUI、配置更新/屏幕选择、损坏配置不启动进程、手动命令保留和后台启动参数检查）。`tests/smoke_polling_flicker.py` 用真实 Qt 定时器/窗口、模拟全屏前台状态与查询进程验证 11 项：前台无重复状态写入、隐藏无 Show/Paint/状态重写、后台绑定继续跟随、恢复同步、手动查询一次且临时标记不持久化。播放器/保存切换、controls、内置帮助原生流程回归通过，compileall/pip check/diff 检查通过。用户另在自己的使用环境确认修复有效；旧 v0.7.0 EXE 不含此修复，新 EXE 须由 v0.7.1 工作流构建验证。
 
 专用目录流程现为：选择模式并保存 → 查看配置名及实际路径的二次确认（默认否）→ 确认后才创建/保存。`tests/smoke_resource_confirmation.py` 实测真实 QMessageBox 是/否按钮；设置弹窗取消或二次取消均保留配置字节且不创建目录，确认后创建并保存，原共享文件保留，7 项检查通过。全部 69 项单元/模拟协议测试、compileall、pip check 通过；GitHub 最终包验证结果以对应 Actions 运行记录为准。
 
