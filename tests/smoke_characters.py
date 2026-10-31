@@ -11,7 +11,7 @@ from unittest.mock import patch
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from PySide6.QtCore import QTimer
 from PySide6.QtWidgets import QApplication, QInputDialog, QMessageBox
-from companion.core import ROOT, Store
+from companion.core import ROOT, Store, new_profile
 from companion.ui import Window, STYLE
 
 output = ROOT / "output"; output.mkdir(exist_ok=True)
@@ -28,13 +28,17 @@ for name, version in [("角色甲", "v4"), ("角色乙", "v2")]:
         path = folder / file; path.write_bytes(data); originals[path] = data
 store = Store(root / "data/config.json")
 store.config.update(we_dir=str(root / "no-we"), workshop_dir="")
+binding = new_profile("合并兼容性壁纸", str(root / "wallpaper.mp4"))
+binding.update(bgm_enabled=False, rules=[])
+appearance = dict(background="", accent="#cdb8ff", auto_color=False)
+store.config.update(profiles=[binding], appearance=appearance)
 store.config["tts"]["project"] = str(project)
 app = QApplication([]); app.setQuitOnLastWindowClosed(False)
 app.setStyle("Fusion"); app.setStyleSheet(STYLE)
 patches = [patch("companion.managed_api.api"), patch("companion.secrets.read_secret", return_value=""), patch("companion.secrets.write_secret")]
 api = patches[0].start(); patches[1].start(); patches[2].start()
 api.synthesize.return_value = audio.getvalue()
-w = Window(store, hooks=False); w.show(); w.tabs.setCurrentIndex(2)
+w = Window(store, hooks=False); w.show(); w.navigation[2].click()
 errors, report = [], {}
 w.report_error = errors.append
 deadline = time.monotonic() + 20
@@ -62,6 +66,7 @@ def select_pair(name, version):
     w.choose_scanned_reference(); w.read_reference_text()
 
 def initial():
+    report["new_navigation_opens_character_generation"] = w.tabs.currentIndex() == 2 and w.character_tools.isVisible()
     report["auto_scan_models_and_pairs"] = w.model_pair_choice.count() == 3 and w.provider_widgets["gpt_weights"].count() == 3
     report["scan_does_not_select_or_start_models"] = not w.provider_widgets["gpt_weights"].currentText() and api.synthesize.call_count == 0 and api.ensure.call_count == 0
     select_pair("角色甲", "v4")
@@ -75,6 +80,8 @@ def initial():
         w.save_current_character(as_new=True)
     second = w.active_character
     report["saved_two_complete_characters"] = len(Store(store.path).config["tts_characters"]) == 2
+    restored = Store(store.path).config
+    report["preset_save_preserves_appearance_and_wallpaper_bindings"] = restored["appearance"] == appearance and restored["profiles"] == [binding]
     report["save_does_not_load_api"] = api.synthesize.call_count == 0 and api.ensure.call_count == 0
     w.character_choice.setCurrentIndex(w.character_choice.findData(first))
     report["selection_restores_models_reference_text_and_languages"] = "角色甲" in w.provider_widgets["gpt_weights"].currentText() and "角色甲" in w.provider_widgets["sovits_weights"].currentText() and "角色甲" in w.provider_widgets["reference"].text() and w.provider_widgets["prompt"].toPlainText() == "角色甲参考原文。" and w.provider_widgets["text_lang"].text() == "zh" and w.provider_widgets["prompt_lang"].text() == "zh"

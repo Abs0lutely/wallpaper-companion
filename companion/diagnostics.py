@@ -56,6 +56,10 @@ def run(destination):
         window = Window(store, hooks=False)
         window.poll.stop()
         window.show()
+        checks["redesigned_navigation_present"] = {0, 2, 3, 4, 5, 6, 7}.issubset(window.navigation)
+        checks["character_model_controls_present"] = window.provider_widgets["gpt_weights"].isEditable() and window.provider_widgets["sovits_weights"].isEditable()
+        from .sovits_config import model_key
+        checks["model_config_dependency_available"] = model_key({}) is None
         window.audio.message.connect(lambda s: report["media_errors"].append(s) if "失败" in s else None)
         checks["manual_and_examples_present"] = all((ROOT / name).exists() for name in
                                                    ["USER_GUIDE.md", "README.md", "examples/interaction-preset.json"])
@@ -87,6 +91,8 @@ def run(destination):
                 checks["pause_stops_audio"] = not window.audio.busy and window.audio.bgm.playbackState() != QMediaPlayer.PlaybackState.PlayingState
                 window.profile_name.setText("打包自检已保存")
                 checks["save_from_ui"] = window.save_profile() and Store(store.path).config["profiles"][0]["name"] == "打包自检已保存"
+                saved = Store(store.path).config
+                checks["appearance_and_character_settings_persist"] = "appearance" in saved and saved["tts_characters"] == []
                 checks["input_listeners_alive"] = hooks.keyboard_listener.is_alive() and hooks.mouse_listener.is_alive()
                 checks["window_screenshot"] = window.grab().save(str(target.with_suffix(".png")))
             except Exception:

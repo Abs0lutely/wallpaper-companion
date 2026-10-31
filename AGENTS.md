@@ -1,6 +1,6 @@
 # 项目协作约定
 
-- 并行开发时，本功能 worktree 为 `wallpaper-companion-github`，分支为 `feature/gpt-sovits-characters`；职责为 GPT-SoVITS 角色预设和模型选择。唯一操作根目录以本 worktree 的 `git rev-parse --show-toplevel` 为准。UI 重设计在独立的 `wallpaper-companion-ui` / `ui/redesign` worktree；不要切换其他聊天的分支、修改另一个 worktree 或混入对方改动。旧 `wallpaper-companion` 只保留历史与旧数据。
+- 并行开发必须使用独立 worktree 和分支，唯一操作根目录以该 worktree 的 `git rev-parse --show-toplevel` 为准。不要切换其他聊天的分支、修改另一个 worktree 或混入对方改动。获用户授权的整合使用专用分支，通过 Git 合并保留双方历史；合并前确认相关聊天停止写入并保留未提交修改。旧 `wallpaper-companion` 只保留历史与旧数据。
 - 操作前核实 Git 顶层路径和当前分支。测试使用本 worktree 独立的临时 `WALLPAPER_COMPANION_DATA`，并检查测试资源路径不指向另一目录；不要共用个人配置、音频或 API 模型状态。未经明确授权不启动或停止现有应用和语音服务。
 - 本项目是 Windows 独立音频伴随程序。Wallpaper Engine 本体和已下载壁纸始终只读，不注入、不解包覆盖、不替用户更改 WE 设置。
 - 使用 Python 3.11+、PySide6 和项目内 Conda 环境；入口为 `main.py`。安装和源码运行方式见 `README.md`；当前交接状态见 `PROJECT_HANDOFF.md`，临时任务不要写进本文件。
