@@ -10,6 +10,8 @@
 
 ## 自行构建
 
+当前本地功能分支新增默认操作语音。下一次正式构建前必须准备 `examples/audio/operation-voice` 中 52 条清单内的真实 WAV；`build_windows.py` 会在冻结前校验完整性、PCM 格式和非全零内容，缺失即停止，实际发行 EXE 自检也再次检查。仅本地验证源码不要求这些配音；测试生成的 WAV 不能作为正式配音。准备步骤见 [语音包说明](examples/audio/operation-voice/README.md)。该目录属于随程序维护的公开素材，个人音频目录依然不分发。
+
 **正式发布默认使用 GitHub 的 Windows release 工作流**，步骤见 [RELEASE_GUIDE.md](RELEASE_GUIDE.md)。本机只做相关测试，提交推送、等待 Windows checks 通过后，在 Actions 手动启动 Windows release；云端构建、验证通过后自动发布 Release，无需重复本地打包。
 
 **本地构建备用入口：双击项目根目录 `build_release.cmd`**。用于特别要求本地打包、手动上传时，自动检查/补齐依赖、运行源码测试、完整构建，并验证实际便携 EXE 和安装/卸载。只有全部通过才将本次三个发行文件放进 `dist/verified/<版本>/<本次编号>/` 并打开该目录；失败保留日志在 `output/local-release/<本次编号>/`，不生成本次已验证目录。脚本不操作 Git/GitHub，也不更新个人版。首次需要能发现 Conda，或先在 Anaconda Prompt 运行 setup.cmd。
