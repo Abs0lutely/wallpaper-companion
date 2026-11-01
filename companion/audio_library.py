@@ -10,6 +10,12 @@ def locations(store):
     root = shared_root(store)
     result = [dict(id="shared:" + kind, label="共享 · " + label, path=str(root / kind), profile="", kind=kind)
               for kind, label in [("voice", "语音"), ("bgm", "BGM")]]
+    legacy = (store.path.parent / "audio/shared").resolve()
+    if legacy != root and legacy.is_dir():
+        for kind, label in [("voice", "语音"), ("bgm", "BGM")]:
+            if (legacy / kind).is_dir():
+                result.append(dict(id="legacy-shared:" + kind, scope="shared:" + kind,
+                    label="旧共享目录 · " + label, path=str(legacy / kind), profile="", kind=kind))
     for profile in store.config["profiles"]:
         for kind, label in [("voice", "语音"), ("bgm", "BGM")]:
             path = profile.get(kind + "_dir", "")
@@ -32,7 +38,10 @@ def inventory(sources):
             try:
                 actual = path.resolve()
                 item = records.setdefault(identity(str(actual)), dict(path=str(actual), name=path.name,
-                    bytes=path.stat().st_size, locations=[], profiles=[], kinds=[]))
+                    bytes=path.stat().st_size, locations=[], profiles=[], kinds=[], usages=[]))
+                usage = dict(label=source["label"], directory=str(folder))
+                if usage not in item["usages"]:
+                    item["usages"].append(usage)
                 for field, value in [("locations", source["label"]), ("profiles", source["profile"]), ("kinds", source["kind"])]:
                     if value and value not in item[field]:
                         item[field].append(value)

@@ -197,7 +197,8 @@ def annotate_controls(root):
         elif isinstance(widget, QAbstractSpinBox):
             widget.setToolTip("输入数值或使用上下箭头调整，范围和单位由此控件限制。")
         elif isinstance(widget, (QTableWidget, QListWidget)):
-            widget.setToolTip("选择列表项目进行管理，具体操作见下方按钮。")
+            if not widget.property("itemHoverDetails"):
+                widget.setToolTip("选择列表项目进行管理，具体操作见下方按钮。")
         elif isinstance(widget, QTabWidget):
             widget.setToolTip("切换功能页面，编辑后记得保存相应配置。")
 
@@ -208,6 +209,7 @@ class HoverHelp(QObject):
         self.window = window
         self.enabled = bool(window.store.config.get("hover_help", True))
         self.target = None
+        self.detail = None
         self.timer = QTimer(self)
         self.timer.setSingleShot(True)
         self.timer.setInterval(1000)
@@ -217,6 +219,7 @@ class HoverHelp(QObject):
 
     def set_enabled(self, enabled):
         self.enabled = bool(enabled)
+        self.detail = None
         self.timer.stop()
         QToolTip.hideText()
 
@@ -225,19 +228,47 @@ class HoverHelp(QObject):
         if kind == QEvent.Type.ToolTip:
             return True  # use our fixed delay; also suppress existing tooltips when disabled
         if isinstance(obj, QWidget):
+            if kind in {QEvent.Type.Enter, QEvent.Type.MouseMove} and self.enabled:
+                detail = self.table_detail(obj, QCursor.pos())
+                if detail:
+                    if self.detail != detail:
+                        QToolTip.hideText()
+                        self.detail = detail
+                        self.target = weakref.ref(obj)
+                        self.timer.start()
+                    return False
             if kind == QEvent.Type.Show and (obj is self.window or obj.parent() is self.window):
                 annotate_controls(obj)
             elif kind == QEvent.Type.Enter and self.enabled:
+                self.detail = None
                 widget = obj
                 while widget and not widget.toolTip():
                     widget = widget.parentWidget()
                 if widget:
                     self.target = weakref.ref(widget)
                     self.timer.start()
-            elif kind in {QEvent.Type.Leave, QEvent.Type.MouseButtonPress, QEvent.Type.KeyPress}:
+            elif kind in {QEvent.Type.Leave, QEvent.Type.MouseButtonPress, QEvent.Type.KeyPress, QEvent.Type.Wheel}:
                 self.timer.stop()
+                self.detail = None
                 QToolTip.hideText()
         return False
+
+    def table_detail(self, widget, position):
+        table = widget
+        while table is not None and not isinstance(table, QTableWidget):
+            table = table.parentWidget()
+        if table is None or not self.window.isAncestorOf(table) or not table.property("itemHoverDetails"):
+            return None
+        header = table.horizontalHeader()
+        if widget is header or header.isAncestorOf(widget):
+            column = header.logicalIndexAt(header.mapFromGlobal(position))
+            item = table.horizontalHeaderItem(column) if column >= 0 else None
+            return ("header", column, item.toolTip()) if item else None
+        if widget is table.viewport() or table.viewport().isAncestorOf(widget):
+            index = table.indexAt(table.viewport().mapFromGlobal(position))
+            item = table.item(index.row(), index.column()) if index.isValid() else None
+            return ("cell", index.row(), index.column(), item.toolTip() or item.text()) if item else ("empty", "")
+        return None
 
     def show_pending(self):
         widget = self.target() if self.target else None
@@ -246,5 +277,9 @@ class HoverHelp(QObject):
         hovered = QApplication.widgetAt(QCursor.pos())
         if hovered is None or (hovered is not widget and not widget.isAncestorOf(hovered)):
             return
-        text = " ".join(widget.toolTip().split())
+        text = self.detail[-1] if self.detail else " ".join(widget.toolTip().split())
+        if self.detail and self.table_detail(widget, QCursor.pos()) != self.detail:
+            return
+        if not text:
+            return
         QToolTip.showText(QCursor.pos() + QPoint(12, 18), text, widget, QRect(), 5000)

@@ -28,6 +28,7 @@ SMOKES = (
     "smoke_player_art.py",
     "smoke_operation_voices.py",
     "smoke_duplicate_generation.py",
+    "smoke_audio_scopes.py",
 )
 
 

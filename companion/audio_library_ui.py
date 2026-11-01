@@ -26,6 +26,12 @@ class AudioLibraryMixin:
         layout.addWidget(row(QLabel("查看范围"), self.audio_scope, self.audio_search, button("刷新音频库", self.refresh_audio_library)))
         self.audio_table = QTableWidget(0, 5)
         self.audio_table.setHorizontalHeaderLabels(["文件名", "用途 / 目录", "引用配置数", "大小", "实际路径"])
+        self.audio_table.setProperty("itemHoverDetails", True)
+        self.audio_table.setMouseTracking(True)
+        self.audio_table.viewport().setMouseTracking(True)
+        self.audio_table.horizontalHeader().setMouseTracking(True)
+        for i, text in enumerate(["音频的完整文件名。双击可试听。", "该文件被哪些语音/BGM资源目录使用。", "配置中引用该文件目录的壁纸数量。", "文件大小，内容悬停显示精确字节数。", "音频文件的真实完整路径。"]):
+            self.audio_table.horizontalHeaderItem(i).setToolTip(text)
         self.audio_table.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
         self.audio_table.setSelectionMode(QAbstractItemView.SelectionMode.ExtendedSelection)
         self.audio_table.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
@@ -73,9 +79,15 @@ class AudioLibraryMixin:
             combo.clear()
             if include_all:
                 combo.addItem("全部已配置目录", "all")
+            added = set()
             for source in self.audio_sources:
-                combo.addItem(source["label"], source["id"])
-                combo.setItemData(combo.count() - 1, source["path"], Qt.ItemDataRole.ToolTipRole)
+                key = source.get("scope", source["id"]) if include_all else source["id"]
+                if key in added:
+                    continue
+                added.add(key)
+                combo.addItem(source["label"], key)
+                directories = [s["path"] for s in self.audio_sources if s.get("scope", s["id"]) == key] if include_all else [source["path"]]
+                combo.setItemData(combo.count() - 1, "\n".join(directories), Qt.ItemDataRole.ToolTipRole)
             combo.setCurrentIndex(max(0, combo.findData(previous)))
             combo.blockSignals(False)
 
@@ -87,13 +99,17 @@ class AudioLibraryMixin:
             return
         self.rebuild_audio_sources()
         selected = self.audio_scope.currentData()
-        sources = copy.deepcopy([s for s in self.audio_sources if selected == "all" or s["id"] == selected])
+        sources = copy.deepcopy([s for s in self.audio_sources if selected == "all" or s["id"] == selected or s.get("scope") == selected])
         self.audio_library_busy = True
         self.audio_library_status.setText("正在后台扫描音频…")
-        self.submit(lambda: inventory(sources), self.audio_library_scanned, self.audio_library_error)
+        self.submit(lambda: inventory(sources), lambda result: self.audio_library_scanned(result, selected), self.audio_library_error)
 
-    def audio_library_scanned(self, result):
+    def audio_library_scanned(self, result, scope=None):
         self.audio_library_busy = False
+        if scope is not None and scope != self.audio_scope.currentData():
+            self.audio_refresh_pending = False
+            self.refresh_audio_library()
+            return
         self.audio_records = result["records"]
         self.audio_table.setRowCount(len(self.audio_records))
         for index, record in enumerate(self.audio_records):
@@ -101,7 +117,8 @@ class AudioLibraryMixin:
                       f"{record['bytes'] / 1024 / 1024:.2f} MB", record["path"]]
             for column, value in enumerate(values):
                 item = QTableWidgetItem(value)
-                item.setToolTip(value)
+                detail = "\n".join(u["label"] + "\n" + u["directory"] for u in record.get("usages", [])) if column == 1 else f"{record['bytes']:,} 字节（{value}）" if column == 3 else value
+                item.setToolTip(detail or value)
                 if column == 0:
                     item.setData(Qt.ItemDataRole.UserRole, record)
                 self.audio_table.setItem(index, column, item)
