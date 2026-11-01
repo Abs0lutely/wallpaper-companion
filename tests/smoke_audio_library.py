@@ -88,6 +88,10 @@ def initial():
 
 def inventory_ready():
     report["shared_file_deduplicated"] = len(w.audio_records) == 1 and len(w.audio_records[0]["profiles"]) == 2
+    w.audio_table.clearSelection()
+    with patch.object(w, "open_folder") as opened:
+        w.open_library_audio_folder()
+        report["no_selection_opens_first_directory"] = opened.call_args.args[0] == str(shared.parent)
     w.audio_table.selectRow(0)
     w.preview_library_audio()
     wait(lambda: w.audio.voice.playbackState() == QMediaPlayer.PlaybackState.PlayingState, preview_ready)
@@ -106,7 +110,13 @@ def copied():
     report["import_to_private_category"] = target.is_file() and imported.is_file()
     w.audio_search.setText("早上好")
     report["search_filters"] = sum(not w.audio_table.isRowHidden(i) for i in range(w.audio_table.rowCount())) == 1
+    w.select_library_audio(True)
+    report["select_all_respects_filter"] = len(w.selected_library_audio()) == 1
     w.audio_search.clear()
+    w.select_library_audio(True)
+    report["multiple_audio_selection"] = len(w.selected_library_audio()) == 2
+    w.select_library_audio(False)
+    report["clear_audio_selection"] = not w.selected_library_audio()
     w.audio_category.clear()
     w.audio_target.setCurrentIndex(w.audio_target.findData("shared:voice"))
     w.reference_audio_target("voice_dir")

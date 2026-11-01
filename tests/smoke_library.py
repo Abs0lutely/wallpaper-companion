@@ -5,7 +5,8 @@ import tempfile
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-from PySide6.QtCore import QTimer, Qt
+from PySide6.QtCore import QTimer, Qt, QItemSelection, QItemSelectionModel
+from PySide6.QtTest import QTest
 from PySide6.QtWidgets import QApplication
 from companion.core import ROOT, Store
 from companion.ui import Window, STYLE
@@ -43,17 +44,37 @@ def run_checks():
         app.processEvents()
         assert w.grab().save(str(output / "wallpaper-library.png"))
         report["starter_dialogues_loaded"] = len(w.edit_dialogues) == 38
+        report["generation_starts_unselected"] = not w.selected_dialogues()
+        w.tabs.setCurrentIndex(w.dialogue_tab_index); app.processEvents()
+        selection = QItemSelection(w.dialogue_table.model().index(0, 0), w.dialogue_table.model().index(15, 2))
+        w.dialogue_table.selectionModel().select(selection, QItemSelectionModel.SelectionFlag.ClearAndSelect)
+        w.dialogue_table.scrollToItem(w.dialogue_table.item(15, 2)); app.processEvents()
+        report["range_selection_checks_even_scrolled_rows"] = len(w.selected_dialogues()) == 16
+        w.dialogue_table.scrollToItem(w.dialogue_table.item(0, 0)); app.processEvents()
+        point = w.dialogue_table.visualItemRect(w.dialogue_table.item(0, 0)).center()
+        QTest.mouseClick(w.dialogue_table.viewport(), Qt.MouseButton.LeftButton, pos=point)
+        report["checkbox_click_unchecks_only_its_row"] = len(w.selected_dialogues()) == 15 and w.dialogue_table.item(0, 0).checkState() == Qt.CheckState.Unchecked
+        QTest.mouseClick(w.dialogue_table.viewport(), Qt.MouseButton.LeftButton, pos=point)
+        report["checkbox_click_can_check_again"] = len(w.selected_dialogues()) == 16
+        w.dialogue_table.clearSelection()
+        report["clear_row_selection_clears_generation_checks"] = not w.selected_dialogues()
+        w.select_dialogues("all")
         w.edit_dialogues[0]["text"] = "用户自己修改的台词。"
         w.render_dialogues()
         w.dialogue_table.item(1, 0).setCheckState(Qt.CheckState.Unchecked)
         report["save_dialogues"] = w.save_profile()
         loaded = Store(store.path).profile(w.editing_id)
-        report["dialogue_edits_persist"] = loaded["dialogues"][0]["text"] == "用户自己修改的台词。" and not loaded["dialogues"][1]["enabled"]
+        report["dialogue_edits_persist"] = loaded["dialogues"][0]["text"] == "用户自己修改的台词。" and loaded["dialogues"][1]["enabled"]
         w.tabs.setCurrentIndex(w.dialogue_tab_index)
         app.processEvents()
         assert w.grab().save(str(output / "dialogue-library.png"))
         w.send_dialogues_to_tts()
         report["dialogues_sent_to_generation"] = len(w.lines.toPlainText().splitlines()) == 37 and "用户自己修改" in w.lines.toPlainText()
+        w.dialogue_category_choice.setCurrentText("早晨")
+        w.select_dialogues("category")
+        report["category_selection_only"] = len(w.selected_dialogues()) == 6 and all(e["category"] == "早晨" for e in w.selected_dialogues())
+        w.select_dialogues("none")
+        report["clear_generation_selection"] = not w.selected_dialogues()
         w.library_search.setText("星空")
         w.check_library(False)
         report["filter_preserves_hidden_checks"] = len(w.checked_wallpapers()) == 1

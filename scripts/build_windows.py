@@ -20,24 +20,12 @@ def version():
 
 
 def prepare():
-    from PySide6.QtCore import QByteArray, QBuffer, QIODevice, Qt
-    from PySide6.QtGui import QImage, QPainter, QColor, QPen
     build = ROOT / "build"
     build.mkdir(exist_ok=True)
-    image = QImage(256, 256, QImage.Format.Format_ARGB32)
-    image.fill(QColor("#111827"))
-    painter = QPainter(image)
-    painter.setRenderHint(QPainter.RenderHint.Antialiasing)
-    painter.setPen(QPen(QColor("#5eead4"), 15, Qt.PenStyle.SolidLine, Qt.PenCapStyle.RoundCap))
-    for x, top, bottom in [(60, 104, 152), (94, 70, 186), (128, 42, 214), (162, 70, 186), (196, 104, 152)]:
-        painter.drawLine(x, top, x, bottom)
-    painter.end()
-    data = QByteArray()
-    buffer = QBuffer(data)
-    buffer.open(QIODevice.OpenModeFlag.WriteOnly)
-    assert image.save(buffer, "PNG")
-    png = bytes(data)
-    (build / "app.ico").write_bytes(struct.pack("<HHH", 0, 1, 1) + struct.pack("<BBBBHHII", 0, 0, 0, 0, 1, 32, len(png), 22) + png)
+    source = ROOT / "readme-assets/app-icon.ico"
+    if not source.is_file():
+        raise ValueError("Approved app icon missing. Run scripts/prepare_app_icon.py first.")
+    shutil.copy2(source, build / "app.ico")
     numbers = tuple(map(int, version().split("."))) + (0,)
     (build / "version.txt").write_text(
         f"VSVersionInfo(ffi=FixedFileInfo(filevers={numbers!r}, prodvers={numbers!r}, mask=0x3f, flags=0, OS=0x40004, fileType=0x1, subtype=0, date=(0,0)), "
@@ -91,6 +79,13 @@ def main():
     args = parser.parse_args()
     if sys.platform != "win32" or struct.calcsize("P") != 8:
         parser.error("Build on Windows x64 using 64-bit Python")
+    # Do not ship a default-on experience without its promised voice assets.
+    sys.path.insert(0, str(ROOT))
+    from companion.operation_pack import require_pack
+    require_pack(ROOT / "examples/audio/operation-voice")
+    from companion.bundled_audio import validate_starter_pack, validate_bundled_manifest
+    validate_starter_pack(ROOT / "examples/audio/starter-voice")
+    validate_bundled_manifest(ROOT / "examples/audio")
     prepare()
     if not args.skip_freeze:
         subprocess.run([sys.executable, "-m", "PyInstaller", "--noconfirm", "--clean", "--distpath", str(ROOT / "dist"),

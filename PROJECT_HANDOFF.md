@@ -2,6 +2,82 @@
 
 此文件描述可公开的源码状态，不包含开发者本机配置和路径。
 
+## v0.9.0 正式发布准备（2026-11-01，覆盖下方历史状态）
+
+用户已授权推送、打包分发。功能分支 `feature/companion-experience` 从 main `10c6586` 累计到 `bc30b85`；本轮将版本提升到 0.9.0，保留所有功能提交历史，通过 Git 合并 main，等待 Windows checks 后手动触发 Windows release（main、v0.9.0）。不提前创建标签、不本地重复构建、不替换个人安装或音频数据。下方“未推送”等标题是开发阶段历史记录，不代表本次发布结果；正式完成状态以对应 Actions 与 Release 为准。
+
+发布前完整隔离回归：110 项单元/协议测试、21 个原生界面流程全部通过，包含自动保存/撤销、台词多选/重复确认、音频库范围/默认资源、独立操作规则、角色和模拟合成、BGM/封面/设备切换。设备切换使用真实输出端点及模拟默认变更通知，未人工点击 Windows 小喇叭听评。本轮没有实测真实 GPT-SoVITS 合成，不影响现有 9880 服务；既有角色实测记录仅作历史参考。分发资源共 90 WAV（38 陪伴、52 操作），包含用户补齐的 13 条，清单校验由源码及实际发行包检查覆盖。新图标统一用于窗口、托盘、EXE 与安装包。
+
+## 系统默认音频输出切换修复（本地，未推送）
+
+`companion/audio.py` 原先只在创建播放器时初始化 `QAudioOutput`，未处理 Windows 默认输出变更。现在持有 `QMediaDevices` 并监听 `audioOutputsChanged`，将语音与 BGM 输出同步到当前 `defaultAudioOutput`；播放语音、切歌和恢复 BGM 前再次核对。只对设备 ID 改变的输出调用 `setDevice`，不重建播放器、不重置媒体源、音量或暂停状态；默认设备暂不可用时等待后续通知。托盘隐藏不影响该监听。Qt 接口依据见 https://doc.qt.io/qt-6/qmediadevices.html 和 https://doc.qt.io/qt-6/qaudiooutput.html 。
+
+新增 `tests/smoke_output_device.py` 并接入 `scripts/validate_ui.py`：在隔离临时目录创建静音 WAV，仅对测试播放器使用本机两个真实输出端点，以模拟默认设备查询/通知验证播放中切换、切回、进度/音量保留、BGM 暂停保留、暂时无设备和播放前补校验。没有更改 Windows 默认设置，没有操作用户运行中的应用/API。报告 `output/smoke-output-device.json` 五项通过；音频控制和操作回应原生回归通过，110 项单元测试通过，compileall 与 diff 检查通过。首次新增测试在加载后立即清理时超时，测试增加等待播放进度后通过；首次单元测试受沙箱权限/子进程限制失败，改在批准的环境中使用同一隔离验证入口重跑通过。尚未人工点击 Windows 小喇叭端到端听评，不把模拟通知测试记为该实机操作已验证。仍只本地提交，未打包、替换已安装程序或推送。
+
+## 最新图标更新（本地，未打包/推送）
+
+用户要求将二次元少女及项目意象结合，并最终提供粉发、樱花、玫瑰金耳机、夕阳的画面作为参考。已用内置 imagegen 基于该参考重绘头像式应用图标，采用 `readme-assets/app-icon.png`（1254×1254，透明外角）和 `readme-assets/app-icon.ico`（16/20/24/32/40/48/64/128/256 九档 PNG 帧）；只有最终采用图进入项目，原参考图与未采用候选不分发。完整提示词见 `readme-assets/app-icon-design.md`。
+
+`companion/ui.py:app_icon` 统一加载 ICO，PNG 为缺失回退；`main.py` 设置应用级图标，窗口、托盘和应用消息一致，并修正旧“绿色声波图标”提示。`scripts/build_windows.py:prepare` 不再绘制旧声波，而是复制批准的 ICO 到 `build/app.ico`，既有 PyInstaller spec 与 Inno Setup 均继续使用该位置；现有 readme-assets 打包/便携更新白名单已覆盖新文件。`scripts/prepare_app_icon.py` 用 Qt 缩放并封装多帧 ICO，不新增依赖。
+
+验证：九帧目录、透明通道、Qt 读取全部尺寸、32px 窗口/托盘一致和构建准备复制的 ICO 字节一致均通过；已查看实际尺寸预览。源码自检 30 项、原生界面重设计与前台/托盘闪烁回归、compileall、pip check 通过。构建准备只在临时目录验证，没有冻结 EXE、制作安装包或替换已安装程序。分支仍为 `feature/companion-experience`，保持本地提交、不推送/不发布；用户实际安装版的图标将在后续获授权的新包更新时生效。
+
+## 默认音频补齐完成（当前状态，仍未推送）
+
+用户已补齐此前 13 条配音，并授权加入分发资源。已从同一生成目录使用 `scripts/prepare_default_audio.py` 复制新增文件到 `examples/audio/` 并更新两份清单；现共 **90 条，32,010,360 字节**，其中普通陪伴 38 条、操作回应 52 条，所有默认台词均有音频，两套 missing 列表均为空。
+
+新增的返回桌面/闲置陪伴各 6 条保留来源的“台词-神里绫华_EN.wav”模型标签，另新增一条保存操作回应；不重命名旧文件。全部 90 条源音频 SHA256 保持不变，既有 77 条分发 WAV 也与上次提交哈希一致。没有修改个人配置、启动语音 API 或生成新语音。
+
+本轮验证：全部 90 条格式及哈希检查、操作包完整性与模型命名相关 8 项单元测试、隔离 `smoke_bundled_audio.py` 原生流程通过，含新增带模型名配音实际低音量播放、返回/闲置分类各 6 条发现，以及只读目录保护。未逐句听评或做 ASR，不把文件名匹配当成内容核验；未重复执行整套回归，上一轮完整结果见下节。
+
+分支仍为 `feature/companion-experience`，保持本地提交、不推送、不打包、不发布，安装版未替换。`examples/dialogues/missing-default-audio-zh-CN.json` 是已完成的 13 条任务参考清单，不再是待生成列表；相关用户手册和资源说明已更新。后续本地验收或获授权后发布，不再需要补齐默认配音。
+
+## 当前追加修复：台词选择、音频查重、默认音频与模型命名（未推送）
+
+仍在唯一功能分支 `feature/companion-experience` 本地开发，main/origin/main 保留已发布 v0.8.2 `10c6586`，没有推送、打包、发布、操作 UI worktree 或替换已安装程序。每项功能验证后本地提交；本轮用户另明确授权把其已生成的默认配音复制为分发资源，原始数据和音频保留。
+
+- `6e0dc30`：`companion/dialogue_table.py`、`library_ui.py` 将扩展行选择与生成勾选双向同步，覆盖拖选、滚动行、Ctrl/Shift 与复选框单击；初始不全选，不改写台词元数据。
+- `1f8b320`：`companion/generation_ui.py`、`services.py` 后台只读预检查输出和批次重名；送到生成页保留分类/跳过偏好。真实弹窗选择跳过、全部另存或取消，原文件不覆盖；取消/全跳过不合成、不启动 API。
+- `486c242`：`audio_library.py`/`audio_library_ui.py` 查找范围兼容当前 shared 与旧 `data/audio/shared`，不搬动文件/绑定；过期范围结果丢弃后重新扫描。`help_ui.py` 按当前单元格显示完整文件名、用途及真实目录、精确字节数/路径，列头才显示功能说明。
+- `5175d96`：`operation_rules.py`、`operation_rules_ui.py` 提供独立“操作回应规则…”按钮，26 种动作默认开启，可设每动作分类/冷却和全局间隔；支持校验后的 JSON 导入导出，不碰壁纸规则。默认分享文件 `examples/presets/operation-voice-rules.json` 随 examples 分发。
+- `d37a051`：`examples/audio/` 已纳入 77 条用户明确授权的真实 WAV 副本，28,062,268 字节，均为 48 kHz、单声道、16-bit PCM；51 条操作语音覆盖全部 26 类，26 条普通示例覆盖点击/早晨/白天/夜间。未生成的一条操作变体与返回桌面/闲置各 6 条共 13 条如实缺失，见 `examples/dialogues/missing-default-audio-zh-CN.json`，不以别句冒充。原 77 条源文件 SHA256 均未变。
+- `bundled_audio.py`、`core.py`、音频库与 profile UI：随附音频视为只读，可试听和复制，不能删除或写入。新配置默认允许语音目录为空时只读回退普通示例，个人音频优先，不复制到个人目录；旧配置缺字段默认关闭，可在声音设置调整。总目录随机排除操作分类，显式指定分类不受影响。实际壁纸规则触发/操作音频的 QMediaPlayer 播放已用低音量实测。
+- `c4125f0`：`audio_names.py`、生成服务/UI 改用“台词-模型名称.wav”。匹配当前权重的角色名优先，其次权重名或云端模型/音色，不能确认时标“未指定模型”；可手填文件标签，只影响文件名，不切换模型。长名安全缩短带区分标记、同名另存编号；不同模型分别查重，同模型和旧无标签文件可进入确认。操作查找、默认音频校验/准备均兼容新旧命名，未重命名既有 77 条素材。新增标签随接口设置保存，生成快照 `_filename_model` 不写进提供方配置。修复撤销 TTS 设置时旧表单覆盖已恢复缓存的问题。
+
+配置仍为 version 4 JSON，无 SQL 数据库。新增 `operation_voice_rules` 列表、`operation_voice_min_interval` 数值（默认 1.2 秒）、`use_bundled_demo` 配置开关（新 true、旧缺失 false）及 `tts_filename_model` 文本（默认空）。分享操作规则仅携带白名单事件/分类/布尔/时间，不带绝对路径、模型、凭据或代码。
+
+音频总清单 `examples/audio/manifest.json`、普通示例清单 `examples/audio/starter-voice/manifest.json` 保存各文件的台词、SHA256、时长，不含本机路径。`scripts/prepare_default_audio.py --source <生成目录>` 默认只审阅，加 `--apply` 仅复制已知默认台词；保留来源文件名，已有不同内容或模型选择不明确时停止，不改原件。`build_windows.py` 与实际 EXE 自检校验所有清单内外 WAV 和哈希，并要求 26 类操作每类至少一条有效配音；同类第二句是可选变体。全 examples 由既有安装器/ZIP/便携更新器携带。本轮未执行构建，不把分发资源就绪当作实际新包验证。
+
+最终验证：110 项隔离单元/协议测试、20 组原生界面流程、29 项源码自检、compileall、pip check、diff check 通过；另按 Windows checks 的直接 `unittest discover` 入口重跑 110 项通过（共享目录单测排除随附只读资源以限定测试范围）。新增 `smoke_duplicate_generation.py`、`smoke_audio_scopes.py`、`smoke_bundled_audio.py`、`test_operation_rules.py`、`test_audio_names.py`。真实配音已验证格式/哈希和实际播放，没有逐句听评或 ASR 原文核验；模型合成仍为模拟服务，未操作用户真实 9880/GPU 模型。所有配置故障、删除和生成测试只用独立临时数据；没有删除源音频。
+
+下一步：用户本地试用与可选补齐 13 条配音；如需追加资源，用完整准备入口更新总清单。发布仍须用户授权、提升新版本、云端 Checks/实际包/安装卸载验证；当前不能推送、打包或发布。原壁纸音频检测继续留待后续讨论。本节替代下一节第一阶段的“必须先生成所有 52 条”历史待办。
+
+## 第一阶段：自动保存与操作语音（历史，以上节为当前状态）
+
+本轮按较大的功能更新处理，用户明确要求每项本地验证、提交，暂不推送、不发布、不打包。唯一功能 worktree 的当前分支为 `feature/companion-experience`，从已发布 main/v0.8.2 `10c6586` 创建；main、UI worktree 和旧的台词预设分支未合并或修改，版本号仍为 0.8.2，正式发布时再提升版本。已安装程序及个人配置/音频保持原样；不把此前发布/清理的一次性授权用于本轮。
+
+已实现并分项提交：
+
+- `3f04766`，`companion/audio_library_ui.py`：未选音频时打开首个可见文件目录；显式全选/全不选和 Ctrl/Shift 多选；“删除”仍确认后进入回收站，不降级永久删除，批量复制/删除作用于选中记录。
+- `583c2b7`，`companion/library_ui.py`：生成勾选独立于保存的台词元数据，首次打开/切换库不自动勾选，支持全部/清空/按分类选择；重绘同库保留本次选择。编辑弹窗不再混入持久的“参与生成”开关。
+- `52d27e2`，`companion/rules_ui.py`：分类改为不可手写的下拉，来自当前台词分类和语音目录的一层子目录；保留旧规则缺失的分类，自选文件/文件夹继续可用。
+- `173f266`，`companion/ui.py`：参考音频直接播放与停止；GPT-SoVITS 相对路径按项目根解析，不调用 API。
+- `e0125a4`，`companion/autosave.py`、UI/库模块：离开页面/内页、切换配置、关闭到托盘与正常退出前保存配置、规则、台词及接口/运行/目录设置。约 6.5 秒的非模态弹窗带撤销按钮，设置另有持久撤销入口。撤销只改本次差异，关联共享台词按原字节及配置引用一起恢复；新草稿、后续配置保存或外部文件变化阻止覆盖。失败保留草稿并阻止导航，保留原手动保存入口。密钥仍在 keyring，不参与撤销。恢复默认经确认，保留绑定、资源、台词、角色和接口，不操作系统自启。
+- `119d805`，`companion/shell_ui.py`：关闭 BGM 即保存并隐藏底部播放器，重新开启恢复；读取 Qt 歌曲 CoverArtImage/ThumbnailImage，或同目录 cover/folder.jpg/png，缺失显示默认图标，不用自定义窗口背景冒充歌曲封面。
+- `0076996`，`companion/action_lines.py`、`operation_voices.py`、`operation_pack.py`：26 类共 52 条原创操作台词、默认开启的操作语音开关及可选目录；按按钮语义、页面切换、实际编辑等事件播放预制音频，无 TTS 调用。控件更新不当成用户输入，修改提示合并、快速操作节流，已有语音/暂停/全屏时不抢播。后台扫描按自定义、当前配置、共享、随程序语音包逐类回退。缺失时设置显示覆盖数，不伪造声音。
+- `c751b7b` 及后续回归：自动保存不重启当前音乐、不清空未改动规则的时钟；选择器同步、失败内页导航阻止、相对参考音频、接口保存回退、异步操作音频刷新均有回归。
+
+新增配置为 `operation_voice_enabled: bool = true`、`operation_voice_dir: str = ""`，在原 version 4 JSON 中向后兼容，Store 校验类型；无 SQL 数据库。操作语音不通过互动预设导出，也不携带密钥。页面单步撤销不包含文件删除、系统自启、原实时音量和手动保存等独立即时动作。
+
+验证：101 项隔离单元/协议测试、17 组原生 UI 流程、28 项源码自检通过，compileall、pip check、diff check 通过；新增 `tests/smoke_autosave.py`、`smoke_player_art.py`、`smoke_operation_voices.py` 和 `test_operation_pack.py` 纳入 `scripts/validate_ui.py`。撤销测试覆盖外部文件改动、新草稿阻止、共享引用恢复、临时 Store 写入失败；操作语音通过非零测试 WAV 实际进入 QMediaPlayer PlayingState，不是语音内容/音质听评。封面测试为 Qt 元数据传递模拟和实际本地 sidecar 图片读取，尚未验证各格式真实内嵌封面的解码兼容性。本轮未调用用户 9880、未切换模型、未真实生成 GPU 配音、未构建二进制。
+
+**第一阶段历史待办（已由上节 77 条分发配音与动作覆盖门槛替代）：**
+
+1. 使用 `examples/dialogues/operation-zh-CN.json`，按分类生成全部 52 条 16-bit WAV，保留分类和按台词命名的文件名；TXT 仅供阅读，不保留分类。现有 38/72 条陪伴台词保留，新增操作台词单独提供，可在软件按钮中去重导入。
+2. 用户提供生成目录后，听评并确认可公开分发；用 `scripts/prepare_operation_voice_pack.py --source <目录>` 校验，随后加 `--apply` 只复制这 52 条到 `examples/audio/operation-voice`，不收集个人其他音频/模型，不覆盖已有不同内容。该目录当前仅说明文件，没有正式音频。
+3. `scripts/build_windows.py` 已在冻结前用 `require_pack` 阻止缺失/无效/全零音频，冻结 EXE 自检再次检查完整性；现有 examples 分发与便携更新白名单会携带该包。保持此门槛，不用测试 WAV 凑数。以后获用户授权再提升版本、验证、合入 main、推送并运行工作流。
+4. 原壁纸音频检测按用户要求留待后续讨论，本轮未修改其检测策略或实现。此前的默认配音、真实多格式封面和新发行包均不能写成已实测。
+
 ## v0.8.2 发布准备：API 控制、操作反馈与按钮动效
 
 用户随后明确授权推送并打包分发。本轮发布版本为 0.8.2；分支 `feature/api-controls-feedback` 从已发布 main `201bb5d` 创建，四项提交截至 `bb81ca7`，独立于尚未推送的 `content/heartfelt-rules`。按默认流程合入 main，Windows checks 通过后手动启动 Windows release；不提前建标签，不本地重复构建，不替换现用安装文件或用户数据。发布是否成功以对应 Actions/Release 为准。

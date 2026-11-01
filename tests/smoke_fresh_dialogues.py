@@ -50,7 +50,7 @@ def run():
         w.dialogue_table.item(1, 0).setCheckState(Qt.CheckState.Unchecked)
         click("保存台词库")
         saved = load_dialogues(dict(dialogue_file=str(library)))
-        report["shared_save_preserves_edits_and_checkboxes"] = saved[0]["text"] == w.edit_dialogues[0]["text"] and not saved[1]["enabled"] and not store.config["profiles"]
+        report["shared_save_preserves_data_independent_of_generation_selection"] = saved[0]["text"] == w.edit_dialogues[0]["text"] and saved[1]["enabled"] and not store.config["profiles"]
         other = Window(Store(store.path), hooks=False)
         report["reopen_restores_shared_library"] = other.edit_dialogues == saved
         other.cleanup(); shiboken6.delete(other)

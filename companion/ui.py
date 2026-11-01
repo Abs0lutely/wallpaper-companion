@@ -11,7 +11,7 @@ from datetime import datetime
 from pathlib import Path
 
 from PySide6.QtCore import Qt, QTimer, QTime, Signal, QUrl
-from PySide6.QtGui import QAction, QColor, QDesktopServices, QIcon, QPainter, QPixmap
+from PySide6.QtGui import QAction, QDesktopServices, QIcon
 from PySide6.QtWidgets import (
     QApplication, QCheckBox, QComboBox, QDialog, QDialogButtonBox, QDoubleSpinBox,
     QFileDialog, QFormLayout, QFrame, QHBoxLayout, QLabel, QLineEdit, QListWidget,
@@ -28,6 +28,7 @@ from .library_ui import LibraryMixin, DialogueMixin
 from .audio_library_ui import AudioLibraryMixin
 from .characters_ui import CharacterMixin
 from .speech_ui import SpeechFeedbackMixin
+from .generation_ui import GenerationReviewMixin
 
 EVENTS = {
     "key": "快捷键", "mouse_left": "鼠标左键", "mouse_right": "鼠标右键", "mouse_middle": "鼠标中键",
@@ -86,24 +87,17 @@ def path_field(line, directory=True, title="选择文件夹"):
 
 
 def app_icon():
-    pixmap = QPixmap(64, 64)
-    pixmap.fill(Qt.GlobalColor.transparent)
-    painter = QPainter(pixmap)
-    painter.setRenderHint(QPainter.RenderHint.Antialiasing)
-    painter.setBrush(QColor("#edb2c4"))
-    painter.setPen(Qt.PenStyle.NoPen)
-    painter.drawRoundedRect(3, 3, 58, 58, 16, 16)
-    painter.setBrush(QColor("#281821"))
-    for x, height in [(16, 16), (25, 34), (34, 44), (43, 24)]:
-        painter.drawRoundedRect(x, (64 - height) // 2, 5, height, 2, 2)
-    painter.end()
-    return QIcon(pixmap)
+    for name in ("app-icon.ico", "app-icon.png"):
+        icon = QIcon(str(ROOT / "readme-assets" / name))
+        if not icon.isNull():
+            return icon
+    return QApplication.style().standardIcon(QStyle.StandardPixmap.SP_MediaVolume)
 
 
 from .rules_ui import RuleDialog
 
 
-class Window(LibraryMixin, DialogueMixin, AudioLibraryMixin, CharacterMixin, SpeechFeedbackMixin, CompanionShellMixin, QMainWindow):
+class Window(LibraryMixin, DialogueMixin, AudioLibraryMixin, CharacterMixin, SpeechFeedbackMixin, GenerationReviewMixin, CompanionShellMixin, QMainWindow):
     job_done = Signal(object, object, object)
     hook_event = Signal(str, str)
     progress = Signal(str)
@@ -166,6 +160,11 @@ class Window(LibraryMixin, DialogueMixin, AudioLibraryMixin, CharacterMixin, Spe
         self.button_motion = ButtonMotion(self)
         from .help_ui import HoverHelp
         self.hover_help = HoverHelp(self)
+        from .autosave import Autosave
+        self.autosave = Autosave(self)
+        self.bgm_enabled.toggled.connect(self.bgm_enabled_changed)
+        from .operation_voices import OperationVoices
+        self.operation_voices = OperationVoices(self)
         for error in self.registry.errors:
             self.log("扩展加载失败：" + error)
         self.audio.changed.connect(self.refresh_status)
@@ -211,10 +210,22 @@ class Window(LibraryMixin, DialogueMixin, AudioLibraryMixin, CharacterMixin, Spe
         layout.addWidget(provider_scroll, 2)
         self.tts_output = QLineEdit()
         layout.addWidget(row(QLabel("生成保存目录"), path_field(self.tts_output)))
+        self.filename_model = QLineEdit()
+        self.filename_model.setMaxLength(200)
+        self.filename_model.setToolTip("仅影响新音频的文件名，不会切换模型。留空按匹配的角色预设、权重名或服务模型/音色推断；外部 API 未指定模型时标为未指定模型。")
+        self.filename_model.setPlaceholderText("留空按当前角色 / 权重 / 服务模型和音色推断；无法确定时使用“未指定模型”")
+        layout.addWidget(row(QLabel("文件名中的模型标签"), self.filename_model))
+        self.skip_existing_tts_audio = QCheckBox("跳过已存在的同名音频（生成前仍会确认）")
+        self.skip_existing_tts_audio.setChecked(True)
+        layout.addWidget(self.skip_existing_tts_audio)
+        self.transferred_dialogues = None
+        self.transferred_lines = ""
         self.start_api_button = button("启动本地 API", self.launch_api)
         self.check_api_button = button("检测连接", self.check_api)
         layout.addWidget(row(button("保存接口设置", self.save_tts), self.check_api_button,
                              self.start_api_button, button("使用当前配置的语音目录", self.use_voice_dir)))
+        self.reference_preview_button = button("播放参考音频", self.preview_reference_audio)
+        layout.addWidget(row(self.reference_preview_button, button("停止参考试听", self.audio.voice.stop)))
         layout.addWidget(hint("每行一条台词，按台词保存 WAV，重名自动编号。密钥保存到系统凭据管理器；切换服务可分别保存设置。"))
         self.lines = QPlainTextEdit()
         self.lines.setPlaceholderText("欢迎回来。\n今天也辛苦了。\n早上好，新的一天开始啦。")
@@ -322,6 +333,19 @@ class Window(LibraryMixin, DialogueMixin, AudioLibraryMixin, CharacterMixin, Spe
         form.addRow("壁纸检测间隔", self.poll_seconds)
         layout.addLayout(form)
         layout.addWidget(button("保存运行设置", self.save_settings, True))
+        layout.addWidget(row(button("撤销最近自动保存", lambda: self.autosave.undo()),
+                             button("恢复默认配置…", self.restore_defaults)))
+        self.operation_voice_enabled = QCheckBox("播放操作回应语音（默认开启）")
+        self.operation_voice_enabled.toggled.connect(self.toggle_operation_voice)
+        self.operation_voice_dir = QLineEdit()
+        self.operation_voice_dir.setPlaceholderText("留空：共享语音目录，再查找随程序附带的操作语音包")
+        self.operation_voice_status = hint("操作语音尚未扫描。")
+        layout.addWidget(self.operation_voice_enabled)
+        layout.addWidget(button("操作回应规则…", self.configure_operation_rules))
+        layout.addWidget(row(QLabel("操作语音目录（可选）"), path_field(self.operation_voice_dir),
+                             button("刷新操作语音", lambda: self.operation_voices.refresh())))
+        layout.addWidget(self.operation_voice_status)
+        layout.addWidget(button("导入默认操作台词", self.add_operation_dialogues))
         self.startup_button = button("检测开机自启状态…", self.toggle_startup)
         layout.addWidget(self.startup_button)
         from .startup import startup_enabled
@@ -401,6 +425,8 @@ class Window(LibraryMixin, DialogueMixin, AudioLibraryMixin, CharacterMixin, Spe
             callback(error if error is not None else result)
 
     def report_error(self, error):
+        if hasattr(self, "operation_voices"):
+            self.operation_voices.request("error")
         self.log("错误：" + str(error))
         QMessageBox.warning(self, "操作未完成", str(error))
 
@@ -430,12 +456,23 @@ class Window(LibraryMixin, DialogueMixin, AudioLibraryMixin, CharacterMixin, Spe
         profiles = self.store.config["profiles"]
         new_id = profiles[index]["id"] if 0 <= index < len(profiles) else None
         if not old and new_id and self.shared_dialogue_snapshot is not None and self.collect_dialogues() != self.shared_dialogue_snapshot:
-            if not self.save_dialogue_library():
+            saved = self.autosave.flush() if hasattr(self, "autosave") and not self.autosave.busy else self.save_dialogue_library()
+            if not saved:
                 self.profiles.blockSignals(True)
                 self.profiles.setCurrentRow(-1)
                 self.profiles.blockSignals(False)
                 return
-        if old and old["id"] != new_id and self.draft_profile() != old:
+        if old and old["id"] != new_id and hasattr(self, "autosave") and not self.autosave.busy:
+            if not self.autosave.flush():
+                self.profiles.blockSignals(True)
+                self.profiles.setCurrentRow(next(i for i, p in enumerate(profiles) if p["id"] == old["id"]))
+                self.profiles.blockSignals(False)
+                return
+            profiles = self.store.config["profiles"]
+            self.profiles.blockSignals(True)
+            self.profiles.setCurrentRow(index)
+            self.profiles.blockSignals(False)
+        elif old and old["id"] != new_id and not hasattr(self, "autosave") and self.draft_profile() != old:
             response = QMessageBox.question(self, "配置尚未保存", "当前修改尚未保存。放弃修改并切换配置？", QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No, QMessageBox.StandardButton.No)
             if response != QMessageBox.StandardButton.Yes:
                 previous = next(i for i, p in enumerate(profiles) if p["id"] == old["id"])
@@ -470,8 +507,10 @@ class Window(LibraryMixin, DialogueMixin, AudioLibraryMixin, CharacterMixin, Spe
         self.original_audio_policy.setCurrentIndex(max(0, self.original_audio_policy.findData(p.get("original_audio_policy", "safe"))))
         self.original_audio_override.setCurrentIndex(max(0, self.original_audio_override.findData(p.get("original_audio_override", "auto"))))
         for widget, key in [(self.profile_enabled, "enabled"), (self.desktop_only, "desktop_only"),
-                            (self.fullscreen_mute, "fullscreen_mute"), (self.bgm_enabled, "bgm_enabled"), (self.shuffle, "bgm_shuffle")]:
+                            (self.fullscreen_mute, "fullscreen_mute"), (self.bgm_enabled, "bgm_enabled"), (self.shuffle, "bgm_shuffle"), (self.bundled_demo_enabled,"use_bundled_demo")]:
+            widget.blockSignals(True)
             widget.setChecked(p.get(key, True))
+            widget.blockSignals(False)
         for widget, key in [(self.voice_volume, "voice_volume"), (self.bgm_volume, "bgm_volume"),
                             (self.duck, "duck_percent"), (self.global_cooldown, "global_cooldown")]:
             widget.blockSignals(True)
@@ -497,11 +536,14 @@ class Window(LibraryMixin, DialogueMixin, AudioLibraryMixin, CharacterMixin, Spe
                  enabled=self.profile_enabled.isChecked(), desktop_only=self.desktop_only.isChecked(),
                  fullscreen_mute=self.fullscreen_mute.isChecked(), bgm_enabled=self.bgm_enabled.isChecked(),
                  bgm_shuffle=self.shuffle.isChecked(), voice_volume=self.voice_volume.value(),
+                 use_bundled_demo=self.bundled_demo_enabled.isChecked(),
                  bgm_volume=self.bgm_volume.value(), duck_percent=self.duck.value(), global_cooldown=self.global_cooldown.value(),
                  rules=copy.deepcopy(self.edit_rules), dialogues=self.collect_dialogues())
         return p
 
     def save_profile(self):
+        before = copy.deepcopy(self.store.config)
+        files = {}
         try:
             from .dialogues import normalize_dialogues
             p = self.draft_profile()
@@ -511,6 +553,8 @@ class Window(LibraryMixin, DialogueMixin, AudioLibraryMixin, CharacterMixin, Spe
                     raise ValueError("目录不存在，请先创建或选择已有文件夹：" + p[key])
             if p.get("dialogue_file"):
                 from .assets import write_dialogues
+                target = writable_path(p["dialogue_file"], self.store.protected())
+                files[target] = target.read_bytes() if target.exists() else None
                 write_dialogues(p["dialogue_file"], p["dialogues"], self.store.protected())
                 for other in self.store.config["profiles"]:
                     if other["id"] != p["id"] and identity(other.get("dialogue_file", "")) == identity(p["dialogue_file"]):
@@ -519,15 +563,47 @@ class Window(LibraryMixin, DialogueMixin, AudioLibraryMixin, CharacterMixin, Spe
             self.store.config["profiles"][index] = p
             self.store.save()
             self.refresh_profiles(p["id"])
-            self.activate_profile(force=True)
+            self.apply_saved_playback(before)
             self.log("已保存配置：" + p["name"])
             self.render_library()
             return True
         except Exception as exc:
+            self.store.config = before
+            from .autosave import Autosave
+            try:
+                Autosave.restore_files(files)
+            except OSError as rollback:
+                self.log("台词保存回退失败：" + str(rollback))
             self.report_error(str(exc))
             return False
 
+    def apply_saved_playback(self, before):
+        """Apply edits without restarting an unrelated/current song or rule clocks."""
+        current = self.store.profile(self.active_id)
+        old = next((p for p in before.get("profiles", []) if p["id"] == self.active_id), None)
+        if not current or not old or not hasattr(self.audio, "sync_bgm"):
+            self.activate_profile(force=True)
+            return
+        if current.get("bgm_dir") != old.get("bgm_dir"):
+            self.audio.set_profile(current)
+        else:
+            self.audio.profile = current
+            self.audio.bgm_paused = bool(current.get("bgm_paused", False))
+            self.audio.set_volumes()
+            self.audio.sync_bgm()
+        old_rules = {r["id"]: r for r in old["rules"]}
+        new_rules = {r["id"]: r for r in current["rules"]}
+        changed = {key for key in old_rules.keys() | new_rules.keys() if old_rules.get(key) != new_rules.get(key)}
+        for key in changed:
+            self.engine.last.pop(key, None); self.engine.next_due.pop(key, None); self.engine.daily_fired.pop(key, None)
+        if changed or current.get("enabled") != old.get("enabled"):
+            self.hooks.configure(current["rules"] if current.get("enabled", True) else [])
+        self.apply_original_audio_policy()
+        self.refresh_status()
+
     def add_profile(self):
+        if hasattr(self, "autosave") and not self.autosave.flush():
+            return
         from .assets import attach_resources, shared_root
         try:
             p = attach_resources(new_profile(), shared_root(self.store), self.store.protected())
@@ -539,6 +615,8 @@ class Window(LibraryMixin, DialogueMixin, AudioLibraryMixin, CharacterMixin, Spe
         self.refresh_profiles(p["id"])
 
     def bind_current(self):
+        if hasattr(self, "autosave") and not self.autosave.flush():
+            return
         if not self.current["path"]:
             QMessageBox.information(self, "尚无当前壁纸", "请先在 Wallpaper Engine 中播放一张壁纸，再点击立即检测。也可以先新建配置并开启手动模式测试。")
             return
@@ -836,7 +914,7 @@ class Window(LibraryMixin, DialogueMixin, AudioLibraryMixin, CharacterMixin, Spe
             self.report_error(str(exc))
 
     def preview_voice(self):
-        self.preview(audio_files(self.voice_dir.text()))
+        self.preview(candidates(self.draft_profile(),dict(source="",keyword="")) if self.editing_id else audio_files(self.voice_dir.text()))
 
     def preview(self, files):
         if not files:
@@ -991,13 +1069,23 @@ class Window(LibraryMixin, DialogueMixin, AudioLibraryMixin, CharacterMixin, Spe
         self.workshop_dir.setText(c["workshop_dir"])
         self.monitor.setValue(c["monitor"])
         self.poll_seconds.setValue(c["poll_seconds"])
+        self.operation_voice_enabled.blockSignals(True)
+        self.operation_voice_enabled.setChecked(c.get("operation_voice_enabled", True))
+        self.operation_voice_enabled.blockSignals(False)
+        self.operation_voice_dir.setText(c.get("operation_voice_dir", ""))
+        self.ffprobe_path.setText(c.get("ffprobe", ""))
+        for i in range(self.plugin_list.count()):
+            item = self.plugin_list.item(i)
+            item.setCheckState(Qt.CheckState.Checked if item.text() in c.get("enabled_plugins", []) else Qt.CheckState.Unchecked)
         for setting, combo in self.backend_combos.items():
             combo.setCurrentIndex(max(0, combo.findData(c.get(setting))))
 
     def save_settings(self):
+        before = copy.deepcopy(self.store.config)
         try:
             self.store.config.update(we_dir=self.we_dir.text().strip(), workshop_dir=self.workshop_dir.text().strip(),
-                                     monitor=self.monitor.value(), poll_seconds=self.poll_seconds.value(), ffprobe=self.ffprobe_path.text().strip())
+                                     monitor=self.monitor.value(), poll_seconds=self.poll_seconds.value(), ffprobe=self.ffprobe_path.text().strip(),
+                                     operation_voice_enabled=self.operation_voice_enabled.isChecked(), operation_voice_dir=self.operation_voice_dir.text().strip())
             for setting, combo in self.backend_combos.items():
                 self.store.config[setting] = combo.currentData()
             self.store.config["enabled_plugins"] = [self.plugin_list.item(i).text() for i in range(self.plugin_list.count())
@@ -1007,10 +1095,94 @@ class Window(LibraryMixin, DialogueMixin, AudioLibraryMixin, CharacterMixin, Spe
             self.log("运行设置已保存；扩展和播放/输入后端变更重启后生效")
             self.detect()
             self.probe_original_audio()
+            if hasattr(self, "autosave"):
+                self.autosave.remember("runtime")
+            if hasattr(self, "operation_voices"):
+                self.operation_voices.refresh()
+            return True
         except Exception as exc:
+            self.store.config = before
             self.report_error(str(exc))
+            return False
+
+    def restore_defaults(self):
+        if not self.autosave.flush():
+            return
+        if QMessageBox.question(self, "恢复默认配置", "恢复运行偏好、外观，以及当前壁纸的音量、播放开关和互动规则？\n壁纸绑定、资源路径、台词、音频、角色模型及接口设置全部保留；不开关系统自启。可撤销。",
+                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No, QMessageBox.StandardButton.No) != QMessageBox.StandardButton.Yes:
+            return
+        before = copy.deepcopy(self.store.config)
+        try:
+            from .core import defaults
+            c = defaults()
+            for key in ("monitor", "poll_seconds", "hover_help", "appearance", "operation_voice_enabled", "operation_voice_rules", "operation_voice_min_interval", "enabled_plugins", *self.backend_combos):
+                self.store.config[key] = copy.deepcopy(c[key])
+            p = self.store.profile(self.editing_id)
+            if p:
+                fresh = new_profile()
+                for key in ("enabled", "bgm_enabled", "bgm_shuffle", "bgm_paused", "desktop_only", "fullscreen_mute",
+                            "voice_volume", "bgm_volume", "duck_percent", "global_cooldown", "rules"):
+                    p[key] = copy.deepcopy(fresh[key])
+            self.store.save()
+            self.autosave.busy = True
+            self.refresh_profiles(self.editing_id); self.load_settings()
+            self.apply_appearance()
+            self.hover_help.set_enabled(True); self.help_button.setText("悬停说明：开启")
+            self.poll.setInterval(self.poll_seconds.value() * 1000)
+            self.activate_profile(force=True)
+            self.autosave.baseline = self.autosave.forms()
+            self.autosave.record(before, {}, "已恢复默认配置，个人资源保留；可撤销。")
+        except Exception as exc:
+            self.store.config = before
+            self.report_error("恢复默认失败：" + str(exc))
+        finally:
+            self.autosave.busy = False
+
+    def toggle_operation_voice(self, enabled):
+        if not hasattr(self, "autosave"):
+            return
+        if not self.autosave.flush():
+            self.operation_voice_enabled.blockSignals(True)
+            self.operation_voice_enabled.setChecked(self.store.config.get("operation_voice_enabled", True))
+            self.operation_voice_enabled.blockSignals(False)
+            return
+        if not enabled and hasattr(self, "operation_voices"):
+            self.operation_voices.change_timer.stop()
+            source = self.audio.voice.source().toLocalFile()
+            if source and identity(source) == identity(self.operation_voices.source):
+                self.audio.voice.stop()
+        self.log("操作回应语音已开启。" if enabled else "操作回应语音已关闭。")
+
+    def configure_operation_rules(self):
+        if not self.autosave.flush():
+            return
+        from .operation_rules_ui import OperationRulesDialog
+        dialog = OperationRulesDialog(self)
+        if dialog.exec():
+            self.apply_operation_rules(dialog.result_payload)
+
+    def apply_operation_rules(self, payload):
+        from .operation_rules import normalize_payload
+        before = copy.deepcopy(self.store.config)
+        try:
+            value = normalize_payload(payload)
+            self.store.config.update(operation_voice_enabled=value["enabled"],operation_voice_rules=value["rules"],operation_voice_min_interval=value["min_interval"])
+            self.store.save()
+            self.operation_voice_enabled.blockSignals(True)
+            self.operation_voice_enabled.setChecked(value["enabled"])
+            self.operation_voice_enabled.blockSignals(False)
+            self.autosave.remember("runtime")
+            self.operation_voices.refresh()
+            self.autosave.record(before, {}, "操作回应规则已保存，独立于壁纸规则；可撤销。")
+            return True
+        except Exception as exc:
+            self.store.config = before
+            self.report_error("操作回应规则保存失败：" + str(exc))
+            return False
 
     def load_tts(self):
+        self.filename_model.setText(self.store.config.get("tts_filename_model", ""))
+        self.rendered_provider = ""  # Restoring saved settings must not stash the stale form over them.
         self.provider_cache = copy.deepcopy(self.store.config.get("tts_providers", {}))
         self.provider_cache.setdefault("gpt_sovits", self.store.config["tts"])
         index = self.provider_choice.findData(self.store.config.get("tts_provider", "gpt_sovits"))
@@ -1023,8 +1195,17 @@ class Window(LibraryMixin, DialogueMixin, AudioLibraryMixin, CharacterMixin, Spe
         self.stash_provider()
         return copy.deepcopy(self.provider_cache[self.provider_choice.currentData()])
 
+    def generation_settings(self):
+        from .audio_names import infer_model_label
+        settings = self.tts_settings()
+        identifier = self.character_choice.currentData() if self.provider_choice.currentData()=="gpt_sovits" else None
+        character = next((e for e in self.store.config.get("tts_characters",[]) if e["id"]==identifier),None)
+        label = self.filename_model.text().strip() or infer_model_label(settings,self.provider_choice.currentData(),character)
+        return {**settings,"_filename_model":label}
+
     def save_tts(self):
         self.stash_provider()
+        before = copy.deepcopy(self.store.config)
         try:
             sanitized = copy.deepcopy(self.provider_cache)
             from .secrets import write_secret
@@ -1037,14 +1218,18 @@ class Window(LibraryMixin, DialogueMixin, AudioLibraryMixin, CharacterMixin, Spe
                         account = identifier if secret_key == "api_key" else identifier + ":" + secret_key
                         write_secret(account, values.pop(secret_key))
             self.store.config["tts_provider"] = self.provider_choice.currentData()
+            self.store.config["tts_filename_model"] = self.filename_model.text().strip()
             self.store.config["tts_providers"] = sanitized
             self.store.config["tts"] = sanitized.get("gpt_sovits", self.store.config["tts"])
             if self.provider_choice.currentData() == "gpt_sovits":
                 self.store.config["tts_character"] = self.character_choice.currentData() or ""
             self.store.save()
             self.api_message("语音接口设置已保存。保存设置不会启动 API 或生成音频。")
+            if hasattr(self, "autosave"):
+                self.autosave.remember("tts")
             return True
         except Exception as exc:
+            self.store.config = before
             self.report_error(str(exc))
             return False
 
@@ -1056,6 +1241,22 @@ class Window(LibraryMixin, DialogueMixin, AudioLibraryMixin, CharacterMixin, Spe
             return
         self.tts_output.setText(value)
         self.api_message("生成保存目录已切换为：" + value)
+
+    def preview_reference_audio(self):
+        try:
+            from .core import AUDIO_EXTENSIONS
+            settings = self.tts_settings()
+            value = str(settings.get("reference", "")).strip()
+            path = Path(value)
+            if value and self.provider_choice.currentData() == "gpt_sovits":
+                from .characters import project_file
+                path = project_file(settings, "reference")
+            if not value or not path.is_file() or path.suffix.lower() not in AUDIO_EXTENSIONS:
+                raise ValueError("请先选择有效的参考音频文件。试听不会启动 API。")
+            self.preview([path])
+            self.api_message("正在试听参考音频：" + path.name)
+        except Exception as exc:
+            self.report_error(str(exc))
 
     def update_api_controls(self):
         from .managed_api import api
@@ -1132,27 +1333,25 @@ class Window(LibraryMixin, DialogueMixin, AudioLibraryMixin, CharacterMixin, Spe
             if not output:
                 raise ValueError("请选择生成保存目录")
             writable_path(output, self.store.protected())
-            settings = self.tts_settings()
+            settings = self.generation_settings()
             if not self.save_tts():
                 return
             provider = self.registry.speech[self.provider_choice.currentData()]
         except Exception as exc:
             self.report_error(str(exc))
             return
-        self.tts_busy = True
-        self.update_api_controls()
-        self.begin_generation(len(lines))
-        self.generation_cancel.clear()
-        self.generate_button.setEnabled(False)
-        self.tts_status.setText(f"正在生成 {len(lines)} 条语音，请稍候…")
-        protected = self.store.protected()
-        self.submit(lambda: generate(settings, lines, output, protected, self.progress.emit, provider, self.generation_cancel, status=self.generation_state.emit), self.generated, self.generation_error)
+        entries = self.transferred_dialogues if self.lines.toPlainText() == self.transferred_lines else None
+        self.begin_generation_review(lines, output, settings, provider, self.skip_existing_tts_audio.isChecked(), entries)
 
     def generated(self, paths):
         self.tts_busy = False
+        if hasattr(self, "operation_voices"):
+            self.operation_voices.refresh()
+            self.operation_voices.request("complete")
         self.update_api_controls()
         self.generate_button.setEnabled(True)
-        self.tts_status.setText(f"已保存 {len(paths)} 条语音。放在绑定目录中的文件会自动加入播放候选。")
+        skipped = max(0, getattr(self, "pending_generation_total", len(paths)) - len(paths))
+        self.tts_status.setText(f"已保存 {len(paths)} 条语音，跳过 {skipped} 条已有或重复音频。")
         self.finish_generation_progress(True, self.tts_status.text())
         for path in paths:
             self.log("已生成：" + path)
@@ -1166,6 +1365,9 @@ class Window(LibraryMixin, DialogueMixin, AudioLibraryMixin, CharacterMixin, Spe
         self.report_error(str(error))
 
     def closeEvent(self, event):
+        if not self.quitting and hasattr(self, "autosave") and not self.autosave.flush():
+            event.ignore()
+            return
         if self.quitting or not QSystemTrayIcon.isSystemTrayAvailable():
             event.accept()
             self.cleanup()
@@ -1181,6 +1383,8 @@ class Window(LibraryMixin, DialogueMixin, AudioLibraryMixin, CharacterMixin, Spe
         if self.tts_busy:
             if QMessageBox.question(self, "退出并取消生成", "退出将取消剩余生成并停止声伴启动的本地 API；已经保存的音频保留。继续退出？") != QMessageBox.StandardButton.Yes:
                 return
+        if not self.autosave.flush():
+            return
         self.cleanup()
         QApplication.quit()
 
@@ -1188,6 +1392,8 @@ class Window(LibraryMixin, DialogueMixin, AudioLibraryMixin, CharacterMixin, Spe
         if self.quitting:
             return
         self.quitting = True
+        self.autosave.close()
+        self.operation_voices.close()
         self.character_scan_timer.stop()
         self.commit_player_volume()
         self.player_volume_timer.stop()

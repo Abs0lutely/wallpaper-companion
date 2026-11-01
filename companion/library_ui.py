@@ -92,11 +92,9 @@ class DialogueDialog(QDialog):
         self.category.addItems(CATEGORIES)
         self.category.setCurrentText(self.entry["category"])
         self.text = QPlainTextEdit(self.entry["text"])
-        self.enabled = QCheckBox("参与台词库语音生成")
-        self.enabled.setChecked(self.entry["enabled"])
         form.addRow("分类", self.category)
         form.addRow("台词", self.text)
-        form.addRow("", self.enabled)
+        form.addRow("", QLabel("保存后在台词库列表勾选本次需要生成的条目。"))
         controls = QDialogButtonBox(QDialogButtonBox.StandardButton.Save | QDialogButtonBox.StandardButton.Cancel)
         controls.accepted.connect(self.accept)
         controls.rejected.connect(self.reject)
@@ -104,7 +102,7 @@ class DialogueDialog(QDialog):
 
     def accept(self):
         try:
-            self.entry.update(category=self.category.currentText().strip(), text=self.text.toPlainText().strip(), enabled=self.enabled.isChecked())
+            self.entry.update(category=self.category.currentText().strip(), text=self.text.toPlainText().strip())
             self.entry = normalize_dialogues([self.entry])[0]
         except ValueError as exc:
             QMessageBox.warning(self, "台词无效", str(exc))
@@ -164,8 +162,12 @@ class LibraryMixin:
             self.store.config["library_roots"] = list(dict.fromkeys(values))
             self.store.save()
             self.scan_library()
+            if hasattr(self, "autosave"):
+                self.autosave.remember("roots")
+            return True
         except Exception as exc:
             self.report_error(str(exc))
+            return False
 
     def scan_library(self):
         if self.library_busy:
@@ -277,24 +279,35 @@ class DialogueMixin:
         layout = QVBoxLayout(page)
         self.dialogue_context = hint("未选择壁纸时编辑共享台词；选择壁纸后编辑其台词库。保存文字不会调用语音服务。")
         layout.addWidget(self.dialogue_context)
-        self.dialogue_table = QTableWidget(0, 3)
+        from .dialogue_table import DialogueTable
+        self.dialogue_table = DialogueTable(0, 3)
         self.dialogue_table.setHorizontalHeaderLabels(["生成", "分类", "台词（双击可编辑）"])
         self.dialogue_table.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
+        self.dialogue_table.setSelectionMode(QAbstractItemView.SelectionMode.ExtendedSelection)
+        self.dialogue_table.itemSelectionChanged.connect(self.sync_dialogue_checks)
+        self.dialogue_table.itemChanged.connect(self.sync_dialogue_selection)
         self.dialogue_table.horizontalHeader().setSectionResizeMode(0, QHeaderView.ResizeMode.ResizeToContents)
         self.dialogue_table.horizontalHeader().setSectionResizeMode(1, QHeaderView.ResizeMode.ResizeToContents)
         self.dialogue_table.horizontalHeader().setSectionResizeMode(2, QHeaderView.ResizeMode.Stretch)
         self.dialogue_table.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
-        self.dialogue_table.cellDoubleClicked.connect(lambda r, c: self.edit_dialogue())
+        self.dialogue_table.cellDoubleClicked.connect(lambda r, c: self.edit_dialogue() if c != 0 else None)
         layout.addWidget(self.dialogue_table, 1)
+        self.dialogue_category_choice = QComboBox()
+        layout.addWidget(row(button("全选台词", lambda: self.select_dialogues("all")),
+                             button("全不选台词", lambda: self.select_dialogues("none")),
+                             self.dialogue_category_choice, button("选择此分类", lambda: self.select_dialogues("category"))))
         layout.addWidget(row(button("＋ 新台词", self.add_dialogue), button("编辑", self.edit_dialogue), button("删除", self.delete_dialogues),
                              button("补充默认台词", self.add_starter_dialogues), button("保存台词库", self.save_dialogue_library, True)))
         self.skip_existing_dialogue_audio = QCheckBox("生成时跳过已存在的同名音频")
         self.skip_existing_dialogue_audio.setChecked(True)
+        self.skip_existing_dialogue_audio.toggled.connect(self.skip_existing_tts_audio.setChecked)
+        self.skip_existing_tts_audio.toggled.connect(self.skip_existing_dialogue_audio.setChecked)
         layout.addWidget(self.skip_existing_dialogue_audio)
         layout.addWidget(row(button("将勾选台词送到生成页", self.send_dialogues_to_tts),
                              button("按分类生成勾选台词", self.generate_dialogue_library, True)))
         layout.addWidget(row(button("应用分类触发规则", self.install_dialogue_rules),
                              button("导入台词 JSON / TXT", self.import_dialogues), button("导出台词 JSON", self.export_dialogues)))
+        layout.addWidget(button("导入默认操作台词", self.add_operation_dialogues))
         layout.addWidget(hint("按分类生成会保存到语音目录/早晨、语音目录/点击回应等子目录；生成前可在“生成语音”页选择服务。\n"
                               "应用分类规则会替换当前编辑中的规则，保存后生效。原始下载音频无需台词库，也能直接播放。"))
         self.dialogue_tab_index = self.tabs.addTab(page, "台词库")
@@ -329,23 +342,67 @@ class DialogueMixin:
             return False
 
     def collect_dialogues(self):
-        for i, entry in enumerate(self.edit_dialogues):
-            entry["enabled"] = self.dialogue_table.item(i, 0).checkState() == Qt.CheckState.Checked
         return copy.deepcopy(self.edit_dialogues)
 
+    def select_dialogues(self, mode):
+        category = self.dialogue_category_choice.currentText()
+        self.dialogue_table.blockSignals(True)
+        for i, entry in enumerate(self.edit_dialogues):
+            selected = mode == "all" or mode == "category" and entry["category"] == category
+            self.dialogue_table.item(i, 0).setCheckState(Qt.CheckState.Checked if selected else Qt.CheckState.Unchecked)
+        self.dialogue_table.blockSignals(False)
+        self.sync_dialogue_selection()
+        self.log(f"本次生成已选择 {len(self.selected_dialogues())} 条台词；勾选不改变台词库内容。")
+
+    def sync_dialogue_checks(self):
+        selected = {index.row() for index in self.dialogue_table.selectionModel().selectedRows()}
+        self.dialogue_table.blockSignals(True)
+        for i in range(self.dialogue_table.rowCount()):
+            item = self.dialogue_table.item(i, 0)
+            if item:
+                item.setCheckState(Qt.CheckState.Checked if i in selected else Qt.CheckState.Unchecked)
+        self.dialogue_table.blockSignals(False)
+
+    def sync_dialogue_selection(self, item=None):
+        if item is not None and item.column() != 0:
+            return
+        from PySide6.QtCore import QItemSelection, QItemSelectionModel
+        selection = QItemSelection()
+        for i in range(self.dialogue_table.rowCount()):
+            check = self.dialogue_table.item(i, 0)
+            if check and check.checkState() == Qt.CheckState.Checked:
+                selection.select(self.dialogue_table.model().index(i, 0), self.dialogue_table.model().index(i, 2))
+        self.dialogue_table.blockSignals(True)
+        self.dialogue_table.selectionModel().select(selection, QItemSelectionModel.SelectionFlag.ClearAndSelect)
+        self.dialogue_table.blockSignals(False)
+
     def render_dialogues(self):
+        scope_id = self.editing_id or "shared"
+        selected = {self.dialogue_table.item(i, 0).data(Qt.ItemDataRole.UserRole)
+                    for i in range(self.dialogue_table.rowCount()) if self.dialogue_table.item(i, 0) and self.dialogue_table.item(i, 0).checkState() == Qt.CheckState.Checked}
+        if getattr(self, "dialogue_selection_scope", None) != scope_id:
+            selected = set()
+        self.dialogue_selection_scope = scope_id
+        self.dialogue_table.blockSignals(True)
         scope = "壁纸台词库：" + self.profile_name.text() if self.editing_id else "共享台词库（无需先绑定壁纸）"
-        self.dialogue_context.setText(f"{scope} · {len(self.edit_dialogues)} 条；修改后点击保存台词库。")
+        self.dialogue_context.setText(f"{scope} · {len(self.edit_dialogues)} 条；切换页面自动保存，也可手动保存。生成勾选只对本次操作有效。")
         self.dialogue_table.setRowCount(len(self.edit_dialogues))
         for i, entry in enumerate(self.edit_dialogues):
             check = QTableWidgetItem()
             check.setFlags(Qt.ItemFlag.ItemIsEnabled | Qt.ItemFlag.ItemIsUserCheckable | Qt.ItemFlag.ItemIsSelectable)
-            check.setCheckState(Qt.CheckState.Checked if entry["enabled"] else Qt.CheckState.Unchecked)
+            check.setData(Qt.ItemDataRole.UserRole, entry["id"])
+            check.setCheckState(Qt.CheckState.Checked if entry["id"] in selected else Qt.CheckState.Unchecked)
             self.dialogue_table.setItem(i, 0, check)
             for j, key in enumerate(["category", "text"], 1):
                 item = QTableWidgetItem(entry[key])
                 item.setToolTip(entry[key])
                 self.dialogue_table.setItem(i, j, item)
+        self.dialogue_table.blockSignals(False)
+        self.sync_dialogue_selection()
+        previous = self.dialogue_category_choice.currentText()
+        self.dialogue_category_choice.clear()
+        self.dialogue_category_choice.addItems(list(dict.fromkeys(e["category"] for e in self.edit_dialogues)))
+        self.dialogue_category_choice.setCurrentText(previous)
 
     def add_dialogue(self):
         self.collect_dialogues()
@@ -381,18 +438,34 @@ class DialogueMixin:
         added = len(self.edit_dialogues) - before
         self.dialogue_context.setText(f"已补充 {added} 条默认台词，请保存台词库。" if added else "默认台词已齐全，无需重复添加。")
 
+    def add_operation_dialogues(self):
+        from .action_lines import operation_dialogues
+        existing = {(entry["category"], entry["text"]) for entry in self.edit_dialogues}
+        added = [entry for entry in operation_dialogues() if (entry["category"], entry["text"]) not in existing]
+        self.edit_dialogues.extend(added)
+        self.render_dialogues()
+        self.tabs.setCurrentIndex(self.dialogue_tab_index)
+        self.log(f"已补充 {len(added)} 条操作台词，未自动勾选。可按分类生成到共享语音目录，操作语音会自动发现它们。")
+
     def selected_dialogues(self):
-        return [entry for entry in normalize_dialogues(self.collect_dialogues()) if entry["enabled"]]
+        return [{**entry, "enabled": True} for i, entry in enumerate(normalize_dialogues(self.collect_dialogues()))
+                if self.dialogue_table.item(i, 0).checkState() == Qt.CheckState.Checked]
 
     def send_dialogues_to_tts(self):
         lines = self.selected_dialogues()
+        if not lines:
+            self.log("请先勾选需要生成的台词，可全选、全不选或按分类选择。")
+            return
         self.lines.setPlainText("\n".join(entry["text"] for entry in lines))
+        self.transferred_dialogues = copy.deepcopy(lines)
+        self.transferred_lines = self.lines.toPlainText()
         if self.editing_id:
             self.use_voice_dir()
         else:
             from .assets import shared_root
             self.tts_output.setText(str(shared_root(self.store) / "voice"))
         self.tabs.setCurrentIndex(2)
+        self.tts_status.setText(f"已接收 {len(lines)} 条台词，保留分类及跳过同名设置。生成前会检查重复；修改文本后按普通逐行模式生成。")
 
     def install_dialogue_rules(self):
         if not self.editing_id:
@@ -445,7 +518,7 @@ class DialogueMixin:
                 raise ValueError("请勾选台词，并先在声音与互动页选择语音目录")
             if not self.save_dialogue_library():
                 return
-            settings = self.tts_settings()
+            settings = self.generation_settings()
             if not self.save_tts():
                 return
             provider = self.registry.speech[self.provider_choice.currentData()]
@@ -455,14 +528,8 @@ class DialogueMixin:
         except Exception as exc:
             self.report_error(str(exc))
             return
-        self.tts_busy = True
-        self.update_api_controls()
-        self.begin_generation(len(entries))
-        self.generation_cancel.clear()
-        self.generate_button.setEnabled(False)
-        self.tts_status.setText(f"正在按分类生成 {len(entries)} 条台词…")
         self.tabs.setCurrentIndex(2)
-        self.submit(lambda: generate_dialogue_entries(settings, entries, folder, protected, self.progress.emit, provider, skip, self.generation_cancel, status=self.generation_state.emit), self.dialogue_generated, self.generation_error)
+        self.begin_generation_review([entry["text"] for entry in entries], folder, settings, provider, skip, entries)
 
     def dialogue_generated(self, result):
         self.generated(result["paths"])

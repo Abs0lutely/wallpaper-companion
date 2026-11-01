@@ -14,7 +14,7 @@ class AudioLibraryTests(unittest.TestCase):
             two = attach_resources(new_profile("二"), shared_root(store))
             store.config["profiles"] = [one, two]
             (Path(one["voice_dir"]) / "你好.wav").write_bytes(b"voice")
-            records = inventory(locations(store))["records"]
+            records = inventory([source for source in locations(store) if not source.get("read_only")])["records"]
             self.assertEqual(len(records), 1)
             self.assertCountEqual(records[0]["profiles"], [one["id"], two["id"]])
             self.assertEqual(len(records[0]["locations"]), 3)

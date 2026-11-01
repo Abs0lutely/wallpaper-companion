@@ -163,7 +163,28 @@ def generation_status(callback, phase, completed, total, message):
         callback(dict(phase=phase, completed=completed, total=total, message=message))
 
 
-def generate(settings, lines, output, protected=(), progress=None, provider=None, cancel=None, status=None):
+def generation_duplicates(lines, output, protected=(), entries=None, model_name=None):
+    """Read-only preflight, including duplicate names within the planned batch."""
+    from .core import filename_for
+    from .audio_names import stems_with_copies, has_audio
+    root = writable_path(output, protected)
+    cache, seen, duplicates = {}, set(), []
+    for index, text in enumerate(lines):
+        category = entries[index]["category"] if entries is not None else ""
+        folder = writable_path(root / category, protected)
+        if category not in cache:
+            from .core import audio_files
+            cache[category] = stems_with_copies({p.stem.casefold() for p in audio_files(str(folder), recursive=entries is None) if p.stat().st_size > 0})
+        stem = Path(filename_for(text,model_name)).stem.casefold()
+        key = category, stem
+        exists = has_audio(cache[category],text,model_name)
+        if exists or key in seen:
+            duplicates.append(dict(index=index, text=text, category=category, existing=exists,model=model_name or ""))
+        seen.add(key)
+    return duplicates
+
+
+def generate(settings, lines, output, protected=(), progress=None, provider=None, cancel=None, status=None, skip_existing=False):
     writable_path(output, protected)
     if provider is None:
         from .providers import builtin_providers
@@ -171,11 +192,19 @@ def generate(settings, lines, output, protected=(), progress=None, provider=None
     if getattr(provider, "id", "") == "gpt_sovits":
         settings = {**settings, "_protected_dirs": list(protected), "_tts_batch_id": settings.get("_tts_batch_id") or uuid.uuid4().hex}
     paths = []
+    from .core import audio_files, filename_for
+    from .audio_names import stems_with_copies, has_audio
+    model_name = settings.get("_filename_model")
+    existing = stems_with_copies({p.stem.casefold() for p in audio_files(str(output)) if p.stat().st_size > 0}) if skip_existing else set()
     generation_status(status, "prepare", 0, len(lines), f"准备生成 {len(lines)} 条语音。")
     for index, text in enumerate(lines):
         try:
             if cancel is not None and cancel.is_set():
                 raise RuntimeError("语音生成已取消")
+            stem = Path(filename_for(text,model_name)).stem.casefold()
+            if skip_existing and has_audio(existing,text,model_name):
+                generation_status(status, "skipped", index+1, len(lines), f"{index+1}/{len(lines)} 已存在，跳过：{text}")
+                continue
             generation_status(status, "synthesis", index, len(lines), f"正在生成第 {index+1}/{len(lines)} 条，等待服务返回音频…")
             current = settings
             if getattr(provider, "id", "") == "gpt_sovits" and status:
@@ -184,8 +213,9 @@ def generate(settings, lines, output, protected=(), progress=None, provider=None
             if cancel is not None and cancel.is_set():
                 raise RuntimeError("语音生成已取消")
             generation_status(status, "saving", index, len(lines), f"正在验证并保存第 {index+1}/{len(lines)} 条 WAV…")
-            path = save_generated(output, text, data, protected)
+            path = save_generated(output, text, data, protected, model_name=model_name)
             paths.append(str(path))
+            existing.add(stem)
             generation_status(status, "saved", index+1, len(lines), f"已保存 {index+1}/{len(lines)}：{path.name}")
             if progress:
                 progress(f"{index + 1}/{len(lines)} 已保存：{path.name}")
@@ -198,6 +228,8 @@ def generate(settings, lines, output, protected=(), progress=None, provider=None
 def generate_dialogue_entries(settings, entries, output, protected=(), progress=None, provider=None, skip_existing=True, cancel=None, status=None):
     settings = {**settings, "_tts_batch_id": uuid.uuid4().hex}
     from .core import filename_for, AUDIO_EXTENSIONS
+    from .audio_names import stems_with_copies, has_audio
+    model_name = settings.get("_filename_model")
     from .dialogues import normalize_dialogues
     entries = [entry for entry in normalize_dialogues(entries) if entry["enabled"]]
     # Validate all output locations before any API call.
@@ -207,13 +239,13 @@ def generate_dialogue_entries(settings, entries, output, protected=(), progress=
     generation_status(status, "prepare", 0, len(entries), f"准备按分类处理 {len(entries)} 条台词。")
     existing = {}
     for category, folder in folders.items():
-        existing[category] = {p.stem.casefold() for p in folder.iterdir() if p.is_file() and p.suffix.lower() in AUDIO_EXTENSIONS and p.stat().st_size > 0} if folder.is_dir() else set()
+        existing[category] = stems_with_copies({p.stem.casefold() for p in folder.iterdir() if p.is_file() and p.suffix.lower() in AUDIO_EXTENSIONS and p.stat().st_size > 0}) if folder.is_dir() else set()
     for i, entry in enumerate(entries):
         if cancel is not None and cancel.is_set():
             raise RuntimeError("语音生成已取消")
         category, text = entry["category"], entry["text"]
-        stem = Path(filename_for(text)).stem.casefold()
-        if skip_existing and stem in existing[category]:
+        stem = Path(filename_for(text,model_name)).stem.casefold()
+        if skip_existing and has_audio(existing[category],text,model_name):
             skipped += 1
             generation_status(status, "skipped", i+1, len(entries), f"{i+1}/{len(entries)} 已存在，跳过：{text}")
             if progress:

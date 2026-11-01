@@ -17,8 +17,9 @@ def main():
     from PySide6.QtCore import QLockFile
     from PySide6.QtWidgets import QApplication, QMessageBox
     from companion.core import DATA, Store, writable_path
-    from companion.ui import STYLE, Window
+    from companion.ui import STYLE, Window, app_icon
     app = QApplication(sys.argv)
+    app.setWindowIcon(app_icon())
     app.setApplicationName("Wallpaper Companion")
     app.setStyle("Fusion")
     app.setStyleSheet(STYLE)
@@ -28,7 +29,7 @@ def main():
     lock.setStaleLockTime(0)
     if not lock.tryLock(50):
         if "--tray" not in sys.argv:
-            QMessageBox.information(None, "壁纸声伴已运行", "程序已在运行，请双击系统托盘中的绿色声波图标打开配置。")
+            QMessageBox.information(None, "壁纸声伴已运行", "程序已在运行，请双击系统托盘中的粉发耳机少女图标打开配置。")
         return 0
     try:
         window = Window(Store())

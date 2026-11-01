@@ -1,0 +1,164 @@
+{
+  "format": "wallpaper-companion-operation-rules",
+  "version": 1,
+  "enabled": true,
+  "min_interval": 1.2,
+  "rules": [
+    {
+      "event": "click",
+      "enabled": true,
+      "category": "操作·回应",
+      "cooldown": 1.2
+    },
+    {
+      "event": "navigate",
+      "enabled": true,
+      "category": "操作·切换页面",
+      "cooldown": 1.2
+    },
+    {
+      "event": "change",
+      "enabled": true,
+      "category": "操作·修改设置",
+      "cooldown": 1.2
+    },
+    {
+      "event": "save",
+      "enabled": true,
+      "category": "操作·保存",
+      "cooldown": 1.2
+    },
+    {
+      "event": "undo",
+      "enabled": true,
+      "category": "操作·撤销",
+      "cooldown": 1.2
+    },
+    {
+      "event": "reset",
+      "enabled": true,
+      "category": "操作·恢复默认",
+      "cooldown": 1.2
+    },
+    {
+      "event": "add",
+      "enabled": true,
+      "category": "操作·新建",
+      "cooldown": 1.2
+    },
+    {
+      "event": "edit",
+      "enabled": true,
+      "category": "操作·编辑",
+      "cooldown": 1.2
+    },
+    {
+      "event": "delete",
+      "enabled": true,
+      "category": "操作·删除",
+      "cooldown": 1.2
+    },
+    {
+      "event": "select",
+      "enabled": true,
+      "category": "操作·选择",
+      "cooldown": 1.2
+    },
+    {
+      "event": "enable",
+      "enabled": true,
+      "category": "操作·开启",
+      "cooldown": 1.2
+    },
+    {
+      "event": "disable",
+      "enabled": true,
+      "category": "操作·关闭",
+      "cooldown": 1.2
+    },
+    {
+      "event": "open",
+      "enabled": true,
+      "category": "操作·打开目录",
+      "cooldown": 1.2
+    },
+    {
+      "event": "help",
+      "enabled": true,
+      "category": "操作·查看说明",
+      "cooldown": 1.2
+    },
+    {
+      "event": "import",
+      "enabled": true,
+      "category": "操作·导入",
+      "cooldown": 1.2
+    },
+    {
+      "event": "export",
+      "enabled": true,
+      "category": "操作·导出",
+      "cooldown": 1.2
+    },
+    {
+      "event": "scan",
+      "enabled": true,
+      "category": "操作·扫描",
+      "cooldown": 1.2
+    },
+    {
+      "event": "generate",
+      "enabled": true,
+      "category": "操作·生成语音",
+      "cooldown": 1.2
+    },
+    {
+      "event": "api_start",
+      "enabled": true,
+      "category": "操作·启动接口",
+      "cooldown": 1.2
+    },
+    {
+      "event": "api_stop",
+      "enabled": true,
+      "category": "操作·关闭接口",
+      "cooldown": 1.2
+    },
+    {
+      "event": "pause",
+      "enabled": true,
+      "category": "操作·暂停",
+      "cooldown": 1.2
+    },
+    {
+      "event": "resume",
+      "enabled": true,
+      "category": "操作·继续",
+      "cooldown": 1.2
+    },
+    {
+      "event": "next",
+      "enabled": true,
+      "category": "操作·下一首",
+      "cooldown": 1.2
+    },
+    {
+      "event": "preview",
+      "enabled": true,
+      "category": "操作·试听",
+      "cooldown": 1.2
+    },
+    {
+      "event": "error",
+      "enabled": true,
+      "category": "操作·未完成",
+      "cooldown": 1.2
+    },
+    {
+      "event": "complete",
+      "enabled": true,
+      "category": "操作·完成",
+      "cooldown": 1.2
+    }
+  ]
+}

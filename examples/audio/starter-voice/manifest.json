@@ -1,0 +1,387 @@
+{
+  "format": "wallpaper-companion-starter-audio",
+  "version": 1,
+  "files": [
+    {
+      "category": "点击回应",
+      "text": "嗯？我在这里。",
+      "filename": "嗯？我在这里。.wav",
+      "sha256": "9a86e769ba2b95645d7f717cca262e05ed5a825bf84b83e3e1a793aa7e2bcffd",
+      "bytes": 199724,
+      "seconds": 2.08,
+      "sample_rate": 48000,
+      "channels": 1
+    },
+    {
+      "category": "点击回应",
+      "text": "有什么新发现吗？",
+      "filename": "有什么新发现吗？.wav",
+      "sha256": "33f16869682fe53519b9fd62a2155a746e9edf1afe28f5e3c49a60776cde3b0a",
+      "bytes": 145964,
+      "seconds": 1.52,
+      "sample_rate": 48000,
+      "channels": 1
+    },
+    {
+      "category": "点击回应",
+      "text": "收到啦，继续陪你。",
+      "filename": "收到啦，继续陪你。.wav",
+      "sha256": "872e2355a222658060cb66b136aa5354e5994ebf8b586ffb1b9224cff2b744c4",
+      "bytes": 222764,
+      "seconds": 2.32,
+      "sample_rate": 48000,
+      "channels": 1
+    },
+    {
+      "category": "点击回应",
+      "text": "别着急，我们慢慢来。",
+      "filename": "别着急，我们慢慢来。.wav",
+      "sha256": "aa269454b2cc3808c8a00986a7b718a93a3995efe5bddbe5e1522185a6b09c22",
+      "bytes": 203564,
+      "seconds": 2.12,
+      "sample_rate": 48000,
+      "channels": 1
+    },
+    {
+      "category": "点击回应",
+      "text": "今天也一起加油吧。",
+      "filename": "今天也一起加油吧。.wav",
+      "sha256": "15cddeb775daffaaac8d921bc21e943c263647b65fb5946a46207fd9c49008c1",
+      "bytes": 230444,
+      "seconds": 2.4,
+      "sample_rate": 48000,
+      "channels": 1
+    },
+    {
+      "category": "点击回应",
+      "text": "休息一下再继续也可以。",
+      "filename": "休息一下再继续也可以。.wav",
+      "sha256": "3d03081ac39b2dcb2fe72c98df5c265a1d745383adc4723da6602c75783c3686",
+      "bytes": 253484,
+      "seconds": 2.64,
+      "sample_rate": 48000,
+      "channels": 1
+    },
+    {
+      "category": "点击回应",
+      "text": "你一叫我，我就来啦。",
+      "filename": "你一叫我，我就来啦。.wav",
+      "sha256": "3f906ec5d28b42cdb449e23f2f31e9af7b2a2fd3cc06bd3889c192428e8063a1",
+      "bytes": 295724,
+      "seconds": 3.08,
+      "sample_rate": 48000,
+      "channels": 1
+    },
+    {
+      "category": "点击回应",
+      "text": "要不要换个心情，听首歌？",
+      "filename": "要不要换个心情，听首歌？.wav",
+      "sha256": "02352a5344bf7b9223a0850380fc5651fc7cd7b468f6c1998a3c1298ed48e47c",
+      "bytes": 307244,
+      "seconds": 3.2,
+      "sample_rate": 48000,
+      "channels": 1
+    },
+    {
+      "category": "返回桌面",
+      "text": "欢迎回来，今天也辛苦了。",
+      "filename": "欢迎回来，今天也辛苦了。-神里绫华_EN.wav",
+      "sha256": "0cb96e840bab65e9a7b3dcfe74548ee72e43e5f9b9b08066a35b3c68669cec11",
+      "bytes": 241964,
+      "seconds": 2.52,
+      "sample_rate": 48000,
+      "channels": 1
+    },
+    {
+      "category": "返回桌面",
+      "text": "回来啦，刚好可以歇一会儿。",
+      "filename": "回来啦，刚好可以歇一会儿。-神里绫华_EN.wav",
+      "sha256": "841d2bee5bbd99a0b3d60b865ed2edc226a7a5ffa616b09672a68ad57eb0674f",
+      "bytes": 288044,
+      "seconds": 3.0,
+      "sample_rate": 48000,
+      "channels": 1
+    },
+    {
+      "category": "返回桌面",
+      "text": "事情处理得还顺利吗？",
+      "filename": "事情处理得还顺利吗？-神里绫华_EN.wav",
+      "sha256": "6df065db63d42c7365190f907a46395e61ea3ebc5692c57c4130fb17e47a884a",
+      "bytes": 272684,
+      "seconds": 2.84,
+      "sample_rate": 48000,
+      "channels": 1
+    },
+    {
+      "category": "返回桌面",
+      "text": "桌面已经准备好，接下来做什么？",
+      "filename": "桌面已经准备好，接下来做什么？-神里绫华_EN.wav",
+      "sha256": "2e840a6843fd4edd969dc504661e7df8f3f2608f1b786168cba6f89d5cf3d9bb",
+      "bytes": 334124,
+      "seconds": 3.48,
+      "sample_rate": 48000,
+      "channels": 1
+    },
+    {
+      "category": "返回桌面",
+      "text": "又见面啦，继续一起忙吧。",
+      "filename": "又见面啦，继续一起忙吧。-神里绫华_EN.wav",
+      "sha256": "80a5fa638d06b36e4e57288b8ab1ae6e30a5a84d2b239b83e0d4563fb2fec643",
+      "bytes": 288044,
+      "seconds": 3.0,
+      "sample_rate": 48000,
+      "channels": 1
+    },
+    {
+      "category": "返回桌面",
+      "text": "欢迎回来，先伸个懒腰吧。",
+      "filename": "欢迎回来，先伸个懒腰吧。-神里绫华_EN.wav",
+      "sha256": "7af3d1e1f3c535a948cad8f4cfea7e2b6dbd57ee706b84c8dcc6082ef798f289",
+      "bytes": 345644,
+      "seconds": 3.6,
+      "sample_rate": 48000,
+      "channels": 1
+    },
+    {
+      "category": "早晨",
+      "text": "早安，新的一天开始啦。",
+      "filename": "早安，新的一天开始啦。.wav",
+      "sha256": "c27073c69cba8427b7079ffb391e2fda632d5af408c2c505db26b71a37324539",
+      "bytes": 299564,
+      "seconds": 3.12,
+      "sample_rate": 48000,
+      "channels": 1
+    },
+    {
+      "category": "早晨",
+      "text": "早安，先给自己一点准备时间。",
+      "filename": "早安，先给自己一点准备时间。.wav",
+      "sha256": "2f96ceec886ea3d998d9e7c88a7c7da08397af5105d932cb37c8cedad5d3f096",
+      "bytes": 303404,
+      "seconds": 3.16,
+      "sample_rate": 48000,
+      "channels": 1
+    },
+    {
+      "category": "早晨",
+      "text": "早安，今天也一步一步来。",
+      "filename": "早安，今天也一步一步来。.wav",
+      "sha256": "c8d79b96c9d9008d8dd402740eedbc568231109952356c9d6c795b87950a07dd",
+      "bytes": 226604,
+      "seconds": 2.36,
+      "sample_rate": 48000,
+      "channels": 1
+    },
+    {
+      "category": "早晨",
+      "text": "早安，别忘了吃早餐。",
+      "filename": "早安，别忘了吃早餐。.wav",
+      "sha256": "35dd4d5a361d0cae060c3f9fcf0c4379fe2b9fdde3390bb726be9e2a98eda020",
+      "bytes": 280364,
+      "seconds": 2.92,
+      "sample_rate": 48000,
+      "channels": 1
+    },
+    {
+      "category": "早晨",
+      "text": "早安，希望今天有让你开心的小事。",
+      "filename": "早安，希望今天有让你开心的小事。.wav",
+      "sha256": "50063f290eddd79fc7a1e3378c056f0bea99868acdb2ddc61872108e1114a1fa",
+      "bytes": 384044,
+      "seconds": 4.0,
+      "sample_rate": 48000,
+      "channels": 1
+    },
+    {
+      "category": "早晨",
+      "text": "早安，我们从一件小事开始吧。",
+      "filename": "早安，我们从一件小事开始吧。.wav",
+      "sha256": "287ea01c852443b2ba1da3fbd4de0c195221b10d230e8d857ab18cc7cf5c8d8d",
+      "bytes": 361004,
+      "seconds": 3.76,
+      "sample_rate": 48000,
+      "channels": 1
+    },
+    {
+      "category": "白天",
+      "text": "下午好，记得喝点水。",
+      "filename": "下午好，记得喝点水。.wav",
+      "sha256": "8d76d81cd705da0b32c9ffae72125037aefb70dadcd6d7cc806e89edcd07f4e1",
+      "bytes": 234284,
+      "seconds": 2.44,
+      "sample_rate": 48000,
+      "channels": 1
+    },
+    {
+      "category": "白天",
+      "text": "忙了一阵子，让眼睛休息一下吧。",
+      "filename": "忙了一阵子，让眼睛休息一下吧。.wav",
+      "sha256": "02d1d1e563c0e247c836d8b144c8d49ff94ecf6c4206b913031874211e1c2d87",
+      "bytes": 295724,
+      "seconds": 3.08,
+      "sample_rate": 48000,
+      "channels": 1
+    },
+    {
+      "category": "白天",
+      "text": "不必一次做完所有事，先完成眼前这一件。",
+      "filename": "不必一次做完所有事，先完成眼前这一件。.wav",
+      "sha256": "2455bfcb1d072dd37292094fbfd1314a4697445938781c708e11df3c3bd54bd1",
+      "bytes": 364844,
+      "seconds": 3.8,
+      "sample_rate": 48000,
+      "channels": 1
+    },
+    {
+      "category": "白天",
+      "text": "今天已经有一点进展了，继续就好。",
+      "filename": "今天已经有一点进展了，继续就好。.wav",
+      "sha256": "ca757b7dbcf595f68d5713fdc906f01bd219574ab95613cdb4de5065bd7ebd7b",
+      "bytes": 295724,
+      "seconds": 3.08,
+      "sample_rate": 48000,
+      "channels": 1
+    },
+    {
+      "category": "白天",
+      "text": "如果有点累，就换个姿势坐一会儿。",
+      "filename": "如果有点累，就换个姿势坐一会儿。.wav",
+      "sha256": "335633a51483de6c0874cc4a1ef58ea33f18679d4b3abee4fab2b6c917f5eaa5",
+      "bytes": 288044,
+      "seconds": 3.0,
+      "sample_rate": 48000,
+      "channels": 1
+    },
+    {
+      "category": "白天",
+      "text": "窗外的光线不错，有空看看远处吧。",
+      "filename": "窗外的光线不错，有空看看远处吧。.wav",
+      "sha256": "282fb77bdf62c21cfc17a5e8cc741009916956b94348b5b164784087fa144834",
+      "bytes": 433964,
+      "seconds": 4.52,
+      "sample_rate": 48000,
+      "channels": 1
+    },
+    {
+      "category": "夜间",
+      "text": "晚安，记得早点休息哦。",
+      "filename": "晚安，记得早点休息哦。.wav",
+      "sha256": "6d14730024f687d651b77a5e146e53094f57607579a8386f4a797a317e6a6147",
+      "bytes": 230444,
+      "seconds": 2.4,
+      "sample_rate": 48000,
+      "channels": 1
+    },
+    {
+      "category": "夜间",
+      "text": "夜深啦，今天就先到这里吧。",
+      "filename": "夜深啦，今天就先到这里吧。.wav",
+      "sha256": "b1c37c4cbda967c7e15844b29602d13b5fad3387c1ca8535cfdadd442ed4c54e",
+      "bytes": 314924,
+      "seconds": 3.28,
+      "sample_rate": 48000,
+      "channels": 1
+    },
+    {
+      "category": "夜间",
+      "text": "晚安，剩下的事情明天再慢慢处理。",
+      "filename": "晚安，剩下的事情明天再慢慢处理。.wav",
+      "sha256": "59d9ab50e0bbf36c3bbb205c498b2338189abbd7bd342616923d1a7349380307",
+      "bytes": 341804,
+      "seconds": 3.56,
+      "sample_rate": 48000,
+      "channels": 1
+    },
+    {
+      "category": "夜间",
+      "text": "忙完这一小段，就准备休息吧。",
+      "filename": "忙完这一小段，就准备休息吧。.wav",
+      "sha256": "f68123adb8a76a62e935c7ccdb9d2510598a84a94109d4a5b6af3add205a0808",
+      "bytes": 318764,
+      "seconds": 3.32,
+      "sample_rate": 48000,
+      "channels": 1
+    },
+    {
+      "category": "夜间",
+      "text": "晚安，愿你今晚睡个好觉。",
+      "filename": "晚安，愿你今晚睡个好觉。.wav",
+      "sha256": "1c978bd500e02a6ecc3059a1aca379071da96cedbef29cbf2c489c632d6037b3",
+      "bytes": 314924,
+      "seconds": 3.28,
+      "sample_rate": 48000,
+      "channels": 1
+    },
+    {
+      "category": "夜间",
+      "text": "今天辛苦了，给自己留一点安静的时间。",
+      "filename": "今天辛苦了，给自己留一点安静的时间。.wav",
+      "sha256": "a1b8ddf90ad970c767ec08edf49ef0dca35e0d7d325aa27e76bb33fca7106f63",
+      "bytes": 395564,
+      "seconds": 4.12,
+      "sample_rate": 48000,
+      "channels": 1
+    },
+    {
+      "category": "闲置陪伴",
+      "text": "安静待一会儿也很好。",
+      "filename": "安静待一会儿也很好。-神里绫华_EN.wav",
+      "sha256": "ba0e2786c8b33e66b95c821ee273f45c6b64c378edc05b84f75f67fbd5f9cc4f",
+      "bytes": 176684,
+      "seconds": 1.84,
+      "sample_rate": 48000,
+      "channels": 1
+    },
+    {
+      "category": "闲置陪伴",
+      "text": "不用急着回应，我会在这里。",
+      "filename": "不用急着回应，我会在这里。-神里绫华_EN.wav",
+      "sha256": "7f9a4d753e3a7d2cd5ef2545d81816e0c82aa031c8355b51789673e5e4c870bb",
+      "bytes": 311084,
+      "seconds": 3.24,
+      "sample_rate": 48000,
+      "channels": 1
+    },
+    {
+      "category": "闲置陪伴",
+      "text": "要不要整理一下桌面，换个轻松的开始？",
+      "filename": "要不要整理一下桌面，换个轻松的开始？-神里绫华_EN.wav",
+      "sha256": "e2486f21262a4d32be1180cf4768bfc6d57062ae5bfeac54f14e7e6423c96bf7",
+      "bytes": 433964,
+      "seconds": 4.52,
+      "sample_rate": 48000,
+      "channels": 1
+    },
+    {
+      "category": "闲置陪伴",
+      "text": "听着音乐，慢慢做就好。",
+      "filename": "听着音乐，慢慢做就好。-神里绫华_EN.wav",
+      "sha256": "a2962c61ea62f0ab4d3cdb2d7b7e5986de61a196ff0cd679e62c625eb646371f",
+      "bytes": 318764,
+      "seconds": 3.32,
+      "sample_rate": 48000,
+      "channels": 1
+    },
+    {
+      "category": "闲置陪伴",
+      "text": "偶尔放空一下，也算是在补充精神。",
+      "filename": "偶尔放空一下，也算是在补充精神。-神里绫华_EN.wav",
+      "sha256": "6818958c84fc3e99fe7c04817127464eb26bafb04801c9fd7a20e8f3a7f4be36",
+      "bytes": 372524,
+      "seconds": 3.88,
+      "sample_rate": 48000,
+      "channels": 1
+    },
+    {
+      "category": "闲置陪伴",
+      "text": "等你准备好，我们再继续。",
+      "filename": "等你准备好，我们再继续。-神里绫华_EN.wav",
+      "sha256": "4689bed1f6fdb18a3ced1d975d258a530454efd08bf8965c49934ce305db89a6",
+      "bytes": 230444,
+      "seconds": 2.4,
+      "sample_rate": 48000,
+      "channels": 1
+    }
+  ],
+  "missing": []
+}

@@ -1,0 +1,80 @@
+[
+  {
+    "id": "starter_8",
+    "category": "返回桌面",
+    "text": "欢迎回来，今天也辛苦了。",
+    "enabled": true
+  },
+  {
+    "id": "starter_9",
+    "category": "返回桌面",
+    "text": "回来啦，刚好可以歇一会儿。",
+    "enabled": true
+  },
+  {
+    "id": "starter_10",
+    "category": "返回桌面",
+    "text": "事情处理得还顺利吗？",
+    "enabled": true
+  },
+  {
+    "id": "starter_11",
+    "category": "返回桌面",
+    "text": "桌面已经准备好，接下来做什么？",
+    "enabled": true
+  },
+  {
+    "id": "starter_12",
+    "category": "返回桌面",
+    "text": "又见面啦，继续一起忙吧。",
+    "enabled": true
+  },
+  {
+    "id": "starter_13",
+    "category": "返回桌面",
+    "text": "欢迎回来，先伸个懒腰吧。",
+    "enabled": true
+  },
+  {
+    "id": "starter_32",
+    "category": "闲置陪伴",
+    "text": "安静待一会儿也很好。",
+    "enabled": true
+  },
+  {
+    "id": "starter_33",
+    "category": "闲置陪伴",
+    "text": "不用急着回应，我会在这里。",
+    "enabled": true
+  },
+  {
+    "id": "starter_34",
+    "category": "闲置陪伴",
+    "text": "要不要整理一下桌面，换个轻松的开始？",
+    "enabled": true
+  },
+  {
+    "id": "starter_35",
+    "category": "闲置陪伴",
+    "text": "听着音乐，慢慢做就好。",
+    "enabled": true
+  },
+  {
+    "id": "starter_36",
+    "category": "闲置陪伴",
+    "text": "偶尔放空一下，也算是在补充精神。",
+    "enabled": true
+  },
+  {
+    "id": "starter_37",
+    "category": "闲置陪伴",
+    "text": "等你准备好，我们再继续。",
+    "enabled": true
+  },
+  {
+    "id": "operation_save_2",
+    "category": "操作·保存",
+    "text": "这些小小的安排，都值得被认真记住。",
+    "enabled": true
+  }
+]

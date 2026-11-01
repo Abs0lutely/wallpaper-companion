@@ -11,7 +11,7 @@ from .rules import BUILTIN_EVENTS, validate_rule
 FORMAT = "wallpaper-companion-preset"
 VERSION = 1
 NUMERIC = {"voice_volume": (0, 100), "bgm_volume": (0, 100), "duck_percent": (0, 100), "global_cooldown": (0, 3600)}
-BOOLEAN = {"enabled", "desktop_only", "fullscreen_mute", "bgm_enabled", "bgm_shuffle"}
+BOOLEAN = {"enabled", "desktop_only", "fullscreen_mute", "bgm_enabled", "bgm_shuffle", "use_bundled_demo"}
 RULE_FIELDS = {"name", "enabled", "event", "hotkey", "source", "keyword", "start", "end", "at", "cooldown", "interval_min", "interval_max"}
 
 

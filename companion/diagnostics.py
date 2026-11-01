@@ -67,8 +67,13 @@ def run(destination):
         store.config.update(profiles=[profile], manual_profile=profile["id"])
         store.save()
         window = Window(store, hooks=False)
+        from .core import save_generated
+        named = save_generated(root / "naming", "命名检查", (root / "voice/测试语音.wav").read_bytes(), store.protected(), model_name="测试模型")
+        checks["model_tagged_filename_and_control"] = named.name == "命名检查-测试模型.wav" and named.is_file() and window.filename_model.maxLength() == 200
         window.poll.stop()
         window.show()
+        from PySide6.QtCore import QSize
+        checks["shared_brand_icon_available"] = (ROOT / "readme-assets/app-icon.ico").is_file() and {QSize(16,16), QSize(32,32), QSize(48,48), QSize(256,256)}.issubset(set(window.windowIcon().availableSizes())) and window.windowIcon().pixmap(32,32).toImage() == window.tray.icon().pixmap(32,32).toImage()
         checks["redesigned_navigation_present"] = {0, 2, 3, 4, 5, 6, 7}.issubset(window.navigation)
         checks["character_model_controls_present"] = window.provider_widgets["gpt_weights"].isEditable() and window.provider_widgets["sovits_weights"].isEditable()
         from .managed_api import api
@@ -81,6 +86,14 @@ def run(destination):
         checks["generation_progress_preserves_partial_result"] = window.tts_progress.value() == 1 and window.tts_progress.maximum() == 2 and "已保存一条" in window.tts_stage_output.toPlainText()
         from .motion import ButtonScaleEffect
         checks["button_motion_and_feedback_loaded"] = isinstance(window.start_api_button.graphicsEffect(), ButtonScaleEffect) and bool(window.action_feedback.buttons)
+        checks["autosave_and_operation_controls_present"] = hasattr(window, "autosave") and window.operation_voice_enabled.isChecked() and not window.selected_dialogues()
+        from .operation_pack import require_pack
+        if report["frozen"]:
+            checks["distributed_operation_voice_actions_covered"] = require_pack(ROOT / "examples/audio/operation-voice")["ready"]
+            from .bundled_audio import validate_starter_pack, validate_bundled_manifest
+            checks["distributed_starter_voice_pack_verified"] = bool(validate_starter_pack()["files"])
+            checks["distributed_default_audio_hashes_verified"] = bool(validate_bundled_manifest()["files"])
+        store.config["operation_voice_enabled"] = False  # Keep the remaining diagnostics' audio deterministic.
         from .sovits_config import model_key
         checks["model_config_dependency_available"] = model_key({}) is None
         window.audio.message.connect(lambda s: report["media_errors"].append(s) if "失败" in s else None)

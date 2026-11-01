@@ -101,7 +101,8 @@ def build_profile(window):
     w.desktop_only = ToggleSwitch("仅在桌面响应鼠标和键盘")
     w.fullscreen_mute = ToggleSwitch("全屏应用时暂停伴随声音")
     w.shuffle = ToggleSwitch("随机播放背景音乐")
-    for control in [w.profile_enabled, w.bgm_enabled, w.desktop_only, w.fullscreen_mute, w.shuffle]:
+    w.bundled_demo_enabled = ToggleSwitch("语音目录为空时使用随附示例")
+    for control in [w.profile_enabled, w.bgm_enabled, w.desktop_only, w.fullscreen_mute, w.shuffle, w.bundled_demo_enabled]:
         play.addWidget(control)
     play.addStretch()
     cards.addWidget(play_card, 1)
