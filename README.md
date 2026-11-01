@@ -70,6 +70,8 @@
 
 [下载台词 JSON](https://github.com/Abs0lutely/wallpaper-companion/releases/latest/download/heartfelt-zh-CN.json) · [浏览全部台词](examples/dialogues/README.md) · [52 条操作回应台词](examples/dialogues/operation-zh-CN.json)
 
+需要日语或英语？提供 **[默认台词日语 / 英语包](examples/dialogues/TRANSLATIONS.md)**，每种语言 38 条陪伴 + 52 条操作回应，附 JSON、TXT 和对应操作规则，可导入后自行生成配音。
+
 **台词文字与配音是两种资源。** 随附 90 条配音可以直接播放；额外导入或自行编写的台词，仍需配套音频或通过 TTS 生成。《温柔回信》72 条是文字素材，不代表额外附赠 72 段配音。
 
 ### 常用的小细节，也照顾到了

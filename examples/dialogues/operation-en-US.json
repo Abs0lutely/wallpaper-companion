@@ -1,0 +1,314 @@
+[
+  {
+    "id": "operation_en-US_click_1",
+    "category": "操作·回应·en-US",
+    "text": "Yes, I hear you. Let's take our time together.",
+    "enabled": true
+  },
+  {
+    "id": "operation_en-US_click_2",
+    "category": "操作·回应·en-US",
+    "text": "Even your smallest gestures deserve a thoughtful reply.",
+    "enabled": true
+  },
+  {
+    "id": "operation_en-US_navigate_1",
+    "category": "操作·切换页面·en-US",
+    "text": "Let's take a look somewhere else. I'll be right beside you.",
+    "enabled": true
+  },
+  {
+    "id": "operation_en-US_navigate_2",
+    "category": "操作·切换页面·en-US",
+    "text": "What you're looking for is here. Let's find it together.",
+    "enabled": true
+  },
+  {
+    "id": "operation_en-US_change_1",
+    "category": "操作·修改设置·en-US",
+    "text": "Make it the way you like. This is your space.",
+    "enabled": true
+  },
+  {
+    "id": "operation_en-US_change_2",
+    "category": "操作·修改设置·en-US",
+    "text": "Each little change is a way of caring for how you feel.",
+    "enabled": true
+  },
+  {
+    "id": "operation_en-US_save_1",
+    "category": "操作·保存·en-US",
+    "text": "Let me tuck this little bit of care away safely.",
+    "enabled": true
+  },
+  {
+    "id": "operation_en-US_save_2",
+    "category": "操作·保存·en-US",
+    "text": "These little choices are worth remembering with care.",
+    "enabled": true
+  },
+  {
+    "id": "operation_en-US_undo_1",
+    "category": "操作·撤销·en-US",
+    "text": "It's okay to choose again. You can always go back.",
+    "enabled": true
+  },
+  {
+    "id": "operation_en-US_undo_2",
+    "category": "操作·撤销·en-US",
+    "text": "Don't worry. We can go back a step and take our time deciding.",
+    "enabled": true
+  },
+  {
+    "id": "operation_en-US_reset_1",
+    "category": "操作·恢复默认·en-US",
+    "text": "If you'd like a fresh start, I'll be here to begin again with you.",
+    "enabled": true
+  },
+  {
+    "id": "operation_en-US_reset_2",
+    "category": "操作·恢复默认·en-US",
+    "text": "Let's put things in order again. Your favorite voices and memories are still here.",
+    "enabled": true
+  },
+  {
+    "id": "operation_en-US_add_1",
+    "category": "操作·新建·en-US",
+    "text": "A little more room for whatever you'll love next.",
+    "enabled": true
+  },
+  {
+    "id": "operation_en-US_add_2",
+    "category": "操作·新建·en-US",
+    "text": "Start with this small step, and slowly add a story of your own.",
+    "enabled": true
+  },
+  {
+    "id": "operation_en-US_edit_1",
+    "category": "操作·编辑·en-US",
+    "text": "Shape the words until they feel right. I'm listening.",
+    "enabled": true
+  },
+  {
+    "id": "operation_en-US_edit_2",
+    "category": "操作·编辑·en-US",
+    "text": "You don't have to get it right at once. Take your time making it your own.",
+    "enabled": true
+  },
+  {
+    "id": "operation_en-US_delete_1",
+    "category": "操作·删除·en-US",
+    "text": "Let's check what you're about to let go of. There's no need to rush.",
+    "enabled": true
+  },
+  {
+    "id": "operation_en-US_delete_2",
+    "category": "操作·删除·en-US",
+    "text": "Take one more look before tidying up. Keep anything you're not ready to part with.",
+    "enabled": true
+  },
+  {
+    "id": "operation_en-US_select_1",
+    "category": "操作·选择·en-US",
+    "text": "Choose what you like best. You don't have to please anyone else.",
+    "enabled": true
+  },
+  {
+    "id": "operation_en-US_select_2",
+    "category": "操作·选择·en-US",
+    "text": "Those little favorites you choose with care matter to me, too.",
+    "enabled": true
+  },
+  {
+    "id": "operation_en-US_enable_1",
+    "category": "操作·开启·en-US",
+    "text": "All right. Let this little bit of company come a little closer.",
+    "enabled": true
+  },
+  {
+    "id": "operation_en-US_enable_2",
+    "category": "操作·开启·en-US",
+    "text": "Leave a little window open for the voices you love.",
+    "enabled": true
+  },
+  {
+    "id": "operation_en-US_disable_1",
+    "category": "操作·关闭·en-US",
+    "text": "A little quiet is nice, too. I'll wait here softly.",
+    "enabled": true
+  },
+  {
+    "id": "operation_en-US_disable_2",
+    "category": "操作·关闭·en-US",
+    "text": "Take some space for yourself. Call me when you're ready.",
+    "enabled": true
+  },
+  {
+    "id": "operation_en-US_open_1",
+    "category": "操作·打开目录·en-US",
+    "text": "Let's see where your favorite voices are tucked away.",
+    "enabled": true
+  },
+  {
+    "id": "operation_en-US_open_2",
+    "category": "操作·打开目录·en-US",
+    "text": "This way leads to the treasures you've saved.",
+    "enabled": true
+  },
+  {
+    "id": "operation_en-US_help_1",
+    "category": "操作·查看说明·en-US",
+    "text": "It's okay if this is new. We can work through it a little at a time.",
+    "enabled": true
+  },
+  {
+    "id": "operation_en-US_help_2",
+    "category": "操作·查看说明·en-US",
+    "text": "If you have a question, take a moment to read. We'll figure it out together.",
+    "enabled": true
+  },
+  {
+    "id": "operation_en-US_import_1",
+    "category": "操作·导入·en-US",
+    "text": "Bring over what you love. There's a place for it here.",
+    "enabled": true
+  },
+  {
+    "id": "operation_en-US_import_2",
+    "category": "操作·导入·en-US",
+    "text": "New voices and stories can become part of our everyday life, too.",
+    "enabled": true
+  },
+  {
+    "id": "operation_en-US_export_1",
+    "category": "操作·导出·en-US",
+    "text": "Save what you've put together with care as a little gift you can take with you.",
+    "enabled": true
+  },
+  {
+    "id": "operation_en-US_export_2",
+    "category": "操作·导出·en-US",
+    "text": "Keep a copy of what you love, so you can find it when you miss it.",
+    "enabled": true
+  },
+  {
+    "id": "operation_en-US_scan_1",
+    "category": "操作·扫描·en-US",
+    "text": "Let me look for the voices and scenery you've collected.",
+    "enabled": true
+  },
+  {
+    "id": "operation_en-US_scan_2",
+    "category": "操作·扫描·en-US",
+    "text": "Just a moment. Let's gather up your scattered favorites together.",
+    "enabled": true
+  },
+  {
+    "id": "operation_en-US_generate_1",
+    "category": "操作·生成语音·en-US",
+    "text": "Let's give these words a voice. What you want to say deserves to be heard.",
+    "enabled": true
+  },
+  {
+    "id": "operation_en-US_generate_2",
+    "category": "操作·生成语音·en-US",
+    "text": "Let a voice carry your words. It makes the wait feel a little gentler.",
+    "enabled": true
+  },
+  {
+    "id": "operation_en-US_api_start_1",
+    "category": "操作·启动接口·en-US",
+    "text": "Let's get our voice helper ready. We'll be able to work together soon.",
+    "enabled": true
+  },
+  {
+    "id": "operation_en-US_api_start_2",
+    "category": "操作·启动接口·en-US",
+    "text": "Let the voice wake up slowly. We'll give it a moment to get ready.",
+    "enabled": true
+  },
+  {
+    "id": "operation_en-US_api_stop_1",
+    "category": "操作·关闭接口·en-US",
+    "text": "We've finished this part. Let our voice helper rest for a while, too.",
+    "enabled": true
+  },
+  {
+    "id": "operation_en-US_api_stop_2",
+    "category": "操作·关闭接口·en-US",
+    "text": "Let's close things up gently for now. We can meet again when you need to.",
+    "enabled": true
+  },
+  {
+    "id": "operation_en-US_pause_1",
+    "category": "操作·暂停·en-US",
+    "text": "Let's pause for a moment. You don't have to keep rushing.",
+    "enabled": true
+  },
+  {
+    "id": "operation_en-US_pause_2",
+    "category": "操作·暂停·en-US",
+    "text": "A little pocket of quiet is a good thing, too.",
+    "enabled": true
+  },
+  {
+    "id": "operation_en-US_resume_1",
+    "category": "操作·继续·en-US",
+    "text": "Ready? Let's take another little step together.",
+    "enabled": true
+  },
+  {
+    "id": "operation_en-US_resume_2",
+    "category": "操作·继续·en-US",
+    "text": "All right. Let your favorite melody keep you company again.",
+    "enabled": true
+  },
+  {
+    "id": "operation_en-US_next_1",
+    "category": "操作·下一首·en-US",
+    "text": "Let's try another song. The next melody might be just what you need.",
+    "enabled": true
+  },
+  {
+    "id": "operation_en-US_next_2",
+    "category": "操作·下一首·en-US",
+    "text": "Give your mood a different rhythm, and let a new melody stay with you for a while.",
+    "enabled": true
+  },
+  {
+    "id": "operation_en-US_preview_1",
+    "category": "操作·试听·en-US",
+    "text": "Have a listen first. You don't have to decide on a voice right away.",
+    "enabled": true
+  },
+  {
+    "id": "operation_en-US_preview_2",
+    "category": "操作·试听·en-US",
+    "text": "Lend this little voice a moment of your time, and see if it feels right.",
+    "enabled": true
+  },
+  {
+    "id": "operation_en-US_error_1",
+    "category": "操作·未完成·en-US",
+    "text": "This step isn't finished yet. Let's check the message and try again together.",
+    "enabled": true
+  },
+  {
+    "id": "operation_en-US_error_2",
+    "category": "操作·未完成·en-US",
+    "text": "Don't worry. Something's not quite right. We'll work through it slowly.",
+    "enabled": true
+  },
+  {
+    "id": "operation_en-US_complete_1",
+    "category": "操作·完成·en-US",
+    "text": "This part is ready! Here's the voice you've been waiting for.",
+    "enabled": true
+  },
+  {
+    "id": "operation_en-US_complete_2",
+    "category": "操作·完成·en-US",
+    "text": "Another little thing is done. I hope this voice brings you a little warmth.",
+    "enabled": true
+  }
+]

@@ -1,0 +1,230 @@
+[
+  {
+    "id": "starter_ja-JP_0",
+    "category": "点击回应",
+    "text": "ん？ ここにいるよ。",
+    "enabled": true
+  },
+  {
+    "id": "starter_ja-JP_1",
+    "category": "点击回应",
+    "text": "何か新しい発見でもあった？",
+    "enabled": true
+  },
+  {
+    "id": "starter_ja-JP_2",
+    "category": "点击回应",
+    "text": "わかったよ。このままそばにいるね。",
+    "enabled": true
+  },
+  {
+    "id": "starter_ja-JP_3",
+    "category": "点击回应",
+    "text": "急がなくていいよ。一緒にゆっくり進もう。",
+    "enabled": true
+  },
+  {
+    "id": "starter_ja-JP_4",
+    "category": "点击回应",
+    "text": "今日も一緒に頑張ろうね。",
+    "enabled": true
+  },
+  {
+    "id": "starter_ja-JP_5",
+    "category": "点击回应",
+    "text": "ひと休みしてから続けてもいいんだよ。",
+    "enabled": true
+  },
+  {
+    "id": "starter_ja-JP_6",
+    "category": "点击回应",
+    "text": "呼んでくれたら、すぐに来るよ。",
+    "enabled": true
+  },
+  {
+    "id": "starter_ja-JP_7",
+    "category": "点击回应",
+    "text": "気分を変えて、一曲聴いてみない？",
+    "enabled": true
+  },
+  {
+    "id": "starter_ja-JP_8",
+    "category": "返回桌面",
+    "text": "おかえり。今日もお疲れさま。",
+    "enabled": true
+  },
+  {
+    "id": "starter_ja-JP_9",
+    "category": "返回桌面",
+    "text": "おかえり。ちょうどいいから、少し休もうか。",
+    "enabled": true
+  },
+  {
+    "id": "starter_ja-JP_10",
+    "category": "返回桌面",
+    "text": "用事は順調に進んだ？",
+    "enabled": true
+  },
+  {
+    "id": "starter_ja-JP_11",
+    "category": "返回桌面",
+    "text": "デスクトップの準備はできてるよ。次は何をしようか？",
+    "enabled": true
+  },
+  {
+    "id": "starter_ja-JP_12",
+    "category": "返回桌面",
+    "text": "また会えたね。一緒に続きをやろう。",
+    "enabled": true
+  },
+  {
+    "id": "starter_ja-JP_13",
+    "category": "返回桌面",
+    "text": "おかえり。まずはぐっと伸びをしよう。",
+    "enabled": true
+  },
+  {
+    "id": "starter_ja-JP_14",
+    "category": "早晨",
+    "text": "おはよう。新しい一日の始まりだね。",
+    "enabled": true
+  },
+  {
+    "id": "starter_ja-JP_15",
+    "category": "早晨",
+    "text": "おはよう。まずはゆっくり身支度をしよう。",
+    "enabled": true
+  },
+  {
+    "id": "starter_ja-JP_16",
+    "category": "早晨",
+    "text": "おはよう。今日も一歩ずつ進もうね。",
+    "enabled": true
+  },
+  {
+    "id": "starter_ja-JP_17",
+    "category": "早晨",
+    "text": "おはよう。朝ごはんも忘れずにね。",
+    "enabled": true
+  },
+  {
+    "id": "starter_ja-JP_18",
+    "category": "早晨",
+    "text": "おはよう。今日は小さなうれしいことがあるといいね。",
+    "enabled": true
+  },
+  {
+    "id": "starter_ja-JP_19",
+    "category": "早晨",
+    "text": "おはよう。まずは小さなことから始めよう。",
+    "enabled": true
+  },
+  {
+    "id": "starter_ja-JP_20",
+    "category": "白天",
+    "text": "こんにちは。お水もちゃんと飲んでね。",
+    "enabled": true
+  },
+  {
+    "id": "starter_ja-JP_21",
+    "category": "白天",
+    "text": "しばらく頑張ったね。少し目を休めよう。",
+    "enabled": true
+  },
+  {
+    "id": "starter_ja-JP_22",
+    "category": "白天",
+    "text": "一度に全部終わらせなくていいよ。まずは目の前の一つから。",
+    "enabled": true
+  },
+  {
+    "id": "starter_ja-JP_23",
+    "category": "白天",
+    "text": "今日はもう少し進められたね。この調子でいこう。",
+    "enabled": true
+  },
+  {
+    "id": "starter_ja-JP_24",
+    "category": "白天",
+    "text": "少し疲れたら、楽な姿勢に変えてみよう。",
+    "enabled": true
+  },
+  {
+    "id": "starter_ja-JP_25",
+    "category": "白天",
+    "text": "外の光がきれいだね。時間があったら、遠くを眺めてみて。",
+    "enabled": true
+  },
+  {
+    "id": "starter_ja-JP_26",
+    "category": "夜间",
+    "text": "おやすみ。あまり夜更かししないでね。",
+    "enabled": true
+  },
+  {
+    "id": "starter_ja-JP_27",
+    "category": "夜间",
+    "text": "もう夜も遅いね。今日はここまでにしよう。",
+    "enabled": true
+  },
+  {
+    "id": "starter_ja-JP_28",
+    "category": "夜间",
+    "text": "おやすみ。残りは明日、ゆっくり片づけよう。",
+    "enabled": true
+  },
+  {
+    "id": "starter_ja-JP_29",
+    "category": "夜间",
+    "text": "この区切りまで終わったら、休む準備をしよう。",
+    "enabled": true
+  },
+  {
+    "id": "starter_ja-JP_30",
+    "category": "夜间",
+    "text": "おやすみ。今夜はぐっすり眠れますように。",
+    "enabled": true
+  },
+  {
+    "id": "starter_ja-JP_31",
+    "category": "夜间",
+    "text": "今日もお疲れさま。自分のために、少し静かな時間を残してあげてね。",
+    "enabled": true
+  },
+  {
+    "id": "starter_ja-JP_32",
+    "category": "闲置陪伴",
+    "text": "こうして静かに過ごすのもいいね。",
+    "enabled": true
+  },
+  {
+    "id": "starter_ja-JP_33",
+    "category": "闲置陪伴",
+    "text": "すぐに返事をしなくても大丈夫。ここにいるよ。",
+    "enabled": true
+  },
+  {
+    "id": "starter_ja-JP_34",
+    "category": "闲置陪伴",
+    "text": "デスクトップを整理して、気持ちよく始めてみない？",
+    "enabled": true
+  },
+  {
+    "id": "starter_ja-JP_35",
+    "category": "闲置陪伴",
+    "text": "音楽を聴きながら、ゆっくりやっていこう。",
+    "enabled": true
+  },
+  {
+    "id": "starter_ja-JP_36",
+    "category": "闲置陪伴",
+    "text": "たまにはぼんやりするのも、心の充電になるよ。",
+    "enabled": true
+  },
+  {
+    "id": "starter_ja-JP_37",
+    "category": "闲置陪伴",
+    "text": "準備ができたら、また一緒に続きをしよう。",
+    "enabled": true
+  }
+]

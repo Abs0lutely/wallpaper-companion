@@ -1,0 +1,314 @@
+[
+  {
+    "id": "operation_ja-JP_click_1",
+    "category": "操作·回应·ja-JP",
+    "text": "うん、聞こえたよ。一緒にゆっくり進もうね。",
+    "enabled": true
+  },
+  {
+    "id": "operation_ja-JP_click_2",
+    "category": "操作·回应·ja-JP",
+    "text": "小さな仕草にも、ちゃんと応えたいんだ。",
+    "enabled": true
+  },
+  {
+    "id": "operation_ja-JP_navigate_1",
+    "category": "操作·切换页面·ja-JP",
+    "text": "別の場所ものぞいてみよう。あなたの歩幅でついていくね。",
+    "enabled": true
+  },
+  {
+    "id": "operation_ja-JP_navigate_2",
+    "category": "操作·切换页面·ja-JP",
+    "text": "見たいものはここにあるよ。一緒に探そう。",
+    "enabled": true
+  },
+  {
+    "id": "operation_ja-JP_change_1",
+    "category": "操作·修改设置·ja-JP",
+    "text": "好きなように変えていいんだよ。ここはあなたの場所だから。",
+    "enabled": true
+  },
+  {
+    "id": "operation_ja-JP_change_2",
+    "category": "操作·修改设置·ja-JP",
+    "text": "少しずつ変えることも、自分の気持ちを大切にすることだね。",
+    "enabled": true
+  },
+  {
+    "id": "operation_ja-JP_save_1",
+    "category": "操作·保存·ja-JP",
+    "text": "この気持ち、大事にしまっておくね。",
+    "enabled": true
+  },
+  {
+    "id": "operation_ja-JP_save_2",
+    "category": "操作·保存·ja-JP",
+    "text": "こんな小さな工夫も、大切に覚えておきたいね。",
+    "enabled": true
+  },
+  {
+    "id": "operation_ja-JP_undo_1",
+    "category": "操作·撤销·ja-JP",
+    "text": "もう一度選び直してもいいんだよ。いつでも戻れるから。",
+    "enabled": true
+  },
+  {
+    "id": "operation_ja-JP_undo_2",
+    "category": "操作·撤销·ja-JP",
+    "text": "心配しないで。さっきのところに戻って、ゆっくり決めよう。",
+    "enabled": true
+  },
+  {
+    "id": "operation_ja-JP_reset_1",
+    "category": "操作·恢复默认·ja-JP",
+    "text": "最初からやり直したくなったら、また一緒に始めよう。",
+    "enabled": true
+  },
+  {
+    "id": "operation_ja-JP_reset_2",
+    "category": "操作·恢复默认·ja-JP",
+    "text": "もう一度整えてみよう。好きな声も思い出も、ちゃんと残っているよ。",
+    "enabled": true
+  },
+  {
+    "id": "operation_ja-JP_add_1",
+    "category": "操作·新建·ja-JP",
+    "text": "これから好きになるもののために、少し場所ができたね。",
+    "enabled": true
+  },
+  {
+    "id": "operation_ja-JP_add_2",
+    "category": "操作·新建·ja-JP",
+    "text": "この小さな一歩から、あなたの物語を少しずつ足していこう。",
+    "enabled": true
+  },
+  {
+    "id": "operation_ja-JP_edit_1",
+    "category": "操作·编辑·ja-JP",
+    "text": "伝えたい気持ちに近づくように、言葉を整えてみよう。聞いているよ。",
+    "enabled": true
+  },
+  {
+    "id": "operation_ja-JP_edit_2",
+    "category": "操作·编辑·ja-JP",
+    "text": "一度で決めなくてもいいよ。好きな形に、ゆっくり磨いていこう。",
+    "enabled": true
+  },
+  {
+    "id": "operation_ja-JP_delete_1",
+    "category": "操作·删除·ja-JP",
+    "text": "手放すものを、もう一度確かめよう。急いで決めなくていいからね。",
+    "enabled": true
+  },
+  {
+    "id": "operation_ja-JP_delete_2",
+    "category": "操作·删除·ja-JP",
+    "text": "整理する前に、もう一度見てみよう。名残惜しいものは、まだ残しておこう。",
+    "enabled": true
+  },
+  {
+    "id": "operation_ja-JP_select_1",
+    "category": "操作·选择·ja-JP",
+    "text": "いちばん好きなものを選んでね。誰かに合わせなくてもいいんだよ。",
+    "enabled": true
+  },
+  {
+    "id": "operation_ja-JP_select_2",
+    "category": "操作·选择·ja-JP",
+    "text": "大切に選んだ小さなお気に入り、私もちゃんと覚えているよ。",
+    "enabled": true
+  },
+  {
+    "id": "operation_ja-JP_enable_1",
+    "category": "操作·开启·ja-JP",
+    "text": "うん。このひとときが、もう少しあなたのそばに届きますように。",
+    "enabled": true
+  },
+  {
+    "id": "operation_ja-JP_enable_2",
+    "category": "操作·开启·ja-JP",
+    "text": "好きな声のために、小さな窓を開けておこう。",
+    "enabled": true
+  },
+  {
+    "id": "operation_ja-JP_disable_1",
+    "category": "操作·关闭·ja-JP",
+    "text": "静かに過ごしたいときもあるよね。そっと待っているよ。",
+    "enabled": true
+  },
+  {
+    "id": "operation_ja-JP_disable_2",
+    "category": "操作·关闭·ja-JP",
+    "text": "今は自分の時間を大切にしてね。準備ができたら、また呼んで。",
+    "enabled": true
+  },
+  {
+    "id": "operation_ja-JP_open_1",
+    "category": "操作·打开目录·ja-JP",
+    "text": "お気に入りの声がどこにあるのか、一緒に見にいこう。",
+    "enabled": true
+  },
+  {
+    "id": "operation_ja-JP_open_2",
+    "category": "操作·打开目录·ja-JP",
+    "text": "ここから進めば、大切にしまったものに会えるよ。",
+    "enabled": true
+  },
+  {
+    "id": "operation_ja-JP_help_1",
+    "category": "操作·查看说明·ja-JP",
+    "text": "慣れていなくても大丈夫。一つずつ見ていこう。",
+    "enabled": true
+  },
+  {
+    "id": "operation_ja-JP_help_2",
+    "category": "操作·查看说明·ja-JP",
+    "text": "わからないことがあったら、少し立ち止まって読んでみよう。一緒に覚えていこうね。",
+    "enabled": true
+  },
+  {
+    "id": "operation_ja-JP_import_1",
+    "category": "操作·导入·ja-JP",
+    "text": "好きなものを持っておいで。ちゃんと場所を空けてあるよ。",
+    "enabled": true
+  },
+  {
+    "id": "operation_ja-JP_import_2",
+    "category": "操作·导入·ja-JP",
+    "text": "新しい声や物語も、私たちの日常になっていくんだね。",
+    "enabled": true
+  },
+  {
+    "id": "operation_ja-JP_export_1",
+    "category": "操作·导出·ja-JP",
+    "text": "心を込めてまとめたものを、持ち歩ける小さな贈り物にしよう。",
+    "enabled": true
+  },
+  {
+    "id": "operation_ja-JP_export_2",
+    "category": "操作·导出·ja-JP",
+    "text": "好きなものは控えを残しておこう。また会いたくなったとき、見つけられるように。",
+    "enabled": true
+  },
+  {
+    "id": "operation_ja-JP_scan_1",
+    "category": "操作·扫描·ja-JP",
+    "text": "あなたの声や景色がどこにあるのか、探してみるね。",
+    "enabled": true
+  },
+  {
+    "id": "operation_ja-JP_scan_2",
+    "category": "操作·扫描·ja-JP",
+    "text": "少し待っててね。散らばったお気に入りを、一緒に集めよう。",
+    "enabled": true
+  },
+  {
+    "id": "operation_ja-JP_generate_1",
+    "category": "操作·生成语音·ja-JP",
+    "text": "この言葉に、少しずつ声をつけていこう。伝えたい気持ちが届きますように。",
+    "enabled": true
+  },
+  {
+    "id": "operation_ja-JP_generate_2",
+    "category": "操作·生成语音·ja-JP",
+    "text": "伝えたい言葉を声に託そう。待つ時間も、少し優しくなるね。",
+    "enabled": true
+  },
+  {
+    "id": "operation_ja-JP_api_start_1",
+    "category": "操作·启动接口·ja-JP",
+    "text": "まずは声のお手伝いさんに準備してもらおう。もうすぐ一緒に始められるよ。",
+    "enabled": true
+  },
+  {
+    "id": "operation_ja-JP_api_start_2",
+    "category": "操作·启动接口·ja-JP",
+    "text": "声がゆっくり目を覚ますまで、少し準備の時間をあげよう。",
+    "enabled": true
+  },
+  {
+    "id": "operation_ja-JP_api_stop_1",
+    "category": "操作·关闭接口·ja-JP",
+    "text": "ここまで終わったね。声のお手伝いさんにも、少し休んでもらおう。",
+    "enabled": true
+  },
+  {
+    "id": "operation_ja-JP_api_stop_2",
+    "category": "操作·关闭接口·ja-JP",
+    "text": "今はそっとしまっておこう。必要になったら、また会おうね。",
+    "enabled": true
+  },
+  {
+    "id": "operation_ja-JP_pause_1",
+    "category": "操作·暂停·ja-JP",
+    "text": "少し立ち止まろう。ずっと急がなくてもいいんだよ。",
+    "enabled": true
+  },
+  {
+    "id": "operation_ja-JP_pause_2",
+    "category": "操作·暂停·ja-JP",
+    "text": "静かなひとときを自分にあげるのも、いいことだね。",
+    "enabled": true
+  },
+  {
+    "id": "operation_ja-JP_resume_1",
+    "category": "操作·继续·ja-JP",
+    "text": "準備はできた？ また一緒に、少し先へ進もう。",
+    "enabled": true
+  },
+  {
+    "id": "operation_ja-JP_resume_2",
+    "category": "操作·继续·ja-JP",
+    "text": "うん。好きなメロディーに、またそばにいてもらおう。",
+    "enabled": true
+  },
+  {
+    "id": "operation_ja-JP_next_1",
+    "category": "操作·下一首·ja-JP",
+    "text": "次の曲にしてみよう。今の気持ちにぴったりのメロディーかもしれないね。",
+    "enabled": true
+  },
+  {
+    "id": "operation_ja-JP_next_2",
+    "category": "操作·下一首·ja-JP",
+    "text": "気分のリズムを変えて、新しいメロディーと少し歩こう。",
+    "enabled": true
+  },
+  {
+    "id": "operation_ja-JP_preview_1",
+    "category": "操作·试听·ja-JP",
+    "text": "まずは聴いてみよう。好きな声は、ゆっくり決めていいんだよ。",
+    "enabled": true
+  },
+  {
+    "id": "operation_ja-JP_preview_2",
+    "category": "操作·试听·ja-JP",
+    "text": "この短い声に、少し耳を貸してみて。気に入ってもらえるかな。",
+    "enabled": true
+  },
+  {
+    "id": "operation_ja-JP_error_1",
+    "category": "操作·未完成·ja-JP",
+    "text": "この作業はまだ終わっていないみたい。表示を確かめて、一緒にもう一度試そう。",
+    "enabled": true
+  },
+  {
+    "id": "operation_ja-JP_error_2",
+    "category": "操作·未完成·ja-JP",
+    "text": "慌てなくて大丈夫。少し困ったことが起きたみたい。ゆっくり直していこう。",
+    "enabled": true
+  },
+  {
+    "id": "operation_ja-JP_complete_1",
+    "category": "操作·完成·ja-JP",
+    "text": "ここまでできたよ。待っていてくれた声が、ここにあるよ。",
+    "enabled": true
+  },
+  {
+    "id": "operation_ja-JP_complete_2",
+    "category": "操作·完成·ja-JP",
+    "text": "また一つできたね。この声が、心を少し温めてくれますように。",
+    "enabled": true
+  }
+]

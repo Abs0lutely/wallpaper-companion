@@ -72,6 +72,8 @@ The separate **Gentle Replies** pack contains **72 original Chinese dialogue lin
 
 [Download dialogue JSON](https://github.com/Abs0lutely/wallpaper-companion/releases/latest/download/heartfelt-zh-CN.json) · [Browse the pack (中文)](examples/dialogues/README.md) · [52 operation-response lines (中文)](examples/dialogues/operation-zh-CN.json)
 
+Want English or Japanese speech? **[Translated default dialogue packs](examples/dialogues/TRANSLATIONS.md)** provide 38 companion lines and 52 operation responses per language, with importable JSON, TXT, matching operation rules, and instructions. Import them and generate audio using a compatible voice; recordings are not included.
+
 **Dialogue text and voice recordings are separate resources.** The 90 bundled clips are playable immediately. Additional imported or custom lines need matching recordings or TTS generation. The 72-line Gentle Replies pack contains text; it is not another 72 bundled recordings.
 
 ### Everyday details that make a difference

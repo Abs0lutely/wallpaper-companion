@@ -53,6 +53,13 @@ jobs:
           if ($LASTEXITCODE -eq 0) {
             Write-Host 'Release already exists; preserving its verified assets. Build artifacts are available in this workflow.'
           } else {
-            gh release create $env:RELEASE_TAG dist/release/* examples/dialogues/heartfelt-zh-CN.json examples/dialogues/heartfelt-zh-CN.txt --target $env:GITHUB_SHA --title "Wallpaper Companion $env:RELEASE_TAG" --generate-notes
+            $dialogueAssets = @('examples/dialogues/heartfelt-zh-CN.json', 'examples/dialogues/heartfelt-zh-CN.txt',
+              'examples/dialogues/starter-en-US.json', 'examples/dialogues/starter-en-US.txt',
+              'examples/dialogues/starter-ja-JP.json', 'examples/dialogues/starter-ja-JP.txt',
+              'examples/dialogues/operation-en-US.json', 'examples/dialogues/operation-en-US.txt',
+              'examples/dialogues/operation-ja-JP.json', 'examples/dialogues/operation-ja-JP.txt',
+              'examples/presets/operation-voice-rules-en-US.json', 'examples/presets/operation-voice-rules-ja-JP.json',
+              'examples/dialogues/TRANSLATIONS.md')
+            gh release create $env:RELEASE_TAG dist/release/* @dialogueAssets --target $env:GITHUB_SHA --title "Wallpaper Companion $env:RELEASE_TAG" --generate-notes
             if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           }
