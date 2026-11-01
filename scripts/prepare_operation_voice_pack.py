@@ -18,6 +18,8 @@ def main():
     args = parser.parse_args()
     result = validate_pack(args.source)
     if args.apply:
+        if (ROOT / "examples/audio/manifest.json").exists():
+            raise ValueError("已有完整默认音频清单，请改用 scripts/prepare_default_audio.py --source <含默认台词的生成目录> --apply，避免只更新操作音频而遗漏总清单。")
         require_pack(args.source)
         target = writable_path(ROOT / "examples/audio/operation-voice")
         paths = [(args.source / name, writable_path(target / name)) for name in result["found"]]

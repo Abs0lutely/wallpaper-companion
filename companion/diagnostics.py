@@ -67,6 +67,9 @@ def run(destination):
         store.config.update(profiles=[profile], manual_profile=profile["id"])
         store.save()
         window = Window(store, hooks=False)
+        from .core import save_generated
+        named = save_generated(root / "naming", "命名检查", (root / "voice/测试语音.wav").read_bytes(), store.protected(), model_name="测试模型")
+        checks["model_tagged_filename_and_control"] = named.name == "命名检查-测试模型.wav" and named.is_file() and window.filename_model.maxLength() == 200
         window.poll.stop()
         window.show()
         checks["redesigned_navigation_present"] = {0, 2, 3, 4, 5, 6, 7}.issubset(window.navigation)

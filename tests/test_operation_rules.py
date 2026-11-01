@@ -9,6 +9,9 @@ class OperationRuleTests(unittest.TestCase):
         self.assertTrue(value["enabled"])
         self.assertEqual(len(value["rules"]),26)
         self.assertEqual(normalize_payload(value),value)
+        import json
+        from companion.core import ROOT
+        self.assertEqual(json.loads((ROOT/"examples/presets/operation-voice-rules.json").read_text(encoding="utf-8")),value)
 
     def test_rejects_unsafe_or_ambiguous_imports(self):
         original=config_payload({})
