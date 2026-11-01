@@ -2,6 +2,14 @@
 
 此文件描述可公开的源码状态，不包含开发者本机配置和路径。
 
+## 最新图标更新（本地，未打包/推送）
+
+用户要求将二次元少女及项目意象结合，并最终提供粉发、樱花、玫瑰金耳机、夕阳的画面作为参考。已用内置 imagegen 基于该参考重绘头像式应用图标，采用 `readme-assets/app-icon.png`（1254×1254，透明外角）和 `readme-assets/app-icon.ico`（16/20/24/32/40/48/64/128/256 九档 PNG 帧）；只有最终采用图进入项目，原参考图与未采用候选不分发。完整提示词见 `readme-assets/app-icon-design.md`。
+
+`companion/ui.py:app_icon` 统一加载 ICO，PNG 为缺失回退；`main.py` 设置应用级图标，窗口、托盘和应用消息一致，并修正旧“绿色声波图标”提示。`scripts/build_windows.py:prepare` 不再绘制旧声波，而是复制批准的 ICO 到 `build/app.ico`，既有 PyInstaller spec 与 Inno Setup 均继续使用该位置；现有 readme-assets 打包/便携更新白名单已覆盖新文件。`scripts/prepare_app_icon.py` 用 Qt 缩放并封装多帧 ICO，不新增依赖。
+
+验证：九帧目录、透明通道、Qt 读取全部尺寸、32px 窗口/托盘一致和构建准备复制的 ICO 字节一致均通过；已查看实际尺寸预览。源码自检 30 项、原生界面重设计与前台/托盘闪烁回归、compileall、pip check 通过。构建准备只在临时目录验证，没有冻结 EXE、制作安装包或替换已安装程序。分支仍为 `feature/companion-experience`，保持本地提交、不推送/不发布；用户实际安装版的图标将在后续获授权的新包更新时生效。
+
 ## 默认音频补齐完成（当前状态，仍未推送）
 
 用户已补齐此前 13 条配音，并授权加入分发资源。已从同一生成目录使用 `scripts/prepare_default_audio.py` 复制新增文件到 `examples/audio/` 并更新两份清单；现共 **90 条，32,010,360 字节**，其中普通陪伴 38 条、操作回应 52 条，所有默认台词均有音频，两套 missing 列表均为空。

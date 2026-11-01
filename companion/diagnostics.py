@@ -72,6 +72,8 @@ def run(destination):
         checks["model_tagged_filename_and_control"] = named.name == "命名检查-测试模型.wav" and named.is_file() and window.filename_model.maxLength() == 200
         window.poll.stop()
         window.show()
+        from PySide6.QtCore import QSize
+        checks["shared_brand_icon_available"] = (ROOT / "readme-assets/app-icon.ico").is_file() and {QSize(16,16), QSize(32,32), QSize(48,48), QSize(256,256)}.issubset(set(window.windowIcon().availableSizes())) and window.windowIcon().pixmap(32,32).toImage() == window.tray.icon().pixmap(32,32).toImage()
         checks["redesigned_navigation_present"] = {0, 2, 3, 4, 5, 6, 7}.issubset(window.navigation)
         checks["character_model_controls_present"] = window.provider_widgets["gpt_weights"].isEditable() and window.provider_widgets["sovits_weights"].isEditable()
         from .managed_api import api

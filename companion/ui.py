@@ -11,7 +11,7 @@ from datetime import datetime
 from pathlib import Path
 
 from PySide6.QtCore import Qt, QTimer, QTime, Signal, QUrl
-from PySide6.QtGui import QAction, QColor, QDesktopServices, QIcon, QPainter, QPixmap
+from PySide6.QtGui import QAction, QDesktopServices, QIcon
 from PySide6.QtWidgets import (
     QApplication, QCheckBox, QComboBox, QDialog, QDialogButtonBox, QDoubleSpinBox,
     QFileDialog, QFormLayout, QFrame, QHBoxLayout, QLabel, QLineEdit, QListWidget,
@@ -87,18 +87,11 @@ def path_field(line, directory=True, title="选择文件夹"):
 
 
 def app_icon():
-    pixmap = QPixmap(64, 64)
-    pixmap.fill(Qt.GlobalColor.transparent)
-    painter = QPainter(pixmap)
-    painter.setRenderHint(QPainter.RenderHint.Antialiasing)
-    painter.setBrush(QColor("#edb2c4"))
-    painter.setPen(Qt.PenStyle.NoPen)
-    painter.drawRoundedRect(3, 3, 58, 58, 16, 16)
-    painter.setBrush(QColor("#281821"))
-    for x, height in [(16, 16), (25, 34), (34, 44), (43, 24)]:
-        painter.drawRoundedRect(x, (64 - height) // 2, 5, height, 2, 2)
-    painter.end()
-    return QIcon(pixmap)
+    for name in ("app-icon.ico", "app-icon.png"):
+        icon = QIcon(str(ROOT / "readme-assets" / name))
+        if not icon.isNull():
+            return icon
+    return QApplication.style().standardIcon(QStyle.StandardPixmap.SP_MediaVolume)
 
 
 from .rules_ui import RuleDialog
