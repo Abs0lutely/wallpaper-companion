@@ -14,6 +14,7 @@ class Autosave(QObject):
         self.closed = False
         self.last = None
         self.page = window.tabs.currentIndex()
+        self.section = window.profile_sections.currentIndex()
         self.baseline = self.forms()
         self.toast = QFrame(window)
         self.toast.setObjectName("autosaveToast")
@@ -21,6 +22,7 @@ class Autosave(QObject):
         self.toast.setAttribute(Qt.WidgetAttribute.WA_ShowWithoutActivating)
         layout = QHBoxLayout(self.toast)
         self.label = QLabel()
+        self.label.setWordWrap(True)
         self.undo_button = QPushButton("撤销")
         self.undo_button.clicked.connect(self.undo)
         layout.addWidget(self.label, 1); layout.addWidget(self.undo_button)
@@ -28,7 +30,7 @@ class Autosave(QObject):
         self.timer = QTimer(self); self.timer.setSingleShot(True)
         self.timer.timeout.connect(self.toast.hide)
         window.tabs.currentChanged.connect(self.page_changed)
-        window.profile_sections.currentChanged.connect(lambda _: self.flush())
+        window.profile_sections.currentChanged.connect(self.section_changed)
 
     def forms(self):
         w = self.w
@@ -60,6 +62,7 @@ class Autosave(QObject):
         if not self.w.isVisible():
             return
         self.label.setText(message)
+        self.undo_button.setEnabled(self.last is not None)
         self.toast.setFixedWidth(min(750, max(300, self.w.width() - 60)))
         self.toast.adjustSize()
         self.toast.move((self.w.width() - self.toast.width()) // 2, max(12, self.w.height() - self.toast.height() - 70))
@@ -76,6 +79,8 @@ class Autosave(QObject):
             self.show(message)
             if hasattr(self.w, "operation_voices"):
                 self.w.operation_voices.request("save")
+            return True
+        return False
 
     def flush(self):
         if self.busy or self.closed or self.w.quitting:
@@ -83,6 +88,7 @@ class Autosave(QObject):
         w = self.w
         self.busy = True
         before = copy.deepcopy(w.store.config)
+        baseline = copy.deepcopy(self.baseline)
         files = {}
         try:
             forms = self.forms()
@@ -105,20 +111,24 @@ class Autosave(QObject):
                 if not w.save_shared_audio_root():
                     raise ValueError("共享根目录未保存。")
             self.baseline = self.forms()
-            self.record(before, files, "已自动保存修改。可撤销本次自动保存。")
+            recorded = self.record(before, files, "已自动保存修改。可撤销本次自动保存。")
+            if not recorded and forms != baseline:
+                self.last = None
+                self.show("设置已自动保存，没有可撤销的配置差异；接口密钥不参与撤销。")
             return True
         except Exception as exc:
             # Never leave an in-memory unsaved draft looking like a persisted config.
             w.store.config = before
+            self.baseline = baseline
             try:
                 self.restore_files(files)
                 if w.store.path.exists():
                     w.store.save()
             except Exception as rollback:
                 w.log("保存回退失败，保留编辑内容，请检查文件权限：" + str(rollback))
+            w.poll.setInterval(before.get("poll_seconds", 4) * 1000)
             w.log("自动保存未完成：" + str(exc))
-            self.label.setText("自动保存失败：编辑仍保留，请检查错误提示。")
-            self.toast.show(); self.toast.raise_(); self.timer.start(6500)
+            self.show("自动保存失败：编辑仍保留，请修正错误后重试。")
             return False
         finally:
             self.busy = False
@@ -143,6 +153,17 @@ class Autosave(QObject):
             self.w.tabs.setCurrentIndex(old)
             self.w.tabs.blockSignals(False)
             self.w.shell_page_changed(old)
+
+    def section_changed(self, index):
+        if self.busy:
+            return
+        if self.flush():
+            self.section = index
+        else:
+            self.w.profile_sections.blockSignals(True)
+            self.w.profile_sections.setCurrentIndex(self.section)
+            self.w.profile_sections.blockSignals(False)
+            self.w.shell_page_changed(self.w.tabs.currentIndex())
 
     def undo(self):
         w = self.w
@@ -174,6 +195,8 @@ class Autosave(QObject):
             w.hover_help.set_enabled(w.store.config["hover_help"])
             w.help_button.setText("悬停说明：开启" if w.store.config["hover_help"] else "悬停说明：关闭")
             w.poll.setInterval(w.poll_seconds.value() * 1000)
+            if hasattr(w, "operation_voices"):
+                w.operation_voices.refresh()
             self.baseline = self.forms()
             self.last = None
             self.show("已撤销上一次自动保存。接口密钥不参与撤销。")
@@ -183,7 +206,9 @@ class Autosave(QObject):
         except Exception as exc:
             w.store.config = current
             try:
-                self.restore_files({p: after for p, (_, after) in files.items()}) if self.busy else None
+                if self.busy:
+                    self.restore_files({p: after for p, (_, after) in files.items()})
+                    w.store.save()
             except OSError as rollback:
                 w.log("撤销回退失败：" + str(rollback))
             w.report_error("无法撤销：" + str(exc))

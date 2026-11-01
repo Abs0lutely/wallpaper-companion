@@ -56,6 +56,8 @@ with tempfile.TemporaryDirectory(dir=output) as tmp, patch("companion.managed_ap
         before = len(w.edit_dialogues); w.add_operation_dialogues(); w.add_operation_dialogues()
         report["operation_texts_import_once_without_forced_selection"] = len(w.edit_dialogues) == before + 52 and not w.selected_dialogues()
         report["no_api_started_or_synthesis_requested"] = not api.start.called and not api.ensure.called and not api.synthesize.called
+        w.tabs.setCurrentIndex(3); app.processEvents()
+        w.grab().save(str(output / "operation-voice-settings.png"))
     finally:
         w.cleanup(); shiboken6.delete(w)
 (output / "smoke-operation-voices.json").write_text(json.dumps(report, indent=2), encoding="utf-8")

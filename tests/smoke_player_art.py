@@ -33,6 +33,10 @@ with tempfile.TemporaryDirectory(dir=output) as tmp, patch("companion.managed_ap
         report["stays_hidden_on_other_pages"] = not w.player_container.isVisible()
         w.bgm_enabled.click(); QTest.qWait(120)
         report["toggle_on_restores_player"] = w.player_container.isVisible() and Store(store.path).profile(p["id"])["bgm_enabled"]
+        with patch.object(w.audio, "set_profile", wraps=w.audio.set_profile) as reset_audio, patch.object(w.engine, "reset", wraps=w.engine.reset) as reset_rules:
+            w.profile_name.setText("自动保存不重启音乐")
+            assert w.autosave.flush()
+            report["autosave_preserves_current_song_and_rule_clocks"] = not reset_audio.called and not reset_rules.called
         image = QImage(80, 80, QImage.Format.Format_RGB32); image.fill(QColor("#e19aab"))
         metadata = QMediaMetaData(); metadata.insert(QMediaMetaData.Key.CoverArtImage, image)
         with patch.object(w.audio.bgm, "metaData", return_value=metadata):

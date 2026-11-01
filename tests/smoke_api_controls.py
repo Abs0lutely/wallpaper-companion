@@ -56,6 +56,11 @@ with patch("companion.managed_api.api") as api, patch("companion.secrets.read_se
         wait(lambda: w.audio.busy)
         report["reference_preview_without_api"] = w.audio.voice.source().toLocalFile() == str(reference).replace("\\", "/") and not api.start.called and not api.synthesize.called
         w.audio.voice.stop()
+        w.provider_widgets["project"].setText(str(reference.parent))
+        w.provider_widgets["reference"].setText(reference.name)
+        w.preview_reference_audio()
+        report["relative_reference_resolves_in_ai_project"] = w.audio.voice.source().toLocalFile() == str(reference).replace("\\", "/")
+        w.audio.voice.stop()
         provider = w.registry.speech["gpt_sovits"]
         def disconnected(_): raise requests.ConnectionError("HTTPConnectionPool fixture refused")
         provider.check = disconnected

@@ -59,6 +59,7 @@ class OperationVoices(QObject):
         self.last_play = -100.0
         self.last_scan = -100.0
         self.scanning = False
+        self.refresh_pending = False
         self.source = ""
         self.pending = None
         self.change_timer = QTimer(self); self.change_timer.setSingleShot(True)
@@ -70,6 +71,7 @@ class OperationVoices(QObject):
             self.attach(widget)
         window.tabs.currentChanged.connect(lambda _: self.request("navigate"))
         window.profile_sections.currentChanged.connect(lambda _: self.request("navigate"))
+        window.profiles.currentRowChanged.connect(lambda _: QTimer.singleShot(0, self.refresh))
         self.refresh()
 
     def owns(self, obj):
@@ -113,10 +115,14 @@ class OperationVoices(QObject):
         return False
 
     def refresh(self):
-        if self.closed or self.scanning:
+        if self.closed:
+            return
+        if self.scanning:
+            self.refresh_pending = True
             return
         from .assets import shared_root
-        roots = [self.w.store.config.get("operation_voice_dir", ""), shared_root(self.w.store) / "voice", ROOT / "examples/audio/operation-voice"]
+        roots = [self.w.store.config.get("operation_voice_dir", ""), self.w.voice_dir.text().strip(),
+                 shared_root(self.w.store) / "voice", ROOT / "examples/audio/operation-voice"]
         roots = [str(r) for r in roots if str(r).strip()]
         self.scanning = True; self.last_scan = time.monotonic()
         def ready(clips):
@@ -124,6 +130,9 @@ class OperationVoices(QObject):
             self.clips = clips
             count = sum(bool(paths) for paths in clips.values())
             self.w.operation_voice_status.setText(f"操作语音：已找到 {count}/{len(EVENT_LINES)} 类。" + ("缺少的分类保持静音；请导入操作台词并生成音频。" if count < len(EVENT_LINES) else "已准备好。"))
+            if self.refresh_pending:
+                self.refresh_pending = False
+                self.refresh()
         self.w.submit(lambda: scan_clips(roots), ready, lambda error: self.scan_failed(error))
 
     def scan_failed(self, error):

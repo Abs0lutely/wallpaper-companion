@@ -451,7 +451,8 @@ class Window(LibraryMixin, DialogueMixin, AudioLibraryMixin, CharacterMixin, Spe
         profiles = self.store.config["profiles"]
         new_id = profiles[index]["id"] if 0 <= index < len(profiles) else None
         if not old and new_id and self.shared_dialogue_snapshot is not None and self.collect_dialogues() != self.shared_dialogue_snapshot:
-            if not self.save_dialogue_library():
+            saved = self.autosave.flush() if hasattr(self, "autosave") and not self.autosave.busy else self.save_dialogue_library()
+            if not saved:
                 self.profiles.blockSignals(True)
                 self.profiles.setCurrentRow(-1)
                 self.profiles.blockSignals(False)
@@ -463,6 +464,9 @@ class Window(LibraryMixin, DialogueMixin, AudioLibraryMixin, CharacterMixin, Spe
                 self.profiles.blockSignals(False)
                 return
             profiles = self.store.config["profiles"]
+            self.profiles.blockSignals(True)
+            self.profiles.setCurrentRow(index)
+            self.profiles.blockSignals(False)
         elif old and old["id"] != new_id and not hasattr(self, "autosave") and self.draft_profile() != old:
             response = QMessageBox.question(self, "配置尚未保存", "当前修改尚未保存。放弃修改并切换配置？", QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No, QMessageBox.StandardButton.No)
             if response != QMessageBox.StandardButton.Yes:
@@ -553,7 +557,7 @@ class Window(LibraryMixin, DialogueMixin, AudioLibraryMixin, CharacterMixin, Spe
             self.store.config["profiles"][index] = p
             self.store.save()
             self.refresh_profiles(p["id"])
-            self.activate_profile(force=True)
+            self.apply_saved_playback(before)
             self.log("已保存配置：" + p["name"])
             self.render_library()
             return True
@@ -566,6 +570,30 @@ class Window(LibraryMixin, DialogueMixin, AudioLibraryMixin, CharacterMixin, Spe
                 self.log("台词保存回退失败：" + str(rollback))
             self.report_error(str(exc))
             return False
+
+    def apply_saved_playback(self, before):
+        """Apply edits without restarting an unrelated/current song or rule clocks."""
+        current = self.store.profile(self.active_id)
+        old = next((p for p in before.get("profiles", []) if p["id"] == self.active_id), None)
+        if not current or not old or not hasattr(self.audio, "sync_bgm"):
+            self.activate_profile(force=True)
+            return
+        if current.get("bgm_dir") != old.get("bgm_dir"):
+            self.audio.set_profile(current)
+        else:
+            self.audio.profile = current
+            self.audio.bgm_paused = bool(current.get("bgm_paused", False))
+            self.audio.set_volumes()
+            self.audio.sync_bgm()
+        old_rules = {r["id"]: r for r in old["rules"]}
+        new_rules = {r["id"]: r for r in current["rules"]}
+        changed = {key for key in old_rules.keys() | new_rules.keys() if old_rules.get(key) != new_rules.get(key)}
+        for key in changed:
+            self.engine.last.pop(key, None); self.engine.next_due.pop(key, None); self.engine.daily_fired.pop(key, None)
+        if changed or current.get("enabled") != old.get("enabled"):
+            self.hooks.configure(current["rules"] if current.get("enabled", True) else [])
+        self.apply_original_audio_policy()
+        self.refresh_status()
 
     def add_profile(self):
         if hasattr(self, "autosave") and not self.autosave.flush():
@@ -1134,6 +1162,7 @@ class Window(LibraryMixin, DialogueMixin, AudioLibraryMixin, CharacterMixin, Spe
 
     def save_tts(self):
         self.stash_provider()
+        before = copy.deepcopy(self.store.config)
         try:
             sanitized = copy.deepcopy(self.provider_cache)
             from .secrets import write_secret
@@ -1156,6 +1185,7 @@ class Window(LibraryMixin, DialogueMixin, AudioLibraryMixin, CharacterMixin, Spe
                 self.autosave.remember("tts")
             return True
         except Exception as exc:
+            self.store.config = before
             self.report_error(str(exc))
             return False
 
@@ -1171,8 +1201,12 @@ class Window(LibraryMixin, DialogueMixin, AudioLibraryMixin, CharacterMixin, Spe
     def preview_reference_audio(self):
         try:
             from .core import AUDIO_EXTENSIONS
-            value = str(self.tts_settings().get("reference", "")).strip()
+            settings = self.tts_settings()
+            value = str(settings.get("reference", "")).strip()
             path = Path(value)
+            if value and self.provider_choice.currentData() == "gpt_sovits":
+                from .characters import project_file
+                path = project_file(settings, "reference")
             if not value or not path.is_file() or path.suffix.lower() not in AUDIO_EXTENSIONS:
                 raise ValueError("请先选择有效的参考音频文件。试听不会启动 API。")
             self.preview([path])
