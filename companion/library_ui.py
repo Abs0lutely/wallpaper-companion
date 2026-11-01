@@ -279,14 +279,18 @@ class DialogueMixin:
         layout = QVBoxLayout(page)
         self.dialogue_context = hint("未选择壁纸时编辑共享台词；选择壁纸后编辑其台词库。保存文字不会调用语音服务。")
         layout.addWidget(self.dialogue_context)
-        self.dialogue_table = QTableWidget(0, 3)
+        from .dialogue_table import DialogueTable
+        self.dialogue_table = DialogueTable(0, 3)
         self.dialogue_table.setHorizontalHeaderLabels(["生成", "分类", "台词（双击可编辑）"])
         self.dialogue_table.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
+        self.dialogue_table.setSelectionMode(QAbstractItemView.SelectionMode.ExtendedSelection)
+        self.dialogue_table.itemSelectionChanged.connect(self.sync_dialogue_checks)
+        self.dialogue_table.itemChanged.connect(self.sync_dialogue_selection)
         self.dialogue_table.horizontalHeader().setSectionResizeMode(0, QHeaderView.ResizeMode.ResizeToContents)
         self.dialogue_table.horizontalHeader().setSectionResizeMode(1, QHeaderView.ResizeMode.ResizeToContents)
         self.dialogue_table.horizontalHeader().setSectionResizeMode(2, QHeaderView.ResizeMode.Stretch)
         self.dialogue_table.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
-        self.dialogue_table.cellDoubleClicked.connect(lambda r, c: self.edit_dialogue())
+        self.dialogue_table.cellDoubleClicked.connect(lambda r, c: self.edit_dialogue() if c != 0 else None)
         layout.addWidget(self.dialogue_table, 1)
         self.dialogue_category_choice = QComboBox()
         layout.addWidget(row(button("全选台词", lambda: self.select_dialogues("all")),
@@ -340,10 +344,35 @@ class DialogueMixin:
 
     def select_dialogues(self, mode):
         category = self.dialogue_category_choice.currentText()
+        self.dialogue_table.blockSignals(True)
         for i, entry in enumerate(self.edit_dialogues):
             selected = mode == "all" or mode == "category" and entry["category"] == category
             self.dialogue_table.item(i, 0).setCheckState(Qt.CheckState.Checked if selected else Qt.CheckState.Unchecked)
+        self.dialogue_table.blockSignals(False)
+        self.sync_dialogue_selection()
         self.log(f"本次生成已选择 {len(self.selected_dialogues())} 条台词；勾选不改变台词库内容。")
+
+    def sync_dialogue_checks(self):
+        selected = {index.row() for index in self.dialogue_table.selectionModel().selectedRows()}
+        self.dialogue_table.blockSignals(True)
+        for i in range(self.dialogue_table.rowCount()):
+            item = self.dialogue_table.item(i, 0)
+            if item:
+                item.setCheckState(Qt.CheckState.Checked if i in selected else Qt.CheckState.Unchecked)
+        self.dialogue_table.blockSignals(False)
+
+    def sync_dialogue_selection(self, item=None):
+        if item is not None and item.column() != 0:
+            return
+        from PySide6.QtCore import QItemSelection, QItemSelectionModel
+        selection = QItemSelection()
+        for i in range(self.dialogue_table.rowCount()):
+            check = self.dialogue_table.item(i, 0)
+            if check and check.checkState() == Qt.CheckState.Checked:
+                selection.select(self.dialogue_table.model().index(i, 0), self.dialogue_table.model().index(i, 2))
+        self.dialogue_table.blockSignals(True)
+        self.dialogue_table.selectionModel().select(selection, QItemSelectionModel.SelectionFlag.ClearAndSelect)
+        self.dialogue_table.blockSignals(False)
 
     def render_dialogues(self):
         scope_id = self.editing_id or "shared"
@@ -352,6 +381,7 @@ class DialogueMixin:
         if getattr(self, "dialogue_selection_scope", None) != scope_id:
             selected = set()
         self.dialogue_selection_scope = scope_id
+        self.dialogue_table.blockSignals(True)
         scope = "壁纸台词库：" + self.profile_name.text() if self.editing_id else "共享台词库（无需先绑定壁纸）"
         self.dialogue_context.setText(f"{scope} · {len(self.edit_dialogues)} 条；切换页面自动保存，也可手动保存。生成勾选只对本次操作有效。")
         self.dialogue_table.setRowCount(len(self.edit_dialogues))
@@ -365,6 +395,8 @@ class DialogueMixin:
                 item = QTableWidgetItem(entry[key])
                 item.setToolTip(entry[key])
                 self.dialogue_table.setItem(i, j, item)
+        self.dialogue_table.blockSignals(False)
+        self.sync_dialogue_selection()
         previous = self.dialogue_category_choice.currentText()
         self.dialogue_category_choice.clear()
         self.dialogue_category_choice.addItems(list(dict.fromkeys(e["category"] for e in self.edit_dialogues)))
