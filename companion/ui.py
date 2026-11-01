@@ -388,7 +388,7 @@ class Window(LibraryMixin, DialogueMixin, AudioLibraryMixin, CharacterMixin, Spe
         layout.addWidget(button(tr('ui.694b1a5b1af9', '打开扩展目录'), lambda: self.open_folder(str(PLUGIN_DIR))))
         layout.addWidget(hint(tr('ui.61bc0896f0ad', '自动识别只读轮询 WE 保存的选择；点击立即检测时才尝试官方 getWallpaper 命令。\n不运行修改壁纸、音量或暂停 WE 的命令。\n伴随暂停和全屏静音只控制本程序的声音。每次只跟随一台显示器。\n\n关闭窗口会最小化到托盘；右键托盘图标可以暂停或退出。\n开机自启由上方按钮选择，仅当前用户登录后运行；不记录键盘文本。云端语音发送台词至配置的服务。\n\n配置位置：{value0}\n复用开源组件：PySide6 / Qt Multimedia、pynput、requests、psutil。来源见 THIRD_PARTY.md。', value0=DATA / 'config.json')))
         layout.addWidget(row(button(tr('ui.f99dce8769e3', '打开程序数据目录'), lambda: self.open_folder(str(DATA))),
-                             button(tr('ui.4eaafd3ffbce', '打开使用说明'), lambda: self.open_document("README.md"))))
+                             button(tr('ui.4eaafd3ffbce', '打开使用说明'), lambda: self.open_document("USAGE.md"))))
         layout.addStretch()
         settings_scroll = QScrollArea()
         settings_scroll.setWidgetResizable(True)

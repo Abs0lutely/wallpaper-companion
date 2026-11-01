@@ -6,11 +6,7 @@
 
 切页自动保存后可用提示中的“撤销”恢复上次语言选择；“恢复默认配置”会把语言恢复为中文，仍需下次启动生效。未设置语言的旧配置和无效语言值默认中文，不影响其他配置。
 
-English: Open **Settings → Runtime settings → Interface language / 界面语言**, choose **English**, then click **Save runtime settings** or leave the page to autosave. Use **Exit** in the system tray and open the app again. Closing the window only hides it in the tray; it does not apply the new language. **Undo** reverses the last automatic save. Restoring default settings selects Simplified Chinese for the next start.
-
-切换只影响内置界面、弹窗、托盘、悬停说明、进度和程序自身提示，不翻译用户保存的配置名、规则名、台词、分类、路径、音频或模型名，也不会切换语音模型、配音语言或导入英文台词。已有中文配音继续可用；需要英文配音时另行导入英文台词并生成。第三方插件文字、外部接口原始错误及旧日志保持原样。本文仍为中文说明。
-
-Interface language does not translate your profiles, rules, dialogues, categories, paths, filenames or models, and does not change speech language. Existing Chinese recordings remain available. To create English speech, import the English dialogue packs and generate it separately. Plugin text, raw external API errors and historical logs retain their original language; this manual remains primarily Chinese.
+切换只影响内置界面、弹窗、托盘、悬停说明、进度和程序自身提示，不翻译用户保存的配置名、规则名、台词、分类、路径、音频或模型名，也不会切换语音模型、配音语言或导入英文台词。已有中文配音继续可用；需要英文配音时另行导入英文台词并生成。第三方插件文字、外部接口原始错误及旧日志保持原样。英文界面自动打开独立的英文手册。
 
 ## 新界面导航与背景
 
@@ -58,7 +54,7 @@ Interface language does not translate your profiles, rules, dialogues, categorie
 
 撤销只针对最近一次自动保存/恢复默认，且不覆盖其后的新编辑、其他保存或外部文件变化；共享台词会连同关联配置一起还原。接口密钥由系统凭据管理器保存，不参与撤销。保存失败时保留编辑内容并阻止离开该页/配置；修正错误后可重试，不会静默放弃。普通自动保存不会重新播放当前歌曲或重置未修改规则的计时。
 
-### 默认操作语音（本地开发中的新功能）
+### 默认操作语音
 
 “设置 → 播放操作回应语音”默认开启，按保存、撤销、编辑、删除、切换页面等动作播放对应短句。只播放已有文件，不自动合成、不启动 API。快速连续操作节流，输入修改合并提示；正在播放角色语音/参考音频、暂停伴随或全屏静音时不抢播，不积累队列。未生成的分类保持静音，设置页会显示已发现的分类数。
 
@@ -71,7 +67,7 @@ Interface language does not translate your profiles, rules, dialogues, categorie
 | 操作回应规则… | 打开独立规则表，每种动作可设启用、播放分类、冷却，以及全局最短间隔。支持导入/导出操作规则 JSON，默认全部开启；不会修改壁纸的鼠标/按键/时间规则。示例在 `examples/presets/operation-voice-rules.json`，发行包随附。 |
 | 恢复默认配置 | 二次确认后恢复运行偏好、外观、操作语音开关及当前配置的播放参数/规则；保留绑定、资源路径、台词、音频、角色与接口，不操作系统自启。可撤销。 |
 
-当前源码已随附 90 条用户提供的默认配音：52 条操作语音和 38 条陪伴示例，全部默认台词已覆盖，无需启动 AI 即可播放。此前的 [13 条补齐参考清单](examples/dialogues/missing-default-audio-zh-CN.json) 已全部完成，仅保留供备份参考，不需重复生成。维护者准备素材的方法见 [分发语音说明](examples/audio/operation-voice/README.md)。本轮只准备源码和资源，现有 Release 不会自动更新。
+当前源码已随附 90 条用户提供的默认配音：52 条操作语音和 38 条陪伴示例，全部默认台词已覆盖，无需启动 AI 即可播放。此前的 [13 条补齐参考清单](examples/dialogues/missing-default-audio-zh-CN.json) 已全部完成，仅保留供备份参考，不需重复生成。维护者准备素材的方法见 [分发语音说明](examples/audio/operation-voice/README.md)。随附音频不需要先部署语音模型。
 
 新建壁纸配置默认开启“语音目录为空时使用随附示例”：只读使用程序内示例，不复制或覆盖个人目录；放入自己的语音后优先播放个人文件，也可手动关闭。旧配置缺少此字段时默认关闭，避免升级后擅自发声。语音总目录随机规则排除“操作·…”分类，操作语音走独立规则；显式指定操作分类的规则仍可播放它。
 
@@ -84,7 +80,7 @@ Interface language does not translate your profiles, rules, dialogues, categorie
 | 语音文件夹 | 含 WAV、MP3 等音频的目录，可包含子目录。手动下载或 AI 生成均可。 | 离开页面自动保存；也可手动保存 |
 | BGM 文件夹 | 含背景音乐的目录。空目录/留空表示没有伴随 BGM。 | 离开页面自动保存；也可手动保存 |
 | 启用此配置 | 整份配置的自动语音和伴随 BGM 开关。 | 离开页面自动保存；也可手动保存 |
-| 启用文件夹 BGM | 只控制伴随 BGM，不关闭互动语音。 | 离开页面自动保存；也可手动保存 |
+| 启用背景音乐 | 只控制伴随 BGM，不关闭互动语音。 | 离开页面自动保存；也可手动保存 |
 | 鼠标和键盘仅在桌面前台触发 | 默认开启，避免写字或游戏时频繁说话。配置窗口内操作也不会自动触发语音。 | 离开页面自动保存；也可手动保存 |
 | 全屏应用前台时暂停伴随声音 | 全屏时暂停声伴，离开全屏后恢复；不更改 WE。 | 离开页面自动保存；也可手动保存 |
 | 随机播放 BGM | 开启随机选曲；关闭按文件名排序轮播。 | 离开页面自动保存；也可手动保存 |
@@ -108,7 +104,7 @@ Interface language does not translate your profiles, rules, dialogues, categorie
 | 重新检测原壁纸声音 | 后台重新检查原壁纸音轨/素材，不播放原声音。 |
 | 建立专用音频目录 | 打开目录模式弹窗，预选专用模式；可分别改成共享。点击保存后还会显示配置名和实际路径，二次确认才创建并保存；取消不改绑定、不创建目录，原共享文件不搬走。 |
 | 打开语音目录/打开 BGM 目录 | 在资源管理器打开目录，方便放入手动下载的文件。 |
-| 离开页面自动保存；也可手动保存 | 保存当前配置的编辑，并重新应用正在播放的配置。 |
+| 保存配置 | 保存当前配置的编辑，并重新应用正在播放的配置。 |
 | 随机试听语音 | 从编辑中的语音目录随机试听，不受自动触发的时间和冷却约束。 |
 | 暂停当前 BGM/继续当前 BGM | 只控制当前播放配置的伴随 BGM，语音仍可播放。暂停选择按配置保存。 |
 | 下一首 BGM | 按顺序/随机设置选下一首。手动暂停或防冲突暂停时不会强行播放。 |
@@ -353,7 +349,7 @@ Interface language does not translate your profiles, rules, dialogues, categorie
 | ffprobe 路径 | 可选 ffprobe.exe。留空从 PATH 查找；没有工具仍能用其他功能，但视频音轨会显示未知。修改后再保存运行设置。 |
 | 本地扩展列表 | 插件放入 plugins 后重启可列出，勾选保存并再重启启用。只有信任源码才启用。 |
 | 打开扩展/数据目录 | 打开源码插件位置或配置、日志、默认音频所在位置。 |
-| 打开使用说明 | 打开简版 README；顶部“打开使用手册”打开本文。 |
+| 打开使用说明 | 打开与界面语言一致的快速入门说明；顶部“打开使用手册”打开逐项说明的本文。两种文档均为纯文字阅读版，不加载 README 宣传背景或图片。 |
 
 自启不会启动 GPT-SoVITS API。想生成声音仍需启动对应服务，但已缓存/下载的音频离线可播。
 

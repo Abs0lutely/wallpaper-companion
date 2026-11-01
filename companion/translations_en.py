@@ -1,6 +1,7 @@
 """English UI catalog. Preserve keys and named parameters; user content is excluded."""
 
 EN = {
+    "documents.overview": "Getting started",
     "ui.f06ae05900e7": "Unknown resource directory mode",
     "ui.594a673d20a5": "The custom directory is empty. Choose shared or dedicated mode.",
     "ui.ecaa76ff966a": "Voice playback failed: ",
@@ -1060,6 +1061,7 @@ EN = {
 }
 
 SOURCES = {
+    "documents.overview": "使用说明",
     "ui.f06ae05900e7": "未知资源目录模式",
     "ui.594a673d20a5": "自定义目录为空，请选择共享或专用模式",
     "ui.ecaa76ff966a": "语音播放失败：",

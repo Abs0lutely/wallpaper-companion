@@ -98,7 +98,7 @@ def run(destination):
         checks["model_config_dependency_available"] = model_key({}) is None
         window.audio.message.connect(lambda s: report["media_errors"].append(s) if "失败" in s else None)
         checks["manual_and_examples_present"] = all((ROOT / name).exists() for name in
-                                                   ["USER_GUIDE.md", "README.md", "examples/interaction-preset.json", "readme-assets/home.png",
+                                                   ["USER_GUIDE.md", "USER_GUIDE.en.md", "USAGE.md", "USAGE.en.md", "README.md", "examples/interaction-preset.json", "readme-assets/home.png",
                                                     "readme-assets/dialogues.png", "readme-assets/rules.png", "examples/dialogues/heartfelt-zh-CN.json"])
         checks["internal_manual_opens"] = window.open_document("USER_GUIDE.md") and "功能和输入框使用手册" in window.document_viewer.browser.toPlainText()
         from PySide6.QtCore import QUrl

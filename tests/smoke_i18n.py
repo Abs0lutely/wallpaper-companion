@@ -71,6 +71,45 @@ with tempfile.TemporaryDirectory(dir=ROOT/'output') as tmp, patch('companion.man
         with patch.object(QMessageBox,'question',return_value=QMessageBox.StandardButton.Yes):w.restore_defaults()
         report['restore_defaults_keeps_content']=Store(store.path).config['ui_language']=='zh-CN' and Store(store.path).profile(p['id'])['dialogues']==saved_content and language()==locale
         report['restore_undo']=w.autosave.undo() and Store(store.path).config['ui_language']==locale
+        # Exercise both actual help buttons, including reopen and local navigation.
+        from PySide6.QtGui import QImage, QColor
+        background=QImage(16,16,QImage.Format.Format_RGB32);background.fill(QColor('#ff0055'))
+        image_path=root/'test-parent-background.png';background.save(str(image_path))
+        w.setStyleSheet('QWidget {background-image:url("'+image_path.as_posix()+'");}')
+        guide_button=next(b for b in w.findChildren(QPushButton) if b.text()==('Open user guide' if locale=='en-US' else '打开使用手册'))
+        guide_button.click();QTest.qWait(50)
+        viewer=w.document_viewer
+        expected='USER_GUIDE.en.md' if locale=='en-US' else 'USER_GUIDE.md'
+        report['localized_manual_button']=viewer.isVisible() and viewer.current_path.name==expected and ('Features and fields' in viewer.browser.toPlainText() if locale=='en-US' else '功能和输入框' in viewer.browser.toPlainText())
+        report['opaque_document_background']=viewer.browser.viewport().grab().toImage().pixelColor(3,3).name()=='#fffdf9'
+        viewer.resize(700,540);QTest.qWait(30)
+        report['manual_reflows']=viewer.browser.horizontalScrollBar().maximum()==0
+        report['manual_opens_at_top']=viewer.browser.verticalScrollBar().value()==0
+        viewer.grab().save(str(ROOT/'output'/('help-'+locale+'-manual.png')))
+        from PySide6.QtCore import QUrl
+        viewer.follow_link(QUrl('USAGE.md'))
+        report['localized_document_links']=viewer.current_path.name==('USAGE.en.md' if locale=='en-US' else 'USAGE.md')
+        viewer.close();w.tabs.setCurrentIndex(3)
+        overview_button=next(b for b in w.findChildren(QPushButton) if b.text()==('Open documentation' if locale=='en-US' else '打开使用说明'))
+        overview_button.click();QTest.qWait(50)
+        text=viewer.browser.toPlainText()
+        report['localized_overview_button']=viewer.isVisible() and ('Hear your first response' in text if locale=='en-US' else '先听到第一句回应' in text)
+        block=viewer.browser.document().begin(); has_image=False
+        while block.isValid():
+            fragment=block.begin()
+            while not fragment.atEnd():
+                if fragment.fragment().charFormat().isImageFormat(): has_image=True
+                fragment+=1
+            block=block.next()
+        report['no_promotional_images']=not has_image and '<img' not in text and '[![' not in text
+        from PySide6.QtGui import QTextDocument
+        report['remote_images_disabled']=viewer.browser.loadResource(QTextDocument.ResourceType.ImageResource,QUrl('https://example.invalid/banner.png')).isNull()
+        viewer.grab().save(str(ROOT/'output'/('help-'+locale+'-overview.png')))
+        with patch.object(QMessageBox,'warning') as warning:
+            old=viewer.current_path
+            viewer.follow_link(QUrl('missing-manual.md'))
+            report['failed_help_navigation_keeps_page']=warning.called and viewer.current_path==old
+        viewer.close();w.setStyleSheet('')
         w.tabs.setCurrentIndex(1)
         r=RuleDialog(new_rule(),w)
         dialogs.append(r)
