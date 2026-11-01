@@ -11,12 +11,14 @@ import subprocess
 import sys
 import tempfile
 import unittest
+import uuid
 from unittest.mock import patch
 from urllib.parse import urlparse
 
 ROOT = Path(__file__).resolve().parents[1]
 VALIDATION = ROOT / "output" / "ui-validation"
-DATA = VALIDATION / "data"
+_RUN_TOKEN = os.environ.setdefault("WALLPAPER_COMPANION_VALIDATION_TOKEN", uuid.uuid4().hex)
+DATA = VALIDATION / ("data-" + _RUN_TOKEN)
 SMOKES = (
     "smoke_redesign.py", "smoke_ui.py", "smoke_controls.py",
     "smoke_polling_flicker.py", "smoke_library.py", "smoke_rules.py",
@@ -31,6 +33,8 @@ SMOKES = (
     "smoke_audio_scopes.py",
     "smoke_bundled_audio.py",
     "smoke_output_device.py",
+    "smoke_i18n.py",
+    "smoke_i18n_zh.py",
 )
 
 

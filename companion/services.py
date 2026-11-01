@@ -1,4 +1,5 @@
 from __future__ import annotations
+from .i18n import tr
 
 import ctypes
 import json
@@ -33,21 +34,21 @@ def running_wallpaper_processes():
 def current_wallpaper(config):
     processes = running_wallpaper_processes()
     if not processes:
-        return dict(path="", title="Wallpaper Engine 未运行", running=False)
+        return dict(path="", title=tr('ui.6cd64300ab4e', 'Wallpaper Engine 未运行'), running=False)
     root = Path(config["we_dir"])
     exe = next((Path(p["exe"]) for p in processes if p.get("exe") and Path(p["exe"]).parent == root), None)
     if not exe:
-        raise ValueError("发现 Wallpaper Engine 进程，但安装目录不匹配；请在设置中选择实际目录。")
+        raise ValueError(tr('ui.a862efb3f772', '发现 Wallpaper Engine 进程，但安装目录不匹配；请在设置中选择实际目录。'))
     # Timers also run in the tray/over fullscreen applications. Never launch
     # WE's GUI executable from a background poll: CREATE_NO_WINDOW only hides
     # consoles, and invoking WE can activate/redraw its existing windows.
     if not config.get("_wallpaper_command_query", False):
-        return selected_wallpaper(config, source="已保存配置（只读轮询）")
+        return selected_wallpaper(config, source=tr('ui.16f4c787477c', '已保存配置（只读轮询）'))
     result = run_external([str(exe), "-control", "getWallpaper", "-monitor", str(config.get("monitor", 0))],
                             capture_output=True, timeout=5, creationflags=NO_WINDOW)
     raw = result.stdout
     if result.returncode:
-        raise RuntimeError(f"查询当前壁纸失败，退出码 {result.returncode}")
+        raise RuntimeError(tr('ui.5003ef7789b0', '查询当前壁纸失败，退出码 {value0}', value0=result.returncode))
     values = []
     encodings = ["utf-16" if b"\x00" in raw else "utf-8-sig", "utf-8-sig", locale.getpreferredencoding(False), "gb18030"]
     for encoding in encodings:
@@ -62,7 +63,7 @@ def current_wallpaper(config):
     path = next((v for v in values if Path(v).exists()), "")
     if not path:
         return selected_wallpaper(config)
-    return wallpaper_info(path, "官方查询")
+    return wallpaper_info(path, tr('ui.0cb15544cc0d', '官方查询'))
 
 
 def wallpaper_info(path, source):
@@ -75,7 +76,7 @@ def wallpaper_info(path, source):
     return dict(path=path, title=title, running=True, source=source)
 
 
-def selected_wallpaper(config, source="已保存配置（官方查询无输出）"):
+def selected_wallpaper(config, source=tr('ui.4bec7e4cc5e7', '已保存配置（官方查询无输出）')):
     """Read only current selectedwallpapers, never recent history or last browser selection.
 
     Some Windows builds return no stdout for getWallpaper. This reports saved selection
@@ -87,13 +88,13 @@ def selected_wallpaper(config, source="已保存配置（官方查询无输出�
     account = accounts.get(os.environ.get("USERNAME", ""))
     if account is None:
         if len(accounts) != 1:
-            raise ValueError("WE 保存配置存在多个用户，无法可靠确定当前配置。")
+            raise ValueError(tr('ui.5440da0eeae3', 'WE 保存配置存在多个用户，无法可靠确定当前配置。'))
         account = next(iter(accounts.values()))
     selected = account["general"]["wallpaperconfig"].get("selectedwallpapers", {})
     entry = selected.get("Monitor" + str(config.get("monitor", 0)), {})
     path = entry.get("file", "")
     if not path or not Path(path).is_file():
-        return dict(path="", title="该屏幕没有有效的已保存壁纸路径", running=True, source="已保存配置")
+        return dict(path="", title=tr('ui.d7502775862e', '该屏幕没有有效的已保存壁纸路径'), running=True, source=tr('ui.b4cc36ab4d2f', '已保存配置'))
     return wallpaper_info(path, source)
 
 
@@ -133,7 +134,7 @@ def foreground_state():
 def local_url(value):
     parsed = urlparse(value)
     if parsed.scheme != "http" or parsed.hostname not in {"127.0.0.1", "localhost", "::1"} or parsed.username or parsed.password:
-        raise ValueError("请填写本机 HTTP 地址，例如 http://127.0.0.1:9880")
+        raise ValueError(tr('ui.82819a2c413f', '请填写本机 HTTP 地址，例如 http://127.0.0.1:9880'))
     return value.rstrip("/")
 
 
@@ -148,8 +149,8 @@ def api_status(settings):
         response = client.get(local_url(settings["url"]) + "/openapi.json", timeout=4)
         response.raise_for_status()
         if "/tts" not in response.json().get("paths", {}):
-            raise ValueError("该地址没有 api_v2 /tts 接口")
-    return "GPT-SoVITS 接口已就绪"
+            raise ValueError(tr('ui.750a473ef439', '该地址没有 api_v2 /tts 接口'))
+    return tr('ui.baa6111d1b4e', 'GPT-SoVITS 接口已就绪')
 
 
 def start_api(settings, protected=()):
@@ -196,32 +197,32 @@ def generate(settings, lines, output, protected=(), progress=None, provider=None
     from .audio_names import stems_with_copies, has_audio
     model_name = settings.get("_filename_model")
     existing = stems_with_copies({p.stem.casefold() for p in audio_files(str(output)) if p.stat().st_size > 0}) if skip_existing else set()
-    generation_status(status, "prepare", 0, len(lines), f"准备生成 {len(lines)} 条语音。")
+    generation_status(status, "prepare", 0, len(lines), tr('ui.0aaa57213850', '准备生成 {value0} 条语音。', value0=len(lines)))
     for index, text in enumerate(lines):
         try:
             if cancel is not None and cancel.is_set():
-                raise RuntimeError("语音生成已取消")
+                raise RuntimeError(tr('ui.6f4b8d014592', '语音生成已取消'))
             stem = Path(filename_for(text,model_name)).stem.casefold()
             if skip_existing and has_audio(existing,text,model_name):
-                generation_status(status, "skipped", index+1, len(lines), f"{index+1}/{len(lines)} 已存在，跳过：{text}")
+                generation_status(status, "skipped", index+1, len(lines), tr('ui.615b083dec07', '{value0}/{value1} 已存在，跳过：{value2}', value0=index + 1, value1=len(lines), value2=text))
                 continue
-            generation_status(status, "synthesis", index, len(lines), f"正在生成第 {index+1}/{len(lines)} 条，等待服务返回音频…")
+            generation_status(status, "synthesis", index, len(lines), tr('ui.d4849af9a8dd', '正在生成第 {value0}/{value1} 条，等待服务返回音频…', value0=index + 1, value1=len(lines)))
             current = settings
             if getattr(provider, "id", "") == "gpt_sovits" and status:
                 current = {**settings, "_tts_status": lambda message: generation_status(status, "api", index, len(lines), message)}
             data = provider.synthesize(current, text)
             if cancel is not None and cancel.is_set():
-                raise RuntimeError("语音生成已取消")
-            generation_status(status, "saving", index, len(lines), f"正在验证并保存第 {index+1}/{len(lines)} 条 WAV…")
+                raise RuntimeError(tr('ui.6f4b8d014592', '语音生成已取消'))
+            generation_status(status, "saving", index, len(lines), tr('ui.bee4a0bacf46', '正在验证并保存第 {value0}/{value1} 条 WAV…', value0=index + 1, value1=len(lines)))
             path = save_generated(output, text, data, protected, model_name=model_name)
             paths.append(str(path))
             existing.add(stem)
-            generation_status(status, "saved", index+1, len(lines), f"已保存 {index+1}/{len(lines)}：{path.name}")
+            generation_status(status, "saved", index+1, len(lines), tr('ui.ff65b09a6e1c', '已保存 {value0}/{value1}：{value2}', value0=index + 1, value1=len(lines), value2=path.name))
             if progress:
-                progress(f"{index + 1}/{len(lines)} 已保存：{path.name}")
+                progress(tr('ui.64b295927966', '{value0}/{value1} 已保存：{value2}', value0=index + 1, value1=len(lines), value2=path.name))
         except Exception as exc:
-            generation_status(status, "failed", len(paths), len(lines), f"第 {index+1} 条未完成；已保存 {len(paths)} 条保留。")
-            raise ValueError(f"第 {index + 1} 条失败：{exc}；已保存 {len(paths)} 条保留在目录中。") from exc
+            generation_status(status, "failed", len(paths), len(lines), tr('ui.b08f680a2ad9', '第 {value0} 条未完成；已保存 {value1} 条保留。', value0=index + 1, value1=len(paths)))
+            raise ValueError(tr('ui.4469bc20aba6', '第 {value0} 条失败：{value1}；已保存 {value2} 条保留在目录中。', value0=index + 1, value1=exc, value2=len(paths))) from exc
     return paths
 
 
@@ -236,32 +237,32 @@ def generate_dialogue_entries(settings, entries, output, protected=(), progress=
     root = writable_path(output, protected)
     folders = {entry["category"]: writable_path(root / entry["category"], protected) for entry in entries}
     paths, skipped = [], 0
-    generation_status(status, "prepare", 0, len(entries), f"准备按分类处理 {len(entries)} 条台词。")
+    generation_status(status, "prepare", 0, len(entries), tr('ui.facf0d921992', '准备按分类处理 {value0} 条台词。', value0=len(entries)))
     existing = {}
     for category, folder in folders.items():
         existing[category] = stems_with_copies({p.stem.casefold() for p in folder.iterdir() if p.is_file() and p.suffix.lower() in AUDIO_EXTENSIONS and p.stat().st_size > 0}) if folder.is_dir() else set()
     for i, entry in enumerate(entries):
         if cancel is not None and cancel.is_set():
-            raise RuntimeError("语音生成已取消")
+            raise RuntimeError(tr('ui.6f4b8d014592', '语音生成已取消'))
         category, text = entry["category"], entry["text"]
         stem = Path(filename_for(text,model_name)).stem.casefold()
         if skip_existing and has_audio(existing[category],text,model_name):
             skipped += 1
-            generation_status(status, "skipped", i+1, len(entries), f"{i+1}/{len(entries)} 已存在，跳过：{text}")
+            generation_status(status, "skipped", i+1, len(entries), tr('ui.615b083dec07', '{value0}/{value1} 已存在，跳过：{value2}', value0=i + 1, value1=len(entries), value2=text))
             if progress:
-                progress(f"{i + 1}/{len(entries)} 已有音频，跳过：{text}")
+                progress(tr('ui.4a6cff6ef1cb', '{value0}/{value1} 已有音频，跳过：{value2}', value0=i + 1, value1=len(entries), value2=text))
             continue
         try:
             def item_status(event):
                 completed = i+1 if event["phase"] == "saved" else i
-                generation_status(status, event["phase"], completed, len(entries), f"分类 {category} · 第{i+1}/{len(entries)}条：{event['message']}")
+                generation_status(status, event["phase"], completed, len(entries), tr('ui.1a49cc9bfece', '分类 {value0} · 第{value1}/{value2}条：{value3}', value0=category, value1=i + 1, value2=len(entries), value3=event['message']))
             generated = generate(settings, [text], folders[category], protected, provider=provider, cancel=cancel, status=item_status if status else None)
             paths.extend(generated)
             existing[category].add(stem)
             if progress:
-                progress(f"{i + 1}/{len(entries)} 已保存 {category}：{text}")
+                progress(tr('ui.6d992036174a', '{value0}/{value1} 已保存 {value2}：{value3}', value0=i + 1, value1=len(entries), value2=category, value3=text))
         except Exception as exc:
-            raise ValueError(f"台词库第 {i + 1} 条失败：{exc}；已新增 {len(paths)} 条保留在分类目录中。") from exc
+            raise ValueError(tr('ui.bcc83004e5f7', '台词库第 {value0} 条失败：{value1}；已新增 {value2} 条保留在分类目录中。', value0=i + 1, value1=exc, value2=len(paths))) from exc
     return dict(paths=paths, skipped=skipped)
 
 

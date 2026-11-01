@@ -1,4 +1,5 @@
 """A unified audio library for shared folders and individual wallpaper bindings."""
+from .i18n import tr
 import copy
 from pathlib import Path
 
@@ -19,18 +20,18 @@ class AudioLibraryMixin:
         self.audio_refresh_pending = False
         page = QWidget()
         layout = QVBoxLayout(page)
-        layout.addWidget(hint("统一管理共享和各壁纸目录中的音频。直接引用目录不复制文件；需要专用副本时，可复制所选音频到目标目录。删除共享文件会影响所有引用它的配置。"))
+        layout.addWidget(hint(tr('ui.08dfea087555', '统一管理共享和各壁纸目录中的音频。直接引用目录不复制文件；需要专用副本时，可复制所选音频到目标目录。删除共享文件会影响所有引用它的配置。')))
         self.audio_scope = QComboBox()
         self.audio_search = QLineEdit()
-        self.audio_search.setPlaceholderText("按文件名、路径或配置名称搜索…")
-        layout.addWidget(row(QLabel("查看范围"), self.audio_scope, self.audio_search, button("刷新音频库", self.refresh_audio_library)))
+        self.audio_search.setPlaceholderText(tr('ui.fa82f51665f3', '按文件名、路径或配置名称搜索…'))
+        layout.addWidget(row(QLabel(tr('ui.a9c1deca85be', '查看范围')), self.audio_scope, self.audio_search, button(tr('ui.f1832518f4fd', '刷新音频库'), self.refresh_audio_library)))
         self.audio_table = QTableWidget(0, 5)
-        self.audio_table.setHorizontalHeaderLabels(["文件名", "用途 / 目录", "引用配置数", "大小", "实际路径"])
+        self.audio_table.setHorizontalHeaderLabels([tr('ui.a6e48adc26d6', '文件名'), tr('ui.f61c51806feb', '用途 / 目录'), tr('ui.02fb1f090dae', '引用配置数'), tr('ui.50db7447b966', '大小'), tr('ui.778f9ad05aae', '实际路径')])
         self.audio_table.setProperty("itemHoverDetails", True)
         self.audio_table.setMouseTracking(True)
         self.audio_table.viewport().setMouseTracking(True)
         self.audio_table.horizontalHeader().setMouseTracking(True)
-        for i, text in enumerate(["音频的完整文件名。双击可试听。", "该文件被哪些语音/BGM资源目录使用。", "配置中引用该文件目录的壁纸数量。", "文件大小，内容悬停显示精确字节数。", "音频文件的真实完整路径。"]):
+        for i, text in enumerate([tr('ui.470337251384', '音频的完整文件名。双击可试听。'), tr('ui.8ad88fe8737c', '该文件被哪些语音/BGM资源目录使用。'), tr('ui.e7a2ed7c6de8', '配置中引用该文件目录的壁纸数量。'), tr('ui.cb7d924fd316', '文件大小，内容悬停显示精确字节数。'), tr('ui.d14ffd2b7141', '音频文件的真实完整路径。')]):
             self.audio_table.horizontalHeaderItem(i).setToolTip(text)
         self.audio_table.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
         self.audio_table.setSelectionMode(QAbstractItemView.SelectionMode.ExtendedSelection)
@@ -43,25 +44,25 @@ class AudioLibraryMixin:
         self.audio_table.setColumnWidth(4, 280)
         self.audio_table.cellDoubleClicked.connect(lambda *_: self.preview_library_audio())
         layout.addWidget(self.audio_table, 1)
-        layout.addWidget(row(button("全选当前列表", lambda: self.select_library_audio(True)),
-                             button("全不选", lambda: self.select_library_audio(False)),
-                             hint("支持 Ctrl / Shift 多选；删除和复制对全部选中文件生效。")))
-        layout.addWidget(row(button("试听所选", self.preview_library_audio), button("停止试听", self.audio.voice.stop),
-                             button("打开所选文件目录", self.open_library_audio_folder), button("删除", self.recycle_library_audio)))
+        layout.addWidget(row(button(tr('ui.70b25d866a2e', '全选当前列表'), lambda: self.select_library_audio(True)),
+                             button(tr('ui.ab9084a640fb', '全不选'), lambda: self.select_library_audio(False)),
+                             hint(tr('ui.fe15822389dd', '支持 Ctrl / Shift 多选；删除和复制对全部选中文件生效。'))))
+        layout.addWidget(row(button(tr('ui.231d92a6a101', '试听所选'), self.preview_library_audio), button(tr('ui.51443cd5a288', '停止试听'), self.audio.voice.stop),
+                             button(tr('ui.2b7096bf904b', '打开所选文件目录'), self.open_library_audio_folder), button(tr('ui.2f9daa828907', '删除'), self.recycle_library_audio)))
         self.audio_target = QComboBox()
         self.audio_category = QLineEdit()
-        self.audio_category.setPlaceholderText("可选分类子目录，例如：早安")
-        layout.addWidget(row(QLabel("导入 / 复制目标"), self.audio_target, self.audio_category))
-        layout.addWidget(row(button("导入音频文件…", self.import_library_audio), button("复制所选到目标", self.copy_library_audio)))
-        layout.addWidget(row(button("目标目录用于当前壁纸语音", lambda: self.reference_audio_target("voice_dir")),
-                             button("目标目录用于当前壁纸 BGM", lambda: self.reference_audio_target("bgm_dir"))))
+        self.audio_category.setPlaceholderText(tr('ui.929a5d5cedd4', '可选分类子目录，例如：早安'))
+        layout.addWidget(row(QLabel(tr('ui.048c109cacda', '导入 / 复制目标')), self.audio_target, self.audio_category))
+        layout.addWidget(row(button(tr('ui.dce54f102566', '导入音频文件…'), self.import_library_audio), button(tr('ui.afd5b1b068b5', '复制所选到目标'), self.copy_library_audio)))
+        layout.addWidget(row(button(tr('ui.22f235099587', '目标目录用于当前壁纸语音'), lambda: self.reference_audio_target("voice_dir")),
+                             button(tr('ui.878990a3020e', '目标目录用于当前壁纸 BGM'), lambda: self.reference_audio_target("bgm_dir"))))
         self.shared_audio_root = QLineEdit(str(shared_root(self.store)))
-        self.shared_audio_root.setToolTip("默认位于程序安装目录的 shared；修改只影响新绑定及下次显式选择共享目录，不重写或搬动已有资源。")
-        layout.addWidget(row(QLabel("共享根目录（可选更改）"), path_field(self.shared_audio_root), button("保存共享根目录", self.save_shared_audio_root)))
-        layout.addWidget(button("设置当前壁纸共享 / 专用目录…", self.configure_resources))
-        self.audio_library_status = hint("选择此页或刷新时扫描；不会启动语音 API。")
+        self.shared_audio_root.setToolTip(tr('ui.283a82daba98', '默认位于程序安装目录的 shared；修改只影响新绑定及下次显式选择共享目录，不重写或搬动已有资源。'))
+        layout.addWidget(row(QLabel(tr('ui.bc76b88fa2ea', '共享根目录（可选更改）')), path_field(self.shared_audio_root), button(tr('ui.81d3300ba5cf', '保存共享根目录'), self.save_shared_audio_root)))
+        layout.addWidget(button(tr('ui.c8a3dedcb19a', '设置当前壁纸共享 / 专用目录…'), self.configure_resources))
+        self.audio_library_status = hint(tr('ui.eb255c0f95b6', '选择此页或刷新时扫描；不会启动语音 API。'))
         layout.addWidget(self.audio_library_status)
-        self.audio_library_tab_index = self.tabs.addTab(page, "音频库")
+        self.audio_library_tab_index = self.tabs.addTab(page, tr('ui.4f0534b98d95', '音频库'))
         self.rebuild_audio_sources()
         self.audio_scope.currentIndexChanged.connect(self.refresh_audio_library)
         self.audio_search.textChanged.connect(self.filter_audio_library)
@@ -78,7 +79,7 @@ class AudioLibraryMixin:
             combo.blockSignals(True)
             combo.clear()
             if include_all:
-                combo.addItem("全部已配置目录", "all")
+                combo.addItem(tr('ui.102bc7d451c2', '全部已配置目录'), "all")
             added = set()
             for source in self.audio_sources:
                 if not include_all and source.get("read_only"):
@@ -103,7 +104,7 @@ class AudioLibraryMixin:
         selected = self.audio_scope.currentData()
         sources = copy.deepcopy([s for s in self.audio_sources if selected == "all" or s["id"] == selected or s.get("scope") == selected])
         self.audio_library_busy = True
-        self.audio_library_status.setText("正在后台扫描音频…")
+        self.audio_library_status.setText(tr('ui.c8b1ab43128f', '正在后台扫描音频…'))
         self.submit(lambda: inventory(sources), lambda result: self.audio_library_scanned(result, selected), self.audio_library_error)
 
     def audio_library_scanned(self, result, scope=None):
@@ -119,13 +120,13 @@ class AudioLibraryMixin:
                       f"{record['bytes'] / 1024 / 1024:.2f} MB", record["path"]]
             for column, value in enumerate(values):
                 item = QTableWidgetItem(value)
-                detail = "\n".join(u["label"] + "\n" + u["directory"] for u in record.get("usages", [])) if column == 1 else f"{record['bytes']:,} 字节（{value}）" if column == 3 else value
+                detail = "\n".join(u["label"] + "\n" + u["directory"] for u in record.get("usages", [])) if column == 1 else tr('ui.aac6cffe85e4', '{value0:,} 字节（{value1}）', value0=record['bytes'], value1=value) if column == 3 else value
                 item.setToolTip(detail or value)
                 if column == 0:
                     item.setData(Qt.ItemDataRole.UserRole, record)
                 self.audio_table.setItem(index, column, item)
         self.filter_audio_library()
-        self.audio_library_status.setText(f"{len(self.audio_records)} 个音频文件；{len(result['warnings'])} 项目录提示。共享文件按实际路径去重。")
+        self.audio_library_status.setText(tr('ui.349038c0569a', '{value0} 个音频文件；{value1} 项目录提示。共享文件按实际路径去重。', value0=len(self.audio_records), value1=len(result['warnings'])))
         if result["warnings"]:
             self.audio_library_status.setToolTip("\n".join(result["warnings"][:20]))
         else:
@@ -139,7 +140,7 @@ class AudioLibraryMixin:
         self.audio_refresh_pending = False
         if hasattr(self.audio, "sync_bgm"):
             self.audio.sync_bgm()
-        self.audio_library_status.setText("音频库操作失败：" + str(error))
+        self.audio_library_status.setText(tr('ui.f2ea5b177673', '音频库操作失败：') + str(error))
         self.report_error(str(error))
 
     def filter_audio_library(self):
@@ -161,7 +162,7 @@ class AudioLibraryMixin:
                 if not self.audio_table.isRowHidden(index):
                     self.audio_table.selectionModel().select(self.audio_table.model().index(index, 0),
                         QItemSelectionModel.SelectionFlag.Select | QItemSelectionModel.SelectionFlag.Rows)
-        self.audio_library_status.setText(f"已选择 {len(self.selected_library_audio())} 个音频；可批量复制或删除。")
+        self.audio_library_status.setText(tr('ui.cca6686a5c67', '已选择 {value0} 个音频；可批量复制或删除。', value0=len(self.selected_library_audio())))
 
     def preview_library_audio(self):
         records = self.selected_library_audio()
@@ -175,26 +176,26 @@ class AudioLibraryMixin:
                        for i in range(self.audio_table.rowCount()) if not self.audio_table.isRowHidden(i)][:1]
         if records:
             self.open_folder(str(Path(records[0]["path"]).parent))
-            self.log("已打开音频所在目录：" + str(Path(records[0]["path"]).parent))
+            self.log(tr('ui.406e38253268', '已打开音频所在目录：') + str(Path(records[0]["path"]).parent))
         else:
-            self.log("当前列表没有音频，请先导入文件或调整筛选。")
+            self.log(tr('ui.36a72ec62356', '当前列表没有音频，请先导入文件或调整筛选。'))
 
     def audio_target_path(self):
         source = next((s for s in self.audio_sources if s["id"] == self.audio_target.currentData()), None)
         if source is None:
-            raise ValueError("请选择目标目录")
+            raise ValueError(tr('ui.c966fac44126', '请选择目标目录'))
         return destination(source["path"], self.audio_category.text(), self.store.protected())
 
     def audio_mutation_allowed(self):
         if self.tts_busy or self.audio_library_busy:
-            self.report_error("请等待当前生成、扫描或复制结束后再管理文件。")
+            self.report_error(tr('ui.a518a6a232c4', '请等待当前生成、扫描或复制结束后再管理文件。'))
             return False
         return True
 
     def import_library_audio(self):
         if not self.audio_mutation_allowed():
             return
-        files, _ = QFileDialog.getOpenFileNames(self, "选择要复制导入的音频", "", "音频 (*.wav *.mp3 *.ogg *.flac *.m4a *.aac *.wma *.opus)")
+        files, _ = QFileDialog.getOpenFileNames(self, tr('ui.0bb57eee7d00', '选择要复制导入的音频'), "", tr('ui.5dbdc98af8eb', '音频 (*.wav *.mp3 *.ogg *.flac *.m4a *.aac *.wma *.opus)'))
         if files:
             self.copy_audio_paths(files)
 
@@ -212,14 +213,14 @@ class AudioLibraryMixin:
             self.report_error(str(exc))
             return
         self.audio_library_busy = True
-        self.audio_library_status.setText("正在复制；同名文件自动编号，不覆盖原文件…")
+        self.audio_library_status.setText(tr('ui.a8d3d8e8805c', '正在复制；同名文件自动编号，不覆盖原文件…'))
         self.submit(lambda: copy_audio(paths, target, protected), self.audio_files_changed, self.audio_library_error)
 
     def audio_files_changed(self, paths):
         self.audio_library_busy = False
         if hasattr(self.audio, "sync_bgm"):
             self.audio.sync_bgm()
-        self.log(f"音频库操作完成：{len(paths)} 个文件。")
+        self.log(tr('ui.a430e7ac8c03', '音频库操作完成：{value0} 个文件。', value0=len(paths)))
         self.audio_refresh_pending = False
         self.refresh_audio_library()
 
@@ -242,13 +243,13 @@ class AudioLibraryMixin:
             return
         records = self.selected_library_audio()
         if not records:
-            self.log("请先选择需要删除的音频，可使用全选或 Ctrl / Shift 多选。")
+            self.log(tr('ui.d7f33ca53784', '请先选择需要删除的音频，可使用全选或 Ctrl / Shift 多选。'))
             return
         if any(item.get("read_only") for item in records):
-            self.report_error("随附默认语音为只读资源，不能删除。可先复制到自己的音频目录再管理副本。")
+            self.report_error(tr('ui.2dd41648d6bc', '随附默认语音为只读资源，不能删除。可先复制到自己的音频目录再管理副本。'))
             return
         count = len({p for item in records for p in item["profiles"]})
-        if QMessageBox.question(self, "将音频移入回收站", f"将 {len(records)} 个文件移入系统回收站？\n涉及 {count} 个配置的音频目录；共享文件移除后影响所有使用者，精确文件规则可能失效。\n配置和壁纸绑定保留，不会永久删除文件。", QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No, QMessageBox.StandardButton.No) != QMessageBox.StandardButton.Yes:
+        if QMessageBox.question(self, tr('ui.0da717ff7f49', '将音频移入回收站'), tr('ui.d7e0192b36ac', '将 {value0} 个文件移入系统回收站？\n涉及 {value1} 个配置的音频目录；共享文件移除后影响所有使用者，精确文件规则可能失效。\n配置和壁纸绑定保留，不会永久删除文件。', value0=len(records), value1=count), QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No, QMessageBox.StandardButton.No) != QMessageBox.StandardButton.Yes:
             return
         paths = [item["path"] for item in records]
         try:
@@ -281,7 +282,7 @@ class AudioLibraryMixin:
             self.store.config["shared_asset_dir"] = value
             self.store.save()
             self.shared_audio_root.setText(str(shared_root(self.store)))
-            self.log("共享根目录已保存；已有配置的目录绑定保持不变。")
+            self.log(tr('ui.f1b8d8c3e539', '共享根目录已保存；已有配置的目录绑定保持不变。'))
             self.refresh_audio_library()
             if not self.editing_id:
                 self.load_shared_dialogue_library()

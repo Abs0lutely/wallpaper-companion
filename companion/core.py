@@ -1,4 +1,5 @@
 from __future__ import annotations
+from .i18n import tr
 
 import copy
 import hashlib
@@ -24,7 +25,7 @@ def writable_path(path: str | Path, extra_protected=()) -> Path:
     for root in [*protected_directories(), *extra_protected]:
         root = Path(root).resolve()
         if target == root or root in target.parents:
-            raise ValueError("此目录只读：请选择 Wallpaper Engine 和工坊目录之外的位置。")
+            raise ValueError(tr('ui.74730882c969', '此目录只读：请选择 Wallpaper Engine 和工坊目录之外的位置。'))
     return target
 
 
@@ -40,7 +41,7 @@ def time_matches(start: str, end: str, now: datetime | None = None) -> bool:
     def value(s):
         h, m = map(int, s.split(":"))
         if not 0 <= h <= 23 or not 0 <= m <= 59:
-            raise ValueError("时间格式错误")
+            raise ValueError(tr('ui.ffec3cf79cfa', '时间格式错误'))
         return h * 60 + m
     a, b = value(start), value(end)
     return a == b or (a <= minute < b if a < b else minute >= a or minute < b)
@@ -85,25 +86,29 @@ def candidates(profile: dict, rule: dict) -> list[Path]:
     return [p for p in files if not keyword or keyword in p.stem.casefold()]
 
 
-def new_rule(event="key", name="快捷键回应") -> dict:
+def new_rule(event="key", name=None) -> dict:
+    if name is None:
+        name = tr('ui.71dd8335a7de', '快捷键回应')
     return dict(id=uuid.uuid4().hex, name=name, enabled=True, event=event,
                 hotkey="<f8>", source="", keyword="", start="00:00", end="00:00",
                 cooldown=20, interval_min=300, interval_max=600)
 
 
-def new_profile(name="新的壁纸配置", wallpaper="") -> dict:
+def new_profile(name=None, wallpaper="") -> dict:
+    if name is None:
+        name = tr('ui.49a7b7657842', '新的壁纸配置')
     from .dialogues import starter_dialogues
     return dict(id=uuid.uuid4().hex, name=name, wallpaper=wallpaper, voice_dir="", bgm_dir="",
                 asset_dir="", private_asset_dir="", dialogue_file="", original_audio_policy="safe", original_audio_override="auto", bgm_paused=False, use_bundled_demo=True,
                 enabled=True, desktop_only=True, fullscreen_mute=True, bgm_enabled=True,
                 bgm_shuffle=True, voice_volume=80, bgm_volume=25, duck_percent=25,
-                global_cooldown=8, dialogues=starter_dialogues(), rules=[new_rule(), new_rule("random", "随机陪伴 · 每 5–10 分钟")])
+                global_cooldown=8, dialogues=starter_dialogues(), rules=[new_rule(), new_rule("random", tr('ui.cdd7f524c681', '随机陪伴 · 每 5–10 分钟'))])
 
 
 def defaults() -> dict:
     from .operation_rules import default_rules
     we_dir, workshop_dir = discover_wallpaper_engine()
-    return dict(version=4, we_dir=we_dir, workshop_dir=workshop_dir, library_roots=[], library_backend="wallpaper_engine", ffprobe="",
+    return dict(version=4, ui_language="zh-CN", we_dir=we_dir, workshop_dir=workshop_dir, library_roots=[], library_backend="wallpaper_engine", ffprobe="",
                 monitor=0, poll_seconds=4, manual_profile="", profiles=[], hover_help=True, shared_asset_dir="",
                 operation_voice_enabled=True, operation_voice_dir="",
                 operation_voice_rules=default_rules(), operation_voice_min_interval=1.2, tts_filename_model="",
@@ -122,12 +127,14 @@ class Store:
             try:
                 saved = json.loads(self.path.read_text(encoding="utf-8"))
                 if not isinstance(saved, dict) or not isinstance(saved.get("profiles", []), list):
-                    raise ValueError("配置结构错误")
+                    raise ValueError(tr('ui.f84bdfec490a', '配置结构错误'))
                 self.config.update(saved)
+                from .i18n import normalize_language
+                self.config["ui_language"] = normalize_language(self.config.get("ui_language"))
                 if not isinstance(self.config["operation_voice_enabled"], bool) or not isinstance(self.config["operation_voice_dir"], str):
-                    raise ValueError("操作语音开关必须是布尔值，目录必须是文本")
+                    raise ValueError(tr('ui.0ef515b8ebcc', '操作语音开关必须是布尔值，目录必须是文本'))
                 if not isinstance(self.config["tts_filename_model"],str) or len(self.config["tts_filename_model"])>200:
-                    raise ValueError("音频文件模型标签必须是200字以内的文本")
+                    raise ValueError(tr('ui.5bdc03ca325c', '音频文件模型标签必须是200字以内的文本'))
                 from .operation_rules import config_payload
                 self.config["operation_voice_rules"] = config_payload(self.config)["rules"]
                 self.config["operation_voice_min_interval"] = config_payload(self.config)["min_interval"]
@@ -144,9 +151,9 @@ class Store:
                     for key, value in dict(asset_dir="", private_asset_dir="", dialogue_file="", original_audio_policy="safe", original_audio_override="auto", bgm_paused=False, use_bundled_demo=False).items():
                         profile.setdefault(key, value)
                     if not isinstance(profile["use_bundled_demo"],bool):
-                        raise ValueError("随附示例语音开关必须是布尔值")
+                        raise ValueError(tr('ui.d01e015b2dda', '随附示例语音开关必须是布尔值'))
             except (ValueError, OSError) as exc:
-                raise ValueError(f"无法读取配置 {self.path}：{exc}。原文件已保留。") from exc
+                raise ValueError(tr('ui.2a367740d9fc', '无法读取配置 {value0}：{value1}。原文件已保留。', value0=self.path, value1=exc)) from exc
 
     def save(self):
         path = writable_path(self.path, self.protected())
@@ -233,7 +240,7 @@ def filename_for(text: str, model_name: str | None = None) -> str:
         return name + "-" + tag + ".wav"
     name = re.sub(r'[<>:"/\\|?*\x00-\x1f]', "_", text.strip()).rstrip(" .")
     if not name:
-        raise ValueError("台词不能为空")
+        raise ValueError(tr('ui.475fe78a224f', '台词不能为空'))
     if name.split(".")[0].upper() in {"CON", "PRN", "AUX", "NUL", *(f"COM{i}" for i in range(1, 10)), *(f"LPT{i}" for i in range(1, 10))}:
         name = "_" + name
     if len(name) > 70:
@@ -246,7 +253,7 @@ def save_generated(folder, text, data, protected=(), model_name=None):
     import wave
     with wave.open(io.BytesIO(data), "rb") as wav:
         if wav.getnframes() <= 0:
-            raise ValueError("接口返回了空 WAV")
+            raise ValueError(tr('ui.7e9a1a0a3c8e', '接口返回了空 WAV'))
     directory = writable_path(folder, protected)
     directory.mkdir(parents=True, exist_ok=True)
     filename = filename_for(text, model_name)
@@ -259,4 +266,4 @@ def save_generated(folder, text, data, protected=(), model_name=None):
             return target
         except FileExistsError:
             continue
-    raise ValueError("同名文件过多")
+    raise ValueError(tr('ui.5f4379c8c63b', '同名文件过多'))

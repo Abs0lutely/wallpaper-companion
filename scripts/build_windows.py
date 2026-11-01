@@ -92,7 +92,7 @@ def main():
                         "--workpath", str(ROOT / "build/pyinstaller"), str(ROOT / "packaging/wallpaper-companion.spec")], cwd=ROOT, check=True)
     bundle = ROOT / "dist/WallpaperCompanion"
     assert (bundle / "WallpaperCompanion.exe").is_file()
-    for name in ["README.md", "README.en.md", "USER_GUIDE.md", "EXTENSIONS.md", "THIRD_PARTY.md", "LICENSE", "BUILDING.md", "RELEASE_GUIDE.md"]:
+    for name in ["README.md", "README.en.md", "USER_GUIDE.md", "USER_GUIDE.en.md", "USAGE.md", "USAGE.en.md", "EXTENSIONS.md", "THIRD_PARTY.md", "LICENSE", "BUILDING.md", "RELEASE_GUIDE.md"]:
         shutil.copy2(ROOT / name, bundle / name)
     shutil.copytree(ROOT / "examples", bundle / "examples", ignore=shutil.ignore_patterns("__pycache__"), dirs_exist_ok=True)
     shutil.copytree(ROOT / "readme-assets", bundle / "readme-assets", dirs_exist_ok=True)

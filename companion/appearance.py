@@ -1,5 +1,6 @@
 """Validated appearance preferences and managed, local background images."""
 from __future__ import annotations
+from .i18n import tr
 
 import colorsys
 import hashlib
@@ -61,17 +62,17 @@ def prepare_background(source):
     from PySide6.QtGui import QColor, QImage, QImageReader, QPainter
     path = Path(source)
     if not path.is_file() or path.stat().st_size > 30 * 1024 * 1024:
-        raise ValueError("请选择 30 MB 以内的本地图片。")
+        raise ValueError(tr('ui.1530bc656a3d', '请选择 30 MB 以内的本地图片。'))
     reader = QImageReader(str(path))
     reader.setAutoTransform(True)
     size = reader.size()
     if not size.isValid() or size.width() * size.height() > 100_000_000:
-        raise ValueError("图片尺寸无效或过大，请使用不超过一亿像素的图片。")
+        raise ValueError(tr('ui.0df54c294a23', '图片尺寸无效或过大，请使用不超过一亿像素的图片。'))
     if max(size.width(), size.height()) > 2048:
         reader.setScaledSize(size.scaled(QSize(2048, 2048), Qt.AspectRatioMode.KeepAspectRatio))
     image = reader.read()
     if image.isNull():
-        raise ValueError("无法读取这张图片，请选择 PNG、JPEG、WebP 或 BMP。")
+        raise ValueError(tr('ui.e760baf5ac0d', '无法读取这张图片，请选择 PNG、JPEG、WebP 或 BMP。'))
     # Flatten transparent artwork onto the product background before JPEG encoding.
     flattened = QImage(image.size(), QImage.Format.Format_RGB32)
     flattened.fill(QColor("#19171e"))
@@ -83,7 +84,7 @@ def prepare_background(source):
     buffer = QBuffer(data)
     buffer.open(QIODevice.OpenModeFlag.WriteOnly)
     if not image.save(buffer, "JPG", 88):
-        raise ValueError("保存背景副本失败。")
+        raise ValueError(tr('ui.14abb54bd78d', '保存背景副本失败。'))
     payload = bytes(data)
     return {"image": image, "data": payload, "accent": extract_accent(image),
             "name": hashlib.sha256(payload).hexdigest() + ".jpg"}
@@ -97,7 +98,7 @@ def save_appearance(store, settings, prepared=None):
     created = False
     if prepared is not None:
         if settings["background"] != prepared["name"]:
-            raise ValueError("背景名称不匹配。")
+            raise ValueError(tr('ui.ba30ec11cfb8', '背景名称不匹配。'))
         target = writable_path(target, store.protected())
         target.parent.mkdir(parents=True, exist_ok=True)
         if not target.exists():

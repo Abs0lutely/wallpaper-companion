@@ -1,3 +1,4 @@
+from companion.i18n import tr
 import os
 import sys
 
@@ -17,8 +18,16 @@ def main():
     from PySide6.QtCore import QLockFile
     from PySide6.QtWidgets import QApplication, QMessageBox
     from companion.core import DATA, Store, writable_path
-    from companion.ui import STYLE, Window, app_icon
+    from companion.i18n import set_language, install_qt_translation
     app = QApplication(sys.argv)
+    try:
+        store = Store()
+    except Exception as exc:
+        QMessageBox.critical(None, tr('ui.9257192de0ea', '启动失败 / Startup failed'), str(exc))
+        return 1
+    set_language(store.config.get("ui_language"))
+    from companion.ui import STYLE, Window, app_icon
+    install_qt_translation(app)
     app.setWindowIcon(app_icon())
     app.setApplicationName("Wallpaper Companion")
     app.setStyle("Fusion")
@@ -29,12 +38,12 @@ def main():
     lock.setStaleLockTime(0)
     if not lock.tryLock(50):
         if "--tray" not in sys.argv:
-            QMessageBox.information(None, "壁纸声伴已运行", "程序已在运行，请双击系统托盘中的粉发耳机少女图标打开配置。")
+            QMessageBox.information(None, tr('ui.6d92e61e4fc8', '壁纸声伴已运行'), tr('ui.0e4dffd38490', '程序已在运行，请双击系统托盘中的粉发耳机少女图标打开配置。'))
         return 0
     try:
-        window = Window(Store())
+        window = Window(store)
     except Exception as exc:
-        QMessageBox.critical(None, "启动失败", str(exc))
+        QMessageBox.critical(None, tr('ui.0cf642cf998c', '启动失败'), str(exc))
         return 1
     app.aboutToQuit.connect(window.cleanup)
     if "--tray" not in sys.argv:

@@ -1,4 +1,5 @@
 """Navigation-bound autosave with guarded, one-step undo and a non-modal toast."""
+from .i18n import tr
 import copy
 from pathlib import Path
 
@@ -23,7 +24,7 @@ class Autosave(QObject):
         layout = QHBoxLayout(self.toast)
         self.label = QLabel()
         self.label.setWordWrap(True)
-        self.undo_button = QPushButton("撤销")
+        self.undo_button = QPushButton(tr('ui.926a50b98ece', '撤销'))
         self.undo_button.clicked.connect(self.undo)
         layout.addWidget(self.label, 1); layout.addWidget(self.undo_button)
         self.toast.hide()
@@ -34,7 +35,7 @@ class Autosave(QObject):
 
     def forms(self):
         w = self.w
-        return dict(runtime=dict(we_dir=w.we_dir.text().strip(), workshop_dir=w.workshop_dir.text().strip(),
+        return dict(runtime=dict(ui_language=w.ui_language.currentData(), we_dir=w.we_dir.text().strip(), workshop_dir=w.workshop_dir.text().strip(),
                     monitor=w.monitor.value(), poll_seconds=w.poll_seconds.value(), ffprobe=w.ffprobe_path.text().strip(),
                     operation_voice_enabled=w.operation_voice_enabled.isChecked(), operation_voice_dir=w.operation_voice_dir.text().strip(),
                     **{k: c.currentData() for k, c in w.backend_combos.items()},
@@ -58,6 +59,10 @@ class Autosave(QObject):
         return {path: path.read_bytes() if path.exists() else None}
 
     def show(self, message):
+        from .i18n import language
+        notice = tr("settings.language_next_start", "界面语言将在下次启动时生效。")
+        if self.w.store.config.get("ui_language", "zh-CN") != language() and notice not in message:
+            message += "\n" + notice
         self.w.log(message)
         if not self.w.isVisible():
             return
@@ -97,24 +102,24 @@ class Autosave(QObject):
             if profile_dirty or shared_dirty:
                 files = self.files_before()
                 if not (w.save_profile() if profile_dirty else w.save_dialogue_library()):
-                    raise ValueError("配置或台词未保存，编辑内容仍保留。请修正后重试。")
+                    raise ValueError(tr('ui.9f9d3e9be91c', '配置或台词未保存，编辑内容仍保留。请修正后重试。'))
             if forms["runtime"] != self.baseline["runtime"]:
                 if not w.save_settings():
-                    raise ValueError("运行设置未保存。")
+                    raise ValueError(tr('ui.7ad1bdde09fc', '运行设置未保存。'))
             if forms["tts"] != self.baseline["tts"]:
                 if not w.save_tts():
-                    raise ValueError("接口设置未保存。")
+                    raise ValueError(tr('ui.4a9ec5cdd659', '接口设置未保存。'))
             if forms["roots"] != self.baseline["roots"]:
                 if not w.save_library_roots():
-                    raise ValueError("壁纸库目录未保存。")
+                    raise ValueError(tr('ui.a0bb7ae4c025', '壁纸库目录未保存。'))
             if forms["shared"] != self.baseline["shared"]:
                 if not w.save_shared_audio_root():
-                    raise ValueError("共享根目录未保存。")
+                    raise ValueError(tr('ui.3dc36fd0da84', '共享根目录未保存。'))
             self.baseline = self.forms()
-            recorded = self.record(before, files, "已自动保存修改。可撤销本次自动保存。")
+            recorded = self.record(before, files, tr('ui.3bde77b4ea5f', '已自动保存修改。可撤销本次自动保存。'))
             if not recorded and forms != baseline:
                 self.last = None
-                self.show("设置已自动保存，没有可撤销的配置差异；接口密钥不参与撤销。")
+                self.show(tr('ui.f15458a1bd63', '设置已自动保存，没有可撤销的配置差异；接口密钥不参与撤销。'))
             return True
         except Exception as exc:
             # Never leave an in-memory unsaved draft looking like a persisted config.
@@ -125,10 +130,10 @@ class Autosave(QObject):
                 if w.store.path.exists():
                     w.store.save()
             except Exception as rollback:
-                w.log("保存回退失败，保留编辑内容，请检查文件权限：" + str(rollback))
+                w.log(tr('ui.46c9d02dbd61', '保存回退失败，保留编辑内容，请检查文件权限：') + str(rollback))
             w.poll.setInterval(before.get("poll_seconds", 4) * 1000)
-            w.log("自动保存未完成：" + str(exc))
-            self.show("自动保存失败：编辑仍保留，请修正错误后重试。")
+            w.log(tr('ui.0e10133719b3', '自动保存未完成：') + str(exc))
+            self.show(tr('ui.51bed7a40086', '自动保存失败：编辑仍保留，请修正错误后重试。'))
             return False
         finally:
             self.busy = False
@@ -168,7 +173,7 @@ class Autosave(QObject):
     def undo(self):
         w = self.w
         if not self.last:
-            w.log("没有可撤销的自动保存。")
+            w.log(tr('ui.97fdd7c540c6', '没有可撤销的自动保存。'))
             return False
         if self.busy:
             return False
@@ -177,9 +182,9 @@ class Autosave(QObject):
         try:
             forms = self.forms()
             if forms != self.baseline or (w.editing_id and w.draft_profile() != w.store.profile(w.editing_id)) or (not w.editing_id and w.collect_dialogues() != w.shared_dialogue_snapshot):
-                raise ValueError("有新的编辑尚未保存，请先保存；不会用撤销覆盖新的修改。")
+                raise ValueError(tr('ui.5fa0a408a875', '有新的编辑尚未保存，请先保存；不会用撤销覆盖新的修改。'))
             if any(current.get(k) != after for k, (_, after) in changes.items()) or any((p.read_bytes() if p.exists() else None) != after for p, (_, after) in files.items()):
-                raise ValueError("相关配置或台词已再次改变，不能覆盖后续修改。")
+                raise ValueError(tr('ui.67d9a599b72c', '相关配置或台词已再次改变，不能覆盖后续修改。'))
             self.busy = True
             for k, (before, _) in changes.items():
                 w.store.config[k] = copy.deepcopy(before)
@@ -193,13 +198,13 @@ class Autosave(QObject):
             w.activate_profile(force=True)
             w.apply_appearance()
             w.hover_help.set_enabled(w.store.config["hover_help"])
-            w.help_button.setText("悬停说明：开启" if w.store.config["hover_help"] else "悬停说明：关闭")
+            w.help_button.setText(tr('ui.4d9a0c931f4b', '悬停说明：开启') if w.store.config["hover_help"] else tr('ui.f0eddb923dcd', '悬停说明：关闭'))
             w.poll.setInterval(w.poll_seconds.value() * 1000)
             if hasattr(w, "operation_voices"):
                 w.operation_voices.refresh()
             self.baseline = self.forms()
             self.last = None
-            self.show("已撤销上一次自动保存。接口密钥不参与撤销。")
+            self.show(tr('ui.efe416fb3a46', '已撤销上一次自动保存。接口密钥不参与撤销。'))
             if hasattr(w, "operation_voices"):
                 w.operation_voices.request("undo")
             return True
@@ -210,8 +215,8 @@ class Autosave(QObject):
                     self.restore_files({p: after for p, (_, after) in files.items()})
                     w.store.save()
             except OSError as rollback:
-                w.log("撤销回退失败：" + str(rollback))
-            w.report_error("无法撤销：" + str(exc))
+                w.log(tr('ui.38d3fa1c4db8', '撤销回退失败：') + str(rollback))
+            w.report_error(tr('ui.5358e51e5902', '无法撤销：') + str(exc))
             return False
         finally:
             self.busy = False

@@ -1,4 +1,5 @@
 """Explicit per-channel sharing choices without moving or duplicating audio."""
+from .i18n import tr
 from pathlib import Path
 from PySide6.QtWidgets import QComboBox, QDialog, QDialogButtonBox, QFormLayout, QLineEdit, QVBoxLayout
 from .assets import channel_resources, private_root, resource_paths, shared_root
@@ -9,25 +10,25 @@ class ResourceDialog(QDialog):
     def __init__(self, store, profile, parent=None, dedicated=False):
         from .ui import hint, path_field
         super().__init__(parent)
-        self.setWindowTitle("共享 / 专用资源目录")
+        self.setWindowTitle(tr('ui.aea93683e136', '共享 / 专用资源目录'))
         self.resize(660, 320)
         self.profile, self.store = profile, store
         self.shared = shared_root(store)
         layout = QVBoxLayout(self)
-        layout.addWidget(hint("共享模式直接引用共享文件夹，不复制文件；专用模式使用本壁纸目录，音频可在音频库导入。语音、BGM 和台词可分别选择。切换不会移动或删除旧文件。"))
-        layout.addWidget(hint("共享根目录：" + str(self.shared) + "（可在音频库更改）"))
+        layout.addWidget(hint(tr('ui.bc04f1a904ae', '共享模式直接引用共享文件夹，不复制文件；专用模式使用本壁纸目录，音频可在音频库导入。语音、BGM 和台词可分别选择。切换不会移动或删除旧文件。')))
+        layout.addWidget(hint(tr('ui.747c162c359b', '共享根目录：') + str(self.shared) + tr('ui.f37f22a71c88', '（可在音频库更改）')))
         self.root = QLineEdit(str(private_root(store, profile)))
         form = QFormLayout()
-        form.addRow("专用根目录（默认 data 下）", path_field(self.root))
+        form.addRow(tr('ui.202aba9a7e63', '专用根目录（默认 data 下）'), path_field(self.root))
         self.modes = {}
-        for key, label, name in [("voice_dir", "语音来源", "voice"), ("bgm_dir", "BGM 来源", "bgm"), ("dialogue_file", "台词库来源", "dialogues.json")]:
+        for key, label, name in [("voice_dir", tr('ui.b22702832e7d', '语音来源'), "voice"), ("bgm_dir", tr('ui.db5f3c16071a', 'BGM 来源'), "bgm"), ("dialogue_file", tr('ui.594716e8f893', '台词库来源'), "dialogues.json")]:
             combo = QComboBox()
-            for text, value in [("直接引用共享资源", "shared"), ("本壁纸专用目录", "private"), ("保留当前路径", "custom")]:
+            for text, value in [(tr('ui.7d4db74e4669', '直接引用共享资源'), "shared"), (tr('ui.0299ca5ee2b3', '本壁纸专用目录'), "private"), (tr('ui.1d8608bffcc0', '保留当前路径'), "custom")]:
                 combo.addItem(text, value)
             current = profile.get(key, "")
             mode = "shared" if identity(current) == identity(str(self.shared / name)) else "private" if not current or identity(current) == identity(str(private_root(store, profile) / name)) else "custom"
             combo.setCurrentIndex(combo.findData("private" if dedicated else mode))
-            combo.setToolTip("直接共享无需重复存储；专用目录可导入自己的音频；保留当前路径不改变旧配置。")
+            combo.setToolTip(tr('ui.8253204fd807', '直接共享无需重复存储；专用目录可导入自己的音频；保留当前路径不改变旧配置。'))
             self.modes[key] = combo
             form.addRow(label, combo)
         layout.addLayout(form)
@@ -38,18 +39,18 @@ class ResourceDialog(QDialog):
 
     def apply(self):
         if not self.root.text().strip():
-            raise ValueError("专用根目录不能为空；可使用默认 data 路径")
+            raise ValueError(tr('ui.475ec5ca7b09', '专用根目录不能为空；可使用默认 data 路径'))
         return channel_resources(self.profile, self.shared, self.root.text().strip(),
                                  {key: combo.currentData() for key, combo in self.modes.items()}, self.store.protected())
 
     def confirmation_text(self):
         if not self.root.text().strip():
-            raise ValueError("专用根目录不能为空")
+            raise ValueError(tr('ui.ad85a706a3fe', '专用根目录不能为空'))
         shared = resource_paths(self.shared, self.store.protected())
         private = resource_paths(self.root.text().strip(), self.store.protected())
-        lines = ["将为配置“" + self.profile["name"] + "”应用以下资源目录："]
-        for key, label in [("voice_dir", "语音"), ("bgm_dir", "BGM"), ("dialogue_file", "台词库")]:
+        lines = [tr('ui.f338d9241006', '将为配置“') + self.profile["name"] + tr('ui.3586cba79ddb', '”应用以下资源目录：')]
+        for key, label in [("voice_dir", tr('ui.89fcbbfdca16', '语音')), ("bgm_dir", "BGM"), ("dialogue_file", tr('ui.40949e0e28ee', '台词库'))]:
             mode = self.modes[key].currentData()
             path = shared[key] if mode == "shared" else private[key] if mode == "private" else self.profile.get(key, "")
             lines.append(f"{label}（{self.modes[key].currentText()}）：{path}")
-        return "\n\n".join(lines) + "\n\n确认后才创建目录并保存绑定。原有音频不会移动、复制或删除。是否继续？"
+        return "\n\n".join(lines) + tr('ui.ee19657c9de7', '\n\n确认后才创建目录并保存绑定。原有音频不会移动、复制或删除。是否继续？')

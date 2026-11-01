@@ -52,6 +52,17 @@ class UpdateTests(unittest.TestCase):
         self.assertFalse((self.target / "_internal/old.dll").exists())
         self.assertEqual((Path(result["backup"]) / "_internal/old.dll").read_text(), "old dll")
 
+    def test_update_includes_localized_help_without_changing_personal_data(self):
+        docs={name: "new help " + name for name in ("USER_GUIDE.en.md", "USAGE.md", "USAGE.en.md")}
+        self.write_archive(docs)
+        before=personal_snapshot(self.target)
+        plan=self.stage()
+        with patch("scripts.update_portable.running_instances", return_value=[]):
+            apply_update(plan, self.target)
+        self.assertEqual(before, personal_snapshot(self.target))
+        for name,content in docs.items():
+            self.assertEqual((self.target/name).read_text(encoding="utf-8"),content)
+
     def test_running_application_blocks_apply_without_killing_or_overwriting(self):
         plan = self.stage()
         with patch("scripts.update_portable.running_instances", return_value=[123]):

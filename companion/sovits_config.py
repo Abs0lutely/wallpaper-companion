@@ -1,4 +1,5 @@
 """Prepare private api_v2 inference configs without changing the AI project."""
+from .i18n import tr
 import copy
 import uuid
 from pathlib import Path
@@ -13,12 +14,12 @@ def model_key(settings):
     if not any(values):
         return None
     if not all(values):
-        raise ValueError("请同时选择 GPT 和 SoVITS 模型；或同时留空沿用当前模型")
+        raise ValueError(tr('ui.b7409d239ffe', '请同时选择 GPT 和 SoVITS 模型；或同时留空沿用当前模型'))
     result = []
     for key, suffix in (("gpt_weights", ".ckpt"), ("sovits_weights", ".pth")):
         path = project_file(settings, key)
         if not path.is_file() or path.suffix.lower() != suffix or path.stat().st_size == 0:
-            raise ValueError("模型不存在、为空或格式错误：" + key)
+            raise ValueError(tr('ui.2bfac33addc9', '模型不存在、为空或格式错误：') + key)
         stat = path.stat()
         result.append((str(path), stat.st_size, stat.st_mtime_ns))
     return tuple(result)
@@ -31,17 +32,17 @@ def runtime_config(settings, data_dir, protected=()):
     if not source.is_file() and selected is None:
         return None
     if not source.is_file() or source.stat().st_size > 2_000_000:
-        raise ValueError("未找到有效的 GPT_SoVITS/configs/tts_infer.yaml，无法准备所选模型的推理配置")
+        raise ValueError(tr('ui.085a0f7da06f', '未找到有效的 GPT_SoVITS/configs/tts_infer.yaml，无法准备所选模型的推理配置'))
     config = yaml.safe_load(source.read_text(encoding="utf-8-sig"))
     if not isinstance(config, dict):
-        raise ValueError("GPT-SoVITS 推理配置不是有效字典")
+        raise ValueError(tr('ui.25fdde3a9dda', 'GPT-SoVITS 推理配置不是有效字典'))
     saved_custom = config.get("custom") or {}
     if not isinstance(saved_custom, dict):
-        raise ValueError("GPT-SoVITS custom 推理配置格式错误")
+        raise ValueError(tr('ui.dbf2ad9aea84', 'GPT-SoVITS custom 推理配置格式错误'))
     version = version_hint(settings.get("sovits_weights", "")) or saved_custom.get("version", "v2")
     custom = config.get("custom", config.get(version, config.get("v2", {})))
     if not isinstance(custom, dict):
-        raise ValueError("GPT-SoVITS custom 推理配置格式错误")
+        raise ValueError(tr('ui.dbf2ad9aea84', 'GPT-SoVITS custom 推理配置格式错误'))
     config = copy.deepcopy(config)
     config["custom"] = {**custom, "version": version}
     if selected:

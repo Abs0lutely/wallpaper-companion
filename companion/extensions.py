@@ -1,5 +1,6 @@
 """Versioned capability registry; external Python extensions are explicitly enabled."""
 from __future__ import annotations
+from .i18n import tr
 
 import importlib.util
 import re
@@ -49,7 +50,7 @@ class Registry:
     @staticmethod
     def _unique(mapping, identifier):
         if not re.fullmatch(r"[a-z][a-z0-9_]*", identifier) or identifier in mapping:
-            raise ValueError("扩展 ID 无效或重复：" + identifier)
+            raise ValueError(tr('ui.60307e031684', '扩展 ID 无效或重复：') + identifier)
 
     def _register(self, mapping, identifier, title, implementation):
         self._unique(mapping, identifier)
@@ -85,19 +86,19 @@ def load_extensions(config, plugin_dir=None):
     for provider in builtin_providers():
         registry.register_speech(provider)
     registry.register_wallpaper("wallpaper_engine", "Wallpaper Engine", current_wallpaper)
-    registry.register_library("wallpaper_engine", "WE 本地壁纸库", scan_wallpapers)
-    registry.register_audio_detector("builtin", "文件音轨 / 素材检测", detect_original_audio)
+    registry.register_library("wallpaper_engine", tr('ui.a9d314c7bbf2', 'WE 本地壁纸库'), scan_wallpapers)
+    registry.register_audio_detector("builtin", tr('ui.5345eb6fa0a8', '文件音轨 / 素材检测'), detect_original_audio)
     registry.register_audio("qt", "Qt Multimedia", Audio)
-    registry.register_input("pynput", "pynput 全局输入", InputHooks)
-    for key, title in [("key", "快捷键"), ("mouse_left", "鼠标左键"), ("mouse_right", "鼠标右键"),
-                       ("mouse_middle", "鼠标中键"), ("mouse_x1", "鼠标侧键 X1"), ("mouse_x2", "鼠标侧键 X2"),
-                       ("scroll_up", "滚轮向上"), ("scroll_down", "滚轮向下"), ("any_key", "任意按键"),
-                       ("random", "定时随机"), ("scheduled", "每天固定时刻"), ("startup", "绑定的壁纸开始播放")]:
+    registry.register_input("pynput", tr('ui.1b62664f14d6', 'pynput 全局输入'), InputHooks)
+    for key, title in [("key", tr('ui.ee2638183d3e', '快捷键')), ("mouse_left", tr('ui.2c3c432593de', '鼠标左键')), ("mouse_right", tr('ui.12b284d44fff', '鼠标右键')),
+                       ("mouse_middle", tr('ui.43645a86c3b9', '鼠标中键')), ("mouse_x1", tr('ui.8789ecb5ac8f', '鼠标侧键 X1')), ("mouse_x2", tr('ui.fd14b5b27ab3', '鼠标侧键 X2')),
+                       ("scroll_up", tr('ui.4b0e0ffc8a09', '滚轮向上')), ("scroll_down", tr('ui.a1fa3ac26b5d', '滚轮向下')), ("any_key", tr('ui.1e57f195c63a', '任意按键')),
+                       ("random", tr('ui.17ee7b24f561', '定时随机')), ("scheduled", tr('ui.9be12cf9eff4', '每天固定时刻')), ("startup", tr('ui.1e33da357454', '绑定的壁纸开始播放'))]:
         registry.register_event(key, title)
     directory = Path(plugin_dir or PLUGIN_DIR)
     for identifier in config.get("enabled_plugins", []):
         if not re.fullmatch(r"[a-z][a-z0-9_]*", identifier):
-            registry.errors.append("插件名称无效：" + str(identifier))
+            registry.errors.append(tr('ui.89eed1382f9b', '插件名称无效：') + str(identifier))
             continue
         try:
             path = directory / (identifier + ".py")
@@ -105,7 +106,7 @@ def load_extensions(config, plugin_dir=None):
             module = importlib.util.module_from_spec(spec)
             spec.loader.exec_module(module)
             if getattr(module, "API_VERSION", None) != API_VERSION:
-                raise ValueError("不兼容的扩展 API 版本")
+                raise ValueError(tr('ui.2fa7aa9abea6', '不兼容的扩展 API 版本'))
             # Register transactionally: a broken plugin must not leave half its capabilities.
             import copy
             staged = copy.deepcopy(registry)

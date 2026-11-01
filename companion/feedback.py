@@ -1,4 +1,5 @@
 """Immediate action acknowledgement; completion/errors remain operation-specific."""
+from .i18n import tr
 import weakref
 from PySide6.QtCore import QObject, QEvent, QPoint, Qt, QTimer
 from PySide6.QtWidgets import QApplication, QAbstractButton, QLabel, QSizePolicy
@@ -11,7 +12,7 @@ class ActionFeedback(QObject):
         self.closed = False
         # Keep wrappers for C++-created dialog buttons alive until QObject death.
         self.buttons = {}
-        self.label = QLabel("操作提示会显示在这里。")
+        self.label = QLabel(tr('ui.a6c5146d7f6f', '操作提示会显示在这里。'))
         self.label.setSizePolicy(QSizePolicy.Policy.Ignored, QSizePolicy.Policy.Preferred)
         self.label.setMinimumWidth(0)
         window.statusBar().addWidget(self.label, 1)
@@ -38,8 +39,8 @@ class ActionFeedback(QObject):
         def pressed():
             item = reference()
             if item is not None:
-                title = item.text().replace("&", "").strip() or item.accessibleName() or item.toolTip() or "控件"
-                self.show_message("已按下：" + title, item)
+                title = item.text().replace("&", "").strip() or item.accessibleName() or item.toolTip() or tr('ui.0e9879fd8345', '控件')
+                self.show_message(tr('ui.50fd2336f6aa', '已按下：') + title, item)
         button.pressed.connect(pressed)
 
     def show_message(self, text, origin=None):

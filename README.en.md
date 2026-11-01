@@ -16,11 +16,11 @@ A standalone Windows app for interactive voice clips, scheduled greetings, and f
 
 [简体中文](README.md) · **English**
 
-[**Download for Windows**](https://github.com/Abs0lutely/wallpaper-companion/releases/latest) · [User guide (中文)](USER_GUIDE.md) · [Dialogue packs (中文)](examples/dialogues/README.md) · [Report an issue](https://github.com/Abs0lutely/wallpaper-companion/issues)
+[**Download for Windows**](https://github.com/Abs0lutely/wallpaper-companion/releases/latest) · [User guide](USER_GUIDE.en.md) · [Dialogue packs (中文)](examples/dialogues/README.md) · [Report an issue](https://github.com/Abs0lutely/wallpaper-companion/issues)
 
 <img src="readme-assets/home.png" alt="Home: wallpaper profiles, voice and BGM volume controls, and music player" width="100%" />
 
-<sub>Actual app screenshot with disposable demo data. The app interface is currently primarily in Chinese; this README does not add an English UI.</sub>
+<sub>Actual app screenshot with disposable demo data. The interface supports Simplified Chinese and English. Change it in Settings → Runtime settings → Interface language, save, then exit from the tray and reopen. Screenshots below show the Chinese UI.</sub>
 
 </div>
 
@@ -99,7 +99,7 @@ Use a local GPT-SoVITS project or configure a third-party TTS endpoint. Preview 
 
 Scanning, selecting, or saving characters does not load models. Start the local API on demand during generation, or manually start/stop the app-managed service. The app cleans up services it started when it exits. It does not automatically stop an external service; changing an external service's models requires separate permission.
 
-The reference transcript must match the reference recording exactly. Keys use the system credential manager. Third-party services receive the synthesis text and may charge your account. See the [user guide (中文)](USER_GUIDE.md) for field-by-field help.
+The reference transcript must match the reference recording exactly. Keys use the system credential manager. Third-party services receive the synthesis text and may charge your account. See the [user guide](USER_GUIDE.en.md) for field-by-field help.
 
 ## Resources and personal data
 
@@ -163,7 +163,7 @@ Use `WALLPAPER_COMPANION_DATA` to isolate test data and shared resources. `scrip
 
 | Learn more | Documentation |
 | :--- | :--- |
-| Buttons and settings | [User guide (中文)](USER_GUIDE.md) |
+| Buttons and settings | [User guide](USER_GUIDE.en.md) |
 | Third-party speech providers and other backends | [Extension API (中文)](EXTENSIONS.md) |
 | EXE, installer, and portable builds | [Building (中文)](BUILDING.md) · [Release guide (中文)](RELEASE_GUIDE.md) |
 | Continue development | [Project handoff (中文)](PROJECT_HANDOFF.md) |
