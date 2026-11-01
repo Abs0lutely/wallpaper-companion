@@ -12,7 +12,7 @@
 
 应用图标统一取自 `readme-assets/app-icon.ico`（用户参考图生成的粉发樱花耳机少女，九档 16–256px），母版为同目录 `app-icon.png`。需要重建 ICO 时运行 `.\.conda\python.exe scripts/prepare_app_icon.py`，只缩放编码，不重新绘图。构建阶段复制该 ICO 到 `build/app.ico`，供 EXE 和 Inno Setup 共用；运行中的窗口、托盘从 readme-assets 读取同一份资源。更换图标后必须完整冻结，不使用 `--skip-freeze`；本地源码替换不会更新已安装 EXE。生成提示词与来源说明见 [图标设计记录](readme-assets/app-icon-design.md)。
 
-当前功能分支已准备 `examples/audio/` 中 90 条用户授权分发的默认 WAV（52 条操作回应、38 条陪伴示例），无模型或个人配置。`build_windows.py` 在冻结前检查操作动作覆盖、WAV 格式、非全零内容及总清单 SHA256；实际发行 EXE 再次检查。26 类操作每类至少一条可用即可分发，未生成的第二条变体如实记为缺失，不造假填充。准备/追加素材用 `scripts/prepare_default_audio.py --source <生成目录> --apply`，详见[语音包说明](examples/audio/operation-voice/README.md)。个人 data/shared 音频仍不打包，只有清单内副本位于公开 examples 中；本轮尚未构建新包。
+v0.9.0 分发 `examples/audio/` 中 90 条用户授权的默认 WAV（52 条操作回应、38 条陪伴示例），无模型或个人配置。`build_windows.py` 在冻结前检查操作动作覆盖、WAV 格式、非全零内容及总清单 SHA256；实际发行 EXE 再次检查。26 类操作每类至少一条可用即可分发，缺失变体如实记录；当前全部默认配音完整。准备/追加素材用 `scripts/prepare_default_audio.py --source <生成目录> --apply`，详见[语音包说明](examples/audio/operation-voice/README.md)。个人 data/shared 音频仍不打包，只有清单内副本位于公开 examples 中。
 
 **正式发布默认使用 GitHub 的 Windows release 工作流**，步骤见 [RELEASE_GUIDE.md](RELEASE_GUIDE.md)。本机只做相关测试，提交推送、等待 Windows checks 通过后，在 Actions 手动启动 Windows release；云端构建、验证通过后自动发布 Release，无需重复本地打包。
 
