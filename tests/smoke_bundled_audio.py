@@ -36,14 +36,21 @@ with tempfile.TemporaryDirectory(dir=out) as tmp, patch("companion.bundled_audio
             time.sleep(.002)  # Yield the GIL so filesystem worker callbacks can finish.
     try:
         manifest=validate_bundled_manifest()
-        report["all_77_assets_match_checksums"] = len(manifest["files"])==77 and len(validate_starter_pack()["files"])==26
+        report["all_90_assets_match_checksums"] = len(manifest["files"])==90 and len(validate_starter_pack()["files"])==38 and not any(manifest["missing"].values())
         operation=require_pack(ROOT/"examples/audio/operation-voice")
-        report["all_26_operations_covered_without_fabricated_variant"] = operation["ready"] and len(operation["found"])==51 and len(operation["missing"])==1
+        report["all_52_operation_variants_complete"] = operation["complete"] and len(operation["found"])==52 and not operation["missing"]
         files=candidates(p,dict(source="",keyword=""))
-        report["new_profile_uses_factory_samples_without_copying_user_data"] = len(files)==26 and not list(empty.iterdir())
+        report["new_profile_uses_factory_samples_without_copying_user_data"] = len(files)==38 and not list(empty.iterdir())
         w.input_event("key",p["rules"][0]["id"])
         wait(lambda:w.audio.voice.playbackState()==QMediaPlayer.PlaybackState.PlayingState)
         report["wallpaper_rule_actually_plays_bundled_sample"] = "starter-voice" in w.audio.voice.source().toLocalFile()
+        w.audio.voice.stop(); w.audio.voice.setSource(QUrl())
+        returning=candidates(p,dict(source="返回桌面",keyword=""))
+        idle=candidates(p,dict(source="闲置陪伴",keyword=""))
+        report["new_model_named_return_and_idle_categories_available"] = len(returning)==6 and len(idle)==6 and all("-神里绫华_EN" in file.stem for file in returning+idle)
+        w.audio.play_voice(returning[0])
+        wait(lambda:w.audio.voice.playbackState()==QMediaPlayer.PlaybackState.PlayingState)
+        report["new_model_named_clip_actually_plays"] = w.audio.voice.source().toLocalFile().endswith(returning[0].name)
         w.audio.voice.stop(); w.audio.voice.setSource(QUrl())
         p["use_bundled_demo"]=False
         report["fallback_can_be_disabled"] = not candidates(p,dict(source="",keyword=""))
@@ -60,7 +67,7 @@ with tempfile.TemporaryDirectory(dir=out) as tmp, patch("companion.bundled_audio
         w.audio.voice.stop(); w.audio.voice.setSource(QUrl()); store.config["operation_voice_enabled"]=False
         w.tabs.setCurrentIndex(6); wait(lambda:not w.audio_library_busy)
         w.audio_scope.setCurrentIndex(w.audio_scope.findData("bundled:voice")); wait(lambda:not w.audio_library_busy)
-        report["factory_inventory_is_read_only_and_not_a_copy_target"] = len(w.audio_records)==77 and all(r["read_only"] for r in w.audio_records) and w.audio_target.findData("bundled:voice")==-1
+        report["factory_inventory_is_read_only_and_not_a_copy_target"] = len(w.audio_records)==90 and all(r["read_only"] for r in w.audio_records) and w.audio_target.findData("bundled:voice")==-1
         w.audio_table.selectRow(0); w.recycle_library_audio()
         report["factory_delete_is_rejected"] = len(errors)==1 and "只读" in errors.pop()
         try:
