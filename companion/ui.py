@@ -221,7 +221,7 @@ class Window(LibraryMixin, DialogueMixin, AudioLibraryMixin, CharacterMixin, Spe
         layout.addWidget(row(button("保存接口设置", self.save_tts), self.check_api_button,
                              self.start_api_button, button("使用当前配置的语音目录", self.use_voice_dir)))
         self.reference_preview_button = button("播放参考音频", self.preview_reference_audio)
-        layout.addWidget(self.reference_preview_button)
+        layout.addWidget(row(self.reference_preview_button, button("停止参考试听", self.audio.voice.stop)))
         layout.addWidget(hint("每行一条台词，按台词保存 WAV，重名自动编号。密钥保存到系统凭据管理器；切换服务可分别保存设置。"))
         self.lines = QPlainTextEdit()
         self.lines.setPlaceholderText("欢迎回来。\n今天也辛苦了。\n早上好，新的一天开始啦。")

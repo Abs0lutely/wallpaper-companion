@@ -27,7 +27,10 @@ app = QApplication([]); app.setStyle("Fusion"); app.setStyleSheet(STYLE)
 w = Window(store, hooks=False); w.show(); app.processEvents()
 report = {}
 try:
+    w.edit_dialogues.append(dict(id="custom-category", category="我的专属分类", text="测试文本", enabled=True))
     dialog = RuleDialog(parent=w)
+    report["categories_follow_library_without_free_typing"] = dialog.source_category.findText("我的专属分类") >= 0 and not dialog.source_category.isEditable()
+    w.edit_dialogues.pop()
     dialog.show(); app.processEvents()
     dialog.event_family.setCurrentIndex(dialog.event_family.findData("mouse"))
     dialog.mouse_action.setCurrentIndex(dialog.mouse_action.findData("mouse_right"))

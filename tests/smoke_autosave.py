@@ -40,6 +40,10 @@ with tempfile.TemporaryDirectory(dir=output) as tmp, patch("companion.managed_ap
         w.render_dialogues(); w.tabs.setCurrentIndex(1)
         file = Path(one["dialogue_file"])
         report["linked_dialogue_save_updates_all_references"] = file.exists() and all(p["dialogues"][0]["text"] == "共享台词自动保存测试" for p in Store(store.path).config["profiles"])
+        saved_file = file.read_bytes()
+        file.write_bytes(saved_file + b"\n")
+        report["undo_refuses_external_shared_file_change"] = not w.autosave.undo() and file.read_bytes() == saved_file + b"\n"
+        errors.clear(); file.write_bytes(saved_file)
         report["undo_restores_shared_file_and_all_profiles"] = w.autosave.undo() and (file.read_bytes() if file.exists() else None) == original_file and all(p["dialogues"][0]["text"] != "共享台词自动保存测试" for p in Store(store.path).config["profiles"])
         w.profile_name.setText("切换前保存")
         w.profiles.setCurrentRow(1)
@@ -59,6 +63,9 @@ with tempfile.TemporaryDirectory(dir=output) as tmp, patch("companion.managed_ap
             report["failed_write_keeps_config_and_draft"] = not w.autosave.flush() and store.config == old and store.path.read_bytes() == disk and w.profile_name.text() == "失败仍保留"
         errors.clear(); w.profile_name.setText(old["profiles"][1]["name"])
         w.voice_volume.setValue(43); assert w.autosave.flush()
+        w.profile_name.setText("后续未保存草稿")
+        report["undo_never_overwrites_new_draft"] = not w.autosave.undo() and w.profile_name.text() == "后续未保存草稿"
+        errors.clear(); w.profile_name.setText(store.profile(two["id"])["name"])
         resource = store.profile(two["id"])["voice_dir"]
         with patch.object(QMessageBox, "question", return_value=QMessageBox.StandardButton.Yes):
             w.restore_defaults()

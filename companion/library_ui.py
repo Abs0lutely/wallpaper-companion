@@ -92,11 +92,9 @@ class DialogueDialog(QDialog):
         self.category.addItems(CATEGORIES)
         self.category.setCurrentText(self.entry["category"])
         self.text = QPlainTextEdit(self.entry["text"])
-        self.enabled = QCheckBox("参与台词库语音生成")
-        self.enabled.setChecked(self.entry["enabled"])
         form.addRow("分类", self.category)
         form.addRow("台词", self.text)
-        form.addRow("", self.enabled)
+        form.addRow("", QLabel("保存后在台词库列表勾选本次需要生成的条目。"))
         controls = QDialogButtonBox(QDialogButtonBox.StandardButton.Save | QDialogButtonBox.StandardButton.Cancel)
         controls.accepted.connect(self.accept)
         controls.rejected.connect(self.reject)
@@ -104,7 +102,7 @@ class DialogueDialog(QDialog):
 
     def accept(self):
         try:
-            self.entry.update(category=self.category.currentText().strip(), text=self.text.toPlainText().strip(), enabled=self.enabled.isChecked())
+            self.entry.update(category=self.category.currentText().strip(), text=self.text.toPlainText().strip())
             self.entry = normalize_dialogues([self.entry])[0]
         except ValueError as exc:
             QMessageBox.warning(self, "台词无效", str(exc))
@@ -421,6 +419,9 @@ class DialogueMixin:
 
     def send_dialogues_to_tts(self):
         lines = self.selected_dialogues()
+        if not lines:
+            self.log("请先勾选需要生成的台词，可全选、全不选或按分类选择。")
+            return
         self.lines.setPlainText("\n".join(entry["text"] for entry in lines))
         if self.editing_id:
             self.use_voice_dir()
