@@ -166,6 +166,8 @@ class Window(LibraryMixin, DialogueMixin, AudioLibraryMixin, CharacterMixin, Spe
         self.button_motion = ButtonMotion(self)
         from .help_ui import HoverHelp
         self.hover_help = HoverHelp(self)
+        from .autosave import Autosave
+        self.autosave = Autosave(self)
         for error in self.registry.errors:
             self.log("扩展加载失败：" + error)
         self.audio.changed.connect(self.refresh_status)
@@ -324,6 +326,8 @@ class Window(LibraryMixin, DialogueMixin, AudioLibraryMixin, CharacterMixin, Spe
         form.addRow("壁纸检测间隔", self.poll_seconds)
         layout.addLayout(form)
         layout.addWidget(button("保存运行设置", self.save_settings, True))
+        layout.addWidget(row(button("撤销最近自动保存", lambda: self.autosave.undo()),
+                             button("恢复默认配置…", self.restore_defaults)))
         self.startup_button = button("检测开机自启状态…", self.toggle_startup)
         layout.addWidget(self.startup_button)
         from .startup import startup_enabled
@@ -437,7 +441,14 @@ class Window(LibraryMixin, DialogueMixin, AudioLibraryMixin, CharacterMixin, Spe
                 self.profiles.setCurrentRow(-1)
                 self.profiles.blockSignals(False)
                 return
-        if old and old["id"] != new_id and self.draft_profile() != old:
+        if old and old["id"] != new_id and hasattr(self, "autosave") and not self.autosave.busy:
+            if not self.autosave.flush():
+                self.profiles.blockSignals(True)
+                self.profiles.setCurrentRow(next(i for i, p in enumerate(profiles) if p["id"] == old["id"]))
+                self.profiles.blockSignals(False)
+                return
+            profiles = self.store.config["profiles"]
+        elif old and old["id"] != new_id and not hasattr(self, "autosave") and self.draft_profile() != old:
             response = QMessageBox.question(self, "配置尚未保存", "当前修改尚未保存。放弃修改并切换配置？", QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No, QMessageBox.StandardButton.No)
             if response != QMessageBox.StandardButton.Yes:
                 previous = next(i for i, p in enumerate(profiles) if p["id"] == old["id"])
@@ -504,6 +515,8 @@ class Window(LibraryMixin, DialogueMixin, AudioLibraryMixin, CharacterMixin, Spe
         return p
 
     def save_profile(self):
+        before = copy.deepcopy(self.store.config)
+        files = {}
         try:
             from .dialogues import normalize_dialogues
             p = self.draft_profile()
@@ -513,6 +526,8 @@ class Window(LibraryMixin, DialogueMixin, AudioLibraryMixin, CharacterMixin, Spe
                     raise ValueError("目录不存在，请先创建或选择已有文件夹：" + p[key])
             if p.get("dialogue_file"):
                 from .assets import write_dialogues
+                target = writable_path(p["dialogue_file"], self.store.protected())
+                files[target] = target.read_bytes() if target.exists() else None
                 write_dialogues(p["dialogue_file"], p["dialogues"], self.store.protected())
                 for other in self.store.config["profiles"]:
                     if other["id"] != p["id"] and identity(other.get("dialogue_file", "")) == identity(p["dialogue_file"]):
@@ -526,10 +541,18 @@ class Window(LibraryMixin, DialogueMixin, AudioLibraryMixin, CharacterMixin, Spe
             self.render_library()
             return True
         except Exception as exc:
+            self.store.config = before
+            from .autosave import Autosave
+            try:
+                Autosave.restore_files(files)
+            except OSError as rollback:
+                self.log("台词保存回退失败：" + str(rollback))
             self.report_error(str(exc))
             return False
 
     def add_profile(self):
+        if hasattr(self, "autosave") and not self.autosave.flush():
+            return
         from .assets import attach_resources, shared_root
         try:
             p = attach_resources(new_profile(), shared_root(self.store), self.store.protected())
@@ -541,6 +564,8 @@ class Window(LibraryMixin, DialogueMixin, AudioLibraryMixin, CharacterMixin, Spe
         self.refresh_profiles(p["id"])
 
     def bind_current(self):
+        if hasattr(self, "autosave") and not self.autosave.flush():
+            return
         if not self.current["path"]:
             QMessageBox.information(self, "尚无当前壁纸", "请先在 Wallpaper Engine 中播放一张壁纸，再点击立即检测。也可以先新建配置并开启手动模式测试。")
             return
@@ -993,10 +1018,15 @@ class Window(LibraryMixin, DialogueMixin, AudioLibraryMixin, CharacterMixin, Spe
         self.workshop_dir.setText(c["workshop_dir"])
         self.monitor.setValue(c["monitor"])
         self.poll_seconds.setValue(c["poll_seconds"])
+        self.ffprobe_path.setText(c.get("ffprobe", ""))
+        for i in range(self.plugin_list.count()):
+            item = self.plugin_list.item(i)
+            item.setCheckState(Qt.CheckState.Checked if item.text() in c.get("enabled_plugins", []) else Qt.CheckState.Unchecked)
         for setting, combo in self.backend_combos.items():
             combo.setCurrentIndex(max(0, combo.findData(c.get(setting))))
 
     def save_settings(self):
+        before = copy.deepcopy(self.store.config)
         try:
             self.store.config.update(we_dir=self.we_dir.text().strip(), workshop_dir=self.workshop_dir.text().strip(),
                                      monitor=self.monitor.value(), poll_seconds=self.poll_seconds.value(), ffprobe=self.ffprobe_path.text().strip())
@@ -1009,8 +1039,46 @@ class Window(LibraryMixin, DialogueMixin, AudioLibraryMixin, CharacterMixin, Spe
             self.log("运行设置已保存；扩展和播放/输入后端变更重启后生效")
             self.detect()
             self.probe_original_audio()
+            if hasattr(self, "autosave"):
+                self.autosave.remember("runtime")
+            return True
         except Exception as exc:
+            self.store.config = before
             self.report_error(str(exc))
+            return False
+
+    def restore_defaults(self):
+        if not self.autosave.flush():
+            return
+        if QMessageBox.question(self, "恢复默认配置", "恢复运行偏好、外观，以及当前壁纸的音量、播放开关和互动规则？\n壁纸绑定、资源路径、台词、音频、角色模型及接口设置全部保留；不开关系统自启。可撤销。",
+                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No, QMessageBox.StandardButton.No) != QMessageBox.StandardButton.Yes:
+            return
+        before = copy.deepcopy(self.store.config)
+        try:
+            from .core import defaults
+            c = defaults()
+            for key in ("monitor", "poll_seconds", "hover_help", "appearance", "enabled_plugins", *self.backend_combos):
+                self.store.config[key] = copy.deepcopy(c[key])
+            p = self.store.profile(self.editing_id)
+            if p:
+                fresh = new_profile()
+                for key in ("enabled", "bgm_enabled", "bgm_shuffle", "bgm_paused", "desktop_only", "fullscreen_mute",
+                            "voice_volume", "bgm_volume", "duck_percent", "global_cooldown", "rules"):
+                    p[key] = copy.deepcopy(fresh[key])
+            self.store.save()
+            self.autosave.busy = True
+            self.refresh_profiles(self.editing_id); self.load_settings()
+            self.apply_appearance()
+            self.hover_help.set_enabled(True); self.help_button.setText("悬停说明：开启")
+            self.poll.setInterval(self.poll_seconds.value() * 1000)
+            self.activate_profile(force=True)
+            self.autosave.baseline = self.autosave.forms()
+            self.autosave.record(before, {}, "已恢复默认配置，个人资源保留；可撤销。")
+        except Exception as exc:
+            self.store.config = before
+            self.report_error("恢复默认失败：" + str(exc))
+        finally:
+            self.autosave.busy = False
 
     def load_tts(self):
         self.provider_cache = copy.deepcopy(self.store.config.get("tts_providers", {}))
@@ -1045,6 +1113,8 @@ class Window(LibraryMixin, DialogueMixin, AudioLibraryMixin, CharacterMixin, Spe
                 self.store.config["tts_character"] = self.character_choice.currentData() or ""
             self.store.save()
             self.api_message("语音接口设置已保存。保存设置不会启动 API 或生成音频。")
+            if hasattr(self, "autosave"):
+                self.autosave.remember("tts")
             return True
         except Exception as exc:
             self.report_error(str(exc))
@@ -1180,6 +1250,9 @@ class Window(LibraryMixin, DialogueMixin, AudioLibraryMixin, CharacterMixin, Spe
         self.report_error(str(error))
 
     def closeEvent(self, event):
+        if not self.quitting and hasattr(self, "autosave") and not self.autosave.flush():
+            event.ignore()
+            return
         if self.quitting or not QSystemTrayIcon.isSystemTrayAvailable():
             event.accept()
             self.cleanup()
@@ -1195,6 +1268,8 @@ class Window(LibraryMixin, DialogueMixin, AudioLibraryMixin, CharacterMixin, Spe
         if self.tts_busy:
             if QMessageBox.question(self, "退出并取消生成", "退出将取消剩余生成并停止声伴启动的本地 API；已经保存的音频保留。继续退出？") != QMessageBox.StandardButton.Yes:
                 return
+        if not self.autosave.flush():
+            return
         self.cleanup()
         QApplication.quit()
 
@@ -1202,6 +1277,7 @@ class Window(LibraryMixin, DialogueMixin, AudioLibraryMixin, CharacterMixin, Spe
         if self.quitting:
             return
         self.quitting = True
+        self.autosave.close()
         self.character_scan_timer.stop()
         self.commit_player_volume()
         self.player_volume_timer.stop()

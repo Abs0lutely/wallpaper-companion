@@ -24,6 +24,7 @@ SMOKES = (
     "smoke_api_controls.py",
     "smoke_generation_feedback.py",
     "smoke_button_motion.py",
+    "smoke_autosave.py",
 )
 
 

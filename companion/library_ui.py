@@ -164,8 +164,12 @@ class LibraryMixin:
             self.store.config["library_roots"] = list(dict.fromkeys(values))
             self.store.save()
             self.scan_library()
+            if hasattr(self, "autosave"):
+                self.autosave.remember("roots")
+            return True
         except Exception as exc:
             self.report_error(str(exc))
+            return False
 
     def scan_library(self):
         if self.library_busy:
@@ -350,7 +354,7 @@ class DialogueMixin:
             selected = set()
         self.dialogue_selection_scope = scope_id
         scope = "壁纸台词库：" + self.profile_name.text() if self.editing_id else "共享台词库（无需先绑定壁纸）"
-        self.dialogue_context.setText(f"{scope} · {len(self.edit_dialogues)} 条；修改后点击保存台词库。")
+        self.dialogue_context.setText(f"{scope} · {len(self.edit_dialogues)} 条；切换页面自动保存，也可手动保存。生成勾选只对本次操作有效。")
         self.dialogue_table.setRowCount(len(self.edit_dialogues))
         for i, entry in enumerate(self.edit_dialogues):
             check = QTableWidgetItem()

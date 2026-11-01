@@ -263,6 +263,10 @@ class AudioLibraryMixin:
             self.refresh_audio_library()
             if not self.editing_id:
                 self.load_shared_dialogue_library()
+            if hasattr(self, "autosave"):
+                self.autosave.remember("shared")
+            return True
         except Exception as exc:
             self.store.config["shared_asset_dir"] = previous
             self.report_error(str(exc))
+            return False
