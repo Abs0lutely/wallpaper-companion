@@ -303,6 +303,7 @@ class DialogueMixin:
                              button("按分类生成勾选台词", self.generate_dialogue_library, True)))
         layout.addWidget(row(button("应用分类触发规则", self.install_dialogue_rules),
                              button("导入台词 JSON / TXT", self.import_dialogues), button("导出台词 JSON", self.export_dialogues)))
+        layout.addWidget(button("导入默认操作台词", self.add_operation_dialogues))
         layout.addWidget(hint("按分类生成会保存到语音目录/早晨、语音目录/点击回应等子目录；生成前可在“生成语音”页选择服务。\n"
                               "应用分类规则会替换当前编辑中的规则，保存后生效。原始下载音频无需台词库，也能直接播放。"))
         self.dialogue_tab_index = self.tabs.addTab(page, "台词库")
@@ -404,6 +405,15 @@ class DialogueMixin:
         self.render_dialogues()
         added = len(self.edit_dialogues) - before
         self.dialogue_context.setText(f"已补充 {added} 条默认台词，请保存台词库。" if added else "默认台词已齐全，无需重复添加。")
+
+    def add_operation_dialogues(self):
+        from .action_lines import operation_dialogues
+        existing = {(entry["category"], entry["text"]) for entry in self.edit_dialogues}
+        added = [entry for entry in operation_dialogues() if (entry["category"], entry["text"]) not in existing]
+        self.edit_dialogues.extend(added)
+        self.render_dialogues()
+        self.tabs.setCurrentIndex(self.dialogue_tab_index)
+        self.log(f"已补充 {len(added)} 条操作台词，未自动勾选。可按分类生成到共享语音目录，操作语音会自动发现它们。")
 
     def selected_dialogues(self):
         return [{**entry, "enabled": True} for i, entry in enumerate(normalize_dialogues(self.collect_dialogues()))

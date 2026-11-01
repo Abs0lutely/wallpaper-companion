@@ -169,6 +169,8 @@ class Window(LibraryMixin, DialogueMixin, AudioLibraryMixin, CharacterMixin, Spe
         from .autosave import Autosave
         self.autosave = Autosave(self)
         self.bgm_enabled.toggled.connect(self.bgm_enabled_changed)
+        from .operation_voices import OperationVoices
+        self.operation_voices = OperationVoices(self)
         for error in self.registry.errors:
             self.log("扩展加载失败：" + error)
         self.audio.changed.connect(self.refresh_status)
@@ -329,6 +331,16 @@ class Window(LibraryMixin, DialogueMixin, AudioLibraryMixin, CharacterMixin, Spe
         layout.addWidget(button("保存运行设置", self.save_settings, True))
         layout.addWidget(row(button("撤销最近自动保存", lambda: self.autosave.undo()),
                              button("恢复默认配置…", self.restore_defaults)))
+        self.operation_voice_enabled = QCheckBox("播放操作回应语音（默认开启）")
+        self.operation_voice_enabled.toggled.connect(self.toggle_operation_voice)
+        self.operation_voice_dir = QLineEdit()
+        self.operation_voice_dir.setPlaceholderText("留空：共享语音目录，再查找随程序附带的操作语音包")
+        self.operation_voice_status = hint("操作语音尚未扫描。")
+        layout.addWidget(self.operation_voice_enabled)
+        layout.addWidget(row(QLabel("操作语音目录（可选）"), path_field(self.operation_voice_dir),
+                             button("刷新操作语音", lambda: self.operation_voices.refresh())))
+        layout.addWidget(self.operation_voice_status)
+        layout.addWidget(button("导入默认操作台词", self.add_operation_dialogues))
         self.startup_button = button("检测开机自启状态…", self.toggle_startup)
         layout.addWidget(self.startup_button)
         from .startup import startup_enabled
@@ -408,6 +420,8 @@ class Window(LibraryMixin, DialogueMixin, AudioLibraryMixin, CharacterMixin, Spe
             callback(error if error is not None else result)
 
     def report_error(self, error):
+        if hasattr(self, "operation_voices"):
+            self.operation_voices.request("error")
         self.log("错误：" + str(error))
         QMessageBox.warning(self, "操作未完成", str(error))
 
@@ -1021,6 +1035,10 @@ class Window(LibraryMixin, DialogueMixin, AudioLibraryMixin, CharacterMixin, Spe
         self.workshop_dir.setText(c["workshop_dir"])
         self.monitor.setValue(c["monitor"])
         self.poll_seconds.setValue(c["poll_seconds"])
+        self.operation_voice_enabled.blockSignals(True)
+        self.operation_voice_enabled.setChecked(c.get("operation_voice_enabled", True))
+        self.operation_voice_enabled.blockSignals(False)
+        self.operation_voice_dir.setText(c.get("operation_voice_dir", ""))
         self.ffprobe_path.setText(c.get("ffprobe", ""))
         for i in range(self.plugin_list.count()):
             item = self.plugin_list.item(i)
@@ -1032,7 +1050,8 @@ class Window(LibraryMixin, DialogueMixin, AudioLibraryMixin, CharacterMixin, Spe
         before = copy.deepcopy(self.store.config)
         try:
             self.store.config.update(we_dir=self.we_dir.text().strip(), workshop_dir=self.workshop_dir.text().strip(),
-                                     monitor=self.monitor.value(), poll_seconds=self.poll_seconds.value(), ffprobe=self.ffprobe_path.text().strip())
+                                     monitor=self.monitor.value(), poll_seconds=self.poll_seconds.value(), ffprobe=self.ffprobe_path.text().strip(),
+                                     operation_voice_enabled=self.operation_voice_enabled.isChecked(), operation_voice_dir=self.operation_voice_dir.text().strip())
             for setting, combo in self.backend_combos.items():
                 self.store.config[setting] = combo.currentData()
             self.store.config["enabled_plugins"] = [self.plugin_list.item(i).text() for i in range(self.plugin_list.count())
@@ -1044,6 +1063,8 @@ class Window(LibraryMixin, DialogueMixin, AudioLibraryMixin, CharacterMixin, Spe
             self.probe_original_audio()
             if hasattr(self, "autosave"):
                 self.autosave.remember("runtime")
+            if hasattr(self, "operation_voices"):
+                self.operation_voices.refresh()
             return True
         except Exception as exc:
             self.store.config = before
@@ -1060,7 +1081,7 @@ class Window(LibraryMixin, DialogueMixin, AudioLibraryMixin, CharacterMixin, Spe
         try:
             from .core import defaults
             c = defaults()
-            for key in ("monitor", "poll_seconds", "hover_help", "appearance", "enabled_plugins", *self.backend_combos):
+            for key in ("monitor", "poll_seconds", "hover_help", "appearance", "operation_voice_enabled", "enabled_plugins", *self.backend_combos):
                 self.store.config[key] = copy.deepcopy(c[key])
             p = self.store.profile(self.editing_id)
             if p:
@@ -1082,6 +1103,21 @@ class Window(LibraryMixin, DialogueMixin, AudioLibraryMixin, CharacterMixin, Spe
             self.report_error("恢复默认失败：" + str(exc))
         finally:
             self.autosave.busy = False
+
+    def toggle_operation_voice(self, enabled):
+        if not hasattr(self, "autosave"):
+            return
+        if not self.autosave.flush():
+            self.operation_voice_enabled.blockSignals(True)
+            self.operation_voice_enabled.setChecked(self.store.config.get("operation_voice_enabled", True))
+            self.operation_voice_enabled.blockSignals(False)
+            return
+        if not enabled and hasattr(self, "operation_voices"):
+            self.operation_voices.change_timer.stop()
+            source = self.audio.voice.source().toLocalFile()
+            if source and identity(source) == identity(self.operation_voices.source):
+                self.audio.voice.stop()
+        self.log("操作回应语音已开启。" if enabled else "操作回应语音已关闭。")
 
     def load_tts(self):
         self.provider_cache = copy.deepcopy(self.store.config.get("tts_providers", {}))
@@ -1237,6 +1273,9 @@ class Window(LibraryMixin, DialogueMixin, AudioLibraryMixin, CharacterMixin, Spe
 
     def generated(self, paths):
         self.tts_busy = False
+        if hasattr(self, "operation_voices"):
+            self.operation_voices.refresh()
+            self.operation_voices.request("complete")
         self.update_api_controls()
         self.generate_button.setEnabled(True)
         self.tts_status.setText(f"已保存 {len(paths)} 条语音。放在绑定目录中的文件会自动加入播放候选。")
@@ -1281,6 +1320,7 @@ class Window(LibraryMixin, DialogueMixin, AudioLibraryMixin, CharacterMixin, Spe
             return
         self.quitting = True
         self.autosave.close()
+        self.operation_voices.close()
         self.character_scan_timer.stop()
         self.commit_player_volume()
         self.player_volume_timer.stop()

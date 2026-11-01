@@ -91,6 +91,10 @@ def main():
     args = parser.parse_args()
     if sys.platform != "win32" or struct.calcsize("P") != 8:
         parser.error("Build on Windows x64 using 64-bit Python")
+    # Do not ship a default-on experience without its promised voice assets.
+    sys.path.insert(0, str(ROOT))
+    from companion.operation_pack import require_pack
+    require_pack(ROOT / "examples/audio/operation-voice")
     prepare()
     if not args.skip_freeze:
         subprocess.run([sys.executable, "-m", "PyInstaller", "--noconfirm", "--clean", "--distpath", str(ROOT / "dist"),

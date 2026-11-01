@@ -26,6 +26,7 @@ SMOKES = (
     "smoke_button_motion.py",
     "smoke_autosave.py",
     "smoke_player_art.py",
+    "smoke_operation_voices.py",
 )
 
 

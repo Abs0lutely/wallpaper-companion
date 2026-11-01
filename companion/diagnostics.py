@@ -81,6 +81,10 @@ def run(destination):
         checks["generation_progress_preserves_partial_result"] = window.tts_progress.value() == 1 and window.tts_progress.maximum() == 2 and "已保存一条" in window.tts_stage_output.toPlainText()
         from .motion import ButtonScaleEffect
         checks["button_motion_and_feedback_loaded"] = isinstance(window.start_api_button.graphicsEffect(), ButtonScaleEffect) and bool(window.action_feedback.buttons)
+        checks["autosave_and_operation_controls_present"] = hasattr(window, "autosave") and window.operation_voice_enabled.isChecked() and not window.selected_dialogues()
+        from .operation_pack import require_pack
+        if report["frozen"]:
+            checks["distributed_operation_voice_pack_complete"] = require_pack(ROOT / "examples/audio/operation-voice")["complete"]
         from .sovits_config import model_key
         checks["model_config_dependency_available"] = model_key({}) is None
         window.audio.message.connect(lambda s: report["media_errors"].append(s) if "失败" in s else None)

@@ -34,6 +34,7 @@ class Autosave(QObject):
         w = self.w
         return dict(runtime=dict(we_dir=w.we_dir.text().strip(), workshop_dir=w.workshop_dir.text().strip(),
                     monitor=w.monitor.value(), poll_seconds=w.poll_seconds.value(), ffprobe=w.ffprobe_path.text().strip(),
+                    operation_voice_enabled=w.operation_voice_enabled.isChecked(), operation_voice_dir=w.operation_voice_dir.text().strip(),
                     **{k: c.currentData() for k, c in w.backend_combos.items()},
                     enabled_plugins=[w.plugin_list.item(i).text() for i in range(w.plugin_list.count())
                                      if w.plugin_list.item(i).checkState() == Qt.CheckState.Checked]),
@@ -73,6 +74,8 @@ class Autosave(QObject):
         if changes or changed_files:
             self.last = changes, changed_files
             self.show(message)
+            if hasattr(self.w, "operation_voices"):
+                self.w.operation_voices.request("save")
 
     def flush(self):
         if self.busy or self.closed or self.w.quitting:
@@ -174,6 +177,8 @@ class Autosave(QObject):
             self.baseline = self.forms()
             self.last = None
             self.show("已撤销上一次自动保存。接口密钥不参与撤销。")
+            if hasattr(w, "operation_voices"):
+                w.operation_voices.request("undo")
             return True
         except Exception as exc:
             w.store.config = current
