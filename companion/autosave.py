@@ -34,7 +34,7 @@ class Autosave(QObject):
 
     def forms(self):
         w = self.w
-        return dict(runtime=dict(we_dir=w.we_dir.text().strip(), workshop_dir=w.workshop_dir.text().strip(),
+        return dict(runtime=dict(ui_language=w.ui_language.currentData(), we_dir=w.we_dir.text().strip(), workshop_dir=w.workshop_dir.text().strip(),
                     monitor=w.monitor.value(), poll_seconds=w.poll_seconds.value(), ffprobe=w.ffprobe_path.text().strip(),
                     operation_voice_enabled=w.operation_voice_enabled.isChecked(), operation_voice_dir=w.operation_voice_dir.text().strip(),
                     **{k: c.currentData() for k, c in w.backend_combos.items()},

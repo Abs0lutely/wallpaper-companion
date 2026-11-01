@@ -17,8 +17,16 @@ def main():
     from PySide6.QtCore import QLockFile
     from PySide6.QtWidgets import QApplication, QMessageBox
     from companion.core import DATA, Store, writable_path
-    from companion.ui import STYLE, Window, app_icon
+    from companion.i18n import set_language, install_qt_translation
     app = QApplication(sys.argv)
+    try:
+        store = Store()
+    except Exception as exc:
+        QMessageBox.critical(None, "启动失败 / Startup failed", str(exc))
+        return 1
+    set_language(store.config.get("ui_language"))
+    from companion.ui import STYLE, Window, app_icon
+    install_qt_translation(app)
     app.setWindowIcon(app_icon())
     app.setApplicationName("Wallpaper Companion")
     app.setStyle("Fusion")
@@ -32,7 +40,7 @@ def main():
             QMessageBox.information(None, "壁纸声伴已运行", "程序已在运行，请双击系统托盘中的粉发耳机少女图标打开配置。")
         return 0
     try:
-        window = Window(Store())
+        window = Window(store)
     except Exception as exc:
         QMessageBox.critical(None, "启动失败", str(exc))
         return 1

@@ -20,6 +20,7 @@ from PySide6.QtWidgets import (
     QTableWidgetItem, QTimeEdit, QVBoxLayout, QWidget, QHeaderView, QAbstractItemView,
 )
 
+from .i18n import tr, language
 from .core import DATA, ROOT, PLUGIN_DIR, Store, RuleEngine, audio_files, candidates, identity, new_profile, new_rule, writable_path
 from .audio import Audio
 from .services import InputHooks, api_status, current_wallpaper, foreground_state, generate, start_api
@@ -311,6 +312,14 @@ class Window(LibraryMixin, DialogueMixin, AudioLibraryMixin, CharacterMixin, Spe
         page = QWidget()
         layout = QVBoxLayout(page)
         form = QFormLayout()
+        self.ui_language = QComboBox()
+        self.ui_language.addItem("简体中文", "zh-CN")
+        self.ui_language.addItem("English", "en-US")
+        self.ui_language.setToolTip(tr("settings.language_next_start", "界面语言将在下次启动时生效。"))
+        form.addRow(tr("settings.language", "界面语言 / Interface language"), self.ui_language)
+        self.language_notice = hint("")
+        form.addRow(self.language_notice)
+        self.ui_language.currentIndexChanged.connect(self.refresh_language_notice)
         self.we_dir = QLineEdit()
         self.workshop_dir = QLineEdit()
         self.monitor = spin(0, 20, 0)
@@ -1063,8 +1072,15 @@ class Window(LibraryMixin, DialogueMixin, AudioLibraryMixin, CharacterMixin, Spe
                         self.log("扩展事件错误：" + str(exc))
                     self.last_extension_error = str(exc)
 
+    def refresh_language_notice(self):
+        pending = self.ui_language.currentData() != language()
+        self.language_notice.setText(tr("settings.language_next_start", "界面语言将在下次启动时生效。") if pending else "")
+        self.language_notice.setVisible(pending)
+
     def load_settings(self):
         c = self.store.config
+        self.ui_language.setCurrentIndex(max(0, self.ui_language.findData(c.get("ui_language", "zh-CN"))))
+        self.refresh_language_notice()
         self.we_dir.setText(c["we_dir"])
         self.workshop_dir.setText(c["workshop_dir"])
         self.monitor.setValue(c["monitor"])
@@ -1083,7 +1099,7 @@ class Window(LibraryMixin, DialogueMixin, AudioLibraryMixin, CharacterMixin, Spe
     def save_settings(self):
         before = copy.deepcopy(self.store.config)
         try:
-            self.store.config.update(we_dir=self.we_dir.text().strip(), workshop_dir=self.workshop_dir.text().strip(),
+            self.store.config.update(ui_language=self.ui_language.currentData(), we_dir=self.we_dir.text().strip(), workshop_dir=self.workshop_dir.text().strip(),
                                      monitor=self.monitor.value(), poll_seconds=self.poll_seconds.value(), ffprobe=self.ffprobe_path.text().strip(),
                                      operation_voice_enabled=self.operation_voice_enabled.isChecked(), operation_voice_dir=self.operation_voice_dir.text().strip())
             for setting, combo in self.backend_combos.items():
@@ -1093,6 +1109,8 @@ class Window(LibraryMixin, DialogueMixin, AudioLibraryMixin, CharacterMixin, Spe
             self.store.save()
             self.poll.setInterval(self.poll_seconds.value() * 1000)
             self.log("运行设置已保存；扩展和播放/输入后端变更重启后生效")
+            if before.get("ui_language", "zh-CN") != self.store.config["ui_language"]:
+                self.autosave.show(tr("settings.language_next_start", "界面语言将在下次启动时生效。"))
             self.detect()
             self.probe_original_audio()
             if hasattr(self, "autosave"):
@@ -1115,7 +1133,7 @@ class Window(LibraryMixin, DialogueMixin, AudioLibraryMixin, CharacterMixin, Spe
         try:
             from .core import defaults
             c = defaults()
-            for key in ("monitor", "poll_seconds", "hover_help", "appearance", "operation_voice_enabled", "operation_voice_rules", "operation_voice_min_interval", "enabled_plugins", *self.backend_combos):
+            for key in ("ui_language", "monitor", "poll_seconds", "hover_help", "appearance", "operation_voice_enabled", "operation_voice_rules", "operation_voice_min_interval", "enabled_plugins", *self.backend_combos):
                 self.store.config[key] = copy.deepcopy(c[key])
             p = self.store.profile(self.editing_id)
             if p:
