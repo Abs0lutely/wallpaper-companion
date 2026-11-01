@@ -343,6 +343,7 @@ class Window(LibraryMixin, DialogueMixin, AudioLibraryMixin, CharacterMixin, Spe
         self.operation_voice_dir.setPlaceholderText("留空：共享语音目录，再查找随程序附带的操作语音包")
         self.operation_voice_status = hint("操作语音尚未扫描。")
         layout.addWidget(self.operation_voice_enabled)
+        layout.addWidget(button("操作回应规则…", self.configure_operation_rules))
         layout.addWidget(row(QLabel("操作语音目录（可选）"), path_field(self.operation_voice_dir),
                              button("刷新操作语音", lambda: self.operation_voices.refresh())))
         layout.addWidget(self.operation_voice_status)
@@ -1115,7 +1116,7 @@ class Window(LibraryMixin, DialogueMixin, AudioLibraryMixin, CharacterMixin, Spe
         try:
             from .core import defaults
             c = defaults()
-            for key in ("monitor", "poll_seconds", "hover_help", "appearance", "operation_voice_enabled", "enabled_plugins", *self.backend_combos):
+            for key in ("monitor", "poll_seconds", "hover_help", "appearance", "operation_voice_enabled", "operation_voice_rules", "operation_voice_min_interval", "enabled_plugins", *self.backend_combos):
                 self.store.config[key] = copy.deepcopy(c[key])
             p = self.store.profile(self.editing_id)
             if p:
@@ -1152,6 +1153,33 @@ class Window(LibraryMixin, DialogueMixin, AudioLibraryMixin, CharacterMixin, Spe
             if source and identity(source) == identity(self.operation_voices.source):
                 self.audio.voice.stop()
         self.log("操作回应语音已开启。" if enabled else "操作回应语音已关闭。")
+
+    def configure_operation_rules(self):
+        if not self.autosave.flush():
+            return
+        from .operation_rules_ui import OperationRulesDialog
+        dialog = OperationRulesDialog(self)
+        if dialog.exec():
+            self.apply_operation_rules(dialog.result_payload)
+
+    def apply_operation_rules(self, payload):
+        from .operation_rules import normalize_payload
+        before = copy.deepcopy(self.store.config)
+        try:
+            value = normalize_payload(payload)
+            self.store.config.update(operation_voice_enabled=value["enabled"],operation_voice_rules=value["rules"],operation_voice_min_interval=value["min_interval"])
+            self.store.save()
+            self.operation_voice_enabled.blockSignals(True)
+            self.operation_voice_enabled.setChecked(value["enabled"])
+            self.operation_voice_enabled.blockSignals(False)
+            self.autosave.remember("runtime")
+            self.operation_voices.refresh()
+            self.autosave.record(before, {}, "操作回应规则已保存，独立于壁纸规则；可撤销。")
+            return True
+        except Exception as exc:
+            self.store.config = before
+            self.report_error("操作回应规则保存失败：" + str(exc))
+            return False
 
     def load_tts(self):
         self.provider_cache = copy.deepcopy(self.store.config.get("tts_providers", {}))

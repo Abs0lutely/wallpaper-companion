@@ -90,10 +90,12 @@ def new_profile(name="新的壁纸配置", wallpaper="") -> dict:
 
 
 def defaults() -> dict:
+    from .operation_rules import default_rules
     we_dir, workshop_dir = discover_wallpaper_engine()
     return dict(version=4, we_dir=we_dir, workshop_dir=workshop_dir, library_roots=[], library_backend="wallpaper_engine", ffprobe="",
                 monitor=0, poll_seconds=4, manual_profile="", profiles=[], hover_help=True, shared_asset_dir="",
                 operation_voice_enabled=True, operation_voice_dir="",
+                operation_voice_rules=default_rules(), operation_voice_min_interval=1.2,
                 appearance=dict(background="", accent="#edb2c4", auto_color=True),
                 wallpaper_backend="wallpaper_engine", audio_backend="qt", input_backend="pynput",
                 enabled_plugins=[], tts_provider="gpt_sovits", tts_providers={}, tts_characters=[], tts_character="", audio_detector="builtin",
@@ -113,6 +115,9 @@ class Store:
                 self.config.update(saved)
                 if not isinstance(self.config["operation_voice_enabled"], bool) or not isinstance(self.config["operation_voice_dir"], str):
                     raise ValueError("操作语音开关必须是布尔值，目录必须是文本")
+                from .operation_rules import config_payload
+                self.config["operation_voice_rules"] = config_payload(self.config)["rules"]
+                self.config["operation_voice_min_interval"] = config_payload(self.config)["min_interval"]
                 from .characters import normalize_characters
                 self.config["tts_characters"] = normalize_characters(self.config["tts_characters"])
                 from .appearance import normalize_appearance

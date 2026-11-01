@@ -31,16 +31,19 @@ def classify_button(button):
     return "click"
 
 
-def scan_clips(roots):
+def scan_clips(roots, rules=None):
+    from .operation_rules import default_rules
     result = {event: [] for event in EVENT_LINES}
-    for event, (category, lines) in EVENT_LINES.items():
-        stems = {Path(filename_for(line)).stem.casefold() for line in lines}
+    category_stems = {category: {Path(filename_for(line)).stem.casefold() for line in lines} for category, lines in EVENT_LINES.values()}
+    for rule in rules if rules is not None else default_rules():
+        event, category = rule["event"], rule["category"]
+        stems = category_stems.get(category)
         for root in roots:
             folder = Path(root) / category
             if not folder.is_dir():
                 continue
             try:
-                paths = [str(p) for p in folder.iterdir() if p.is_file() and p.suffix.casefold() in AUDIO_EXTENSIONS and p.stem.casefold() in stems]
+                paths = [str(p) for p in folder.iterdir() if p.is_file() and p.suffix.casefold() in AUDIO_EXTENSIONS and (stems is None or p.stem.casefold() in stems)]
             except OSError:
                 paths = []
             if paths:
@@ -57,6 +60,8 @@ class OperationVoices(QObject):
         self.widgets = {}
         self.clips = {}
         self.last_play = -100.0
+        self.last_events = {}
+        self.rules = {}
         self.last_scan = -100.0
         self.scanning = False
         self.refresh_pending = False
@@ -121,6 +126,9 @@ class OperationVoices(QObject):
             self.refresh_pending = True
             return
         from .assets import shared_root
+        from .operation_rules import config_payload
+        rules = config_payload(self.w.store.config)["rules"]
+        self.rules = {rule["event"]: rule for rule in rules}
         roots = [self.w.store.config.get("operation_voice_dir", ""), self.w.voice_dir.text().strip(),
                  shared_root(self.w.store) / "voice", ROOT / "examples/audio/operation-voice"]
         roots = [str(r) for r in roots if str(r).strip()]
@@ -133,7 +141,7 @@ class OperationVoices(QObject):
             if self.refresh_pending:
                 self.refresh_pending = False
                 self.refresh()
-        self.w.submit(lambda: scan_clips(roots), ready, lambda error: self.scan_failed(error))
+        self.w.submit(lambda: scan_clips(roots, rules), ready, lambda error: self.scan_failed(error))
 
     def scan_failed(self, error):
         self.scanning = False
@@ -153,7 +161,11 @@ class OperationVoices(QObject):
         w = self.w
         if self.closed or not w.isVisible() or not w.store.config.get("operation_voice_enabled", True) or w.paused or w.fullscreen or w.audio.busy:
             return
-        if time.monotonic() - self.last_play < 1.2:
+        rule = self.rules.get(event)
+        if not rule or not rule["enabled"]:
+            return
+        now = time.monotonic()
+        if now - self.last_play < w.store.config.get("operation_voice_min_interval", 1.2) or now - self.last_events.get(event, -100.0) < rule["cooldown"]:
             return
         files = self.clips.get(event) or []
         if not files:
@@ -161,6 +173,7 @@ class OperationVoices(QObject):
         self.source = random.choice(files)
         if Path(self.source).is_file():
             self.last_play = time.monotonic()
+            self.last_events[event] = self.last_play
             w.audio.play_voice(self.source)
 
     def close(self):

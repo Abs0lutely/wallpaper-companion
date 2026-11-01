@@ -13,6 +13,8 @@ from PySide6.QtWidgets import QApplication, QPushButton
 from companion.action_lines import EVENT_LINES
 from companion.core import ROOT, Store, filename_for
 from companion.ui import Window
+from companion.operation_rules_ui import OperationRulesDialog
+from companion.operation_rules import config_payload
 import shiboken6
 
 app = QApplication([]); app.setQuitOnLastWindowClosed(False)
@@ -56,6 +58,20 @@ with tempfile.TemporaryDirectory(dir=output) as tmp, patch("companion.managed_ap
         before = len(w.edit_dialogues); w.add_operation_dialogues(); w.add_operation_dialogues()
         report["operation_texts_import_once_without_forced_selection"] = len(w.edit_dialogues) == before + 52 and not w.selected_dialogues()
         report["no_api_started_or_synthesis_requested"] = not api.start.called and not api.ensure.called and not api.synthesize.called
+        wallpaper_rules_before = [dict(r) for r in w.edit_rules]
+        dialog = OperationRulesDialog(w)
+        save_row = next(i for i,r in enumerate(dialog.payload["rules"]) if r["event"] == "save")
+        from PySide6.QtCore import Qt
+        dialog.table.item(save_row,0).setCheckState(Qt.CheckState.Unchecked)
+        dialog.table.cellWidget(save_row,3).setValue(22)
+        dialog.accept()
+        report["dedicated_operation_rules_persist_separately"] = w.apply_operation_rules(dialog.result_payload) and w.edit_rules == wallpaper_rules_before and next(r for r in Store(store.path).config["operation_voice_rules"] if r["event"]=="save")["cooldown"] == 22
+        wait(lambda:not w.operation_voices.scanning)
+        w.audio.voice.stop(); wait(lambda:not w.audio.busy); w.operation_voices.last_play=-100
+        with patch.object(w.audio,"play_voice") as played:
+            w.operation_voices.request("save")
+            report["per_action_disable_is_enforced"] = not played.called
+        dialog.deleteLater()
         w.tabs.setCurrentIndex(3); app.processEvents()
         w.grab().save(str(output / "operation-voice-settings.png"))
     finally:
