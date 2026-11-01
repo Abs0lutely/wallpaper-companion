@@ -67,9 +67,18 @@ class RuleDialog(QDialog):
         for title, value in [("从语音总目录随机选取", "all"), ("选择台词分类 / 子目录", "category"), ("自选文件或文件夹", "custom")]:
             self.source_mode.addItem(title, value)
         self.source_category = QComboBox()
-        self.source_category.setEditable(True)
-        from .dialogues import CATEGORIES
-        categories = list(dict.fromkeys([*CATEGORIES, *(e["category"] for e in getattr(parent, "edit_dialogues", []))]))
+        self.source_category.setEditable(False)
+        from .dialogues import starter_dialogues
+        categories = list(dict.fromkeys(e["category"] for e in getattr(parent, "edit_dialogues", starter_dialogues())))
+        from pathlib import Path
+        voice_root = getattr(parent, "voice_dir", None)
+        if voice_root and voice_root.text().strip():
+            try:
+                categories.extend(p.name for p in Path(voice_root.text()).iterdir() if p.is_dir() and p.name not in categories)
+            except OSError:
+                pass
+        if r["source"] and not any(c in r["source"] for c in "/\\:") and r["source"] not in categories:
+            categories.append(r["source"])  # Preserve a legacy category whose library is not loaded.
         self.source_category.addItems(categories)
         self.source = QLineEdit(r["source"])
         self.custom_source = row(path_field(self.source), button("选音频文件…", self.choose_file))
@@ -222,7 +231,7 @@ class RuleDialog(QDialog):
             if source_mode == "category":
                 from .presets import relative_source
                 if not source:
-                    raise ValueError("请选择或填写一个台词分类")
+                    raise ValueError("请先在台词库添加分类，或选择自选文件/文件夹")
                 source = relative_source(source)
             start = end = "00:00"
             if event == "random":
