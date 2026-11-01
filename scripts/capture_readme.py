@@ -28,9 +28,10 @@ destination.mkdir(exist_ok=True)
 store = Store(root / "data/config.json")
 profile = new_profile("雨落在窗边 · 演示")
 profile.update(dialogues=json.loads((ROOT / "examples/dialogues/heartfelt-zh-CN.json").read_text(encoding="utf-8")),
-               rules=dialogue_rules(), bgm_enabled=False, original_audio_policy="allow")
+               rules=dialogue_rules(), bgm_enabled=True, original_audio_policy="allow")
 profile = attach_resources(profile, root / "shared")
-store.config.update(profiles=[profile], manual_profile=profile["id"], we_dir="", workshop_dir="", hover_help=False)
+store.config.update(profiles=[profile], manual_profile=profile["id"], we_dir="", workshop_dir="", hover_help=False,
+                    operation_voice_enabled=False)
 store.save()
 app = QApplication([]); app.setQuitOnLastWindowClosed(False)
 app.setStyle("Fusion"); app.setStyleSheet(STYLE)
