@@ -47,6 +47,15 @@ with patch("companion.managed_api.api") as api, patch("companion.secrets.read_se
         report["save_has_visible_feedback"] = "已保存" in w.tts_status.text() and store.path.exists()
         w.use_voice_dir()
         report["directory_button_has_feedback_and_shared_fallback"] = w.tts_output.text() == str(shared_root(store) / "voice") and "目录已切换" in w.tts_status.text()
+        import wave
+        reference = Path(fixture.name) / "参考.wav"
+        with wave.open(str(reference), "wb") as sound:
+            sound.setparams((1, 2, 16000, 0, "NONE", "not compressed")); sound.writeframes(b"\x01\x00" * 16000)
+        w.provider_widgets["reference"].setText(str(reference))
+        w.reference_preview_button.click()
+        wait(lambda: w.audio.busy)
+        report["reference_preview_without_api"] = w.audio.voice.source().toLocalFile() == str(reference).replace("\\", "/") and not api.start.called and not api.synthesize.called
+        w.audio.voice.stop()
         provider = w.registry.speech["gpt_sovits"]
         def disconnected(_): raise requests.ConnectionError("HTTPConnectionPool fixture refused")
         provider.check = disconnected

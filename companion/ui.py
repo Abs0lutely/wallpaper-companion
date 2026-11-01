@@ -215,6 +215,8 @@ class Window(LibraryMixin, DialogueMixin, AudioLibraryMixin, CharacterMixin, Spe
         self.check_api_button = button("检测连接", self.check_api)
         layout.addWidget(row(button("保存接口设置", self.save_tts), self.check_api_button,
                              self.start_api_button, button("使用当前配置的语音目录", self.use_voice_dir)))
+        self.reference_preview_button = button("播放参考音频", self.preview_reference_audio)
+        layout.addWidget(self.reference_preview_button)
         layout.addWidget(hint("每行一条台词，按台词保存 WAV，重名自动编号。密钥保存到系统凭据管理器；切换服务可分别保存设置。"))
         self.lines = QPlainTextEdit()
         self.lines.setPlaceholderText("欢迎回来。\n今天也辛苦了。\n早上好，新的一天开始啦。")
@@ -1056,6 +1058,18 @@ class Window(LibraryMixin, DialogueMixin, AudioLibraryMixin, CharacterMixin, Spe
             return
         self.tts_output.setText(value)
         self.api_message("生成保存目录已切换为：" + value)
+
+    def preview_reference_audio(self):
+        try:
+            from .core import AUDIO_EXTENSIONS
+            value = str(self.tts_settings().get("reference", "")).strip()
+            path = Path(value)
+            if not value or not path.is_file() or path.suffix.lower() not in AUDIO_EXTENSIONS:
+                raise ValueError("请先选择有效的参考音频文件。试听不会启动 API。")
+            self.preview([path])
+            self.api_message("正在试听参考音频：" + path.name)
+        except Exception as exc:
+            self.report_error(str(exc))
 
     def update_api_controls(self):
         from .managed_api import api
