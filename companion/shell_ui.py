@@ -238,6 +238,7 @@ class CompanionShellMixin:
     def build_player(self, outer):
         from .ui import button, hint
         player = QFrame()
+        self.player_container = player
         player.setObjectName("player")
         layout = QHBoxLayout(player)
         layout.setContentsMargins(22, 12, 22, 12)
@@ -281,6 +282,9 @@ class CompanionShellMixin:
         outer.addWidget(player)
         if hasattr(self.audio, "bgm"):
             self.audio.bgm.playbackStateChanged.connect(lambda _: self.refresh_shell())
+            self.audio.bgm.metaDataChanged.connect(self.refresh_album_art)
+            self.audio.bgm.sourceChanged.connect(lambda _: self.refresh_album_art(clear=True))
+            self.audio.bgm.mediaStatusChanged.connect(lambda _: self.refresh_album_art())
 
     def show_home_section(self, section):
         if section == 1:
@@ -332,6 +336,9 @@ class CompanionShellMixin:
         self.profile_picker.blockSignals(False)
         active = self.store.profile(self.active_id)
         editing = self.store.profile(self.editing_id)
+        display = editing if editing and (not active or editing["id"] == active["id"]) else active
+        self.player_container.setVisible(bool(display and display.get("bgm_enabled", True)))
+        self.bgm_pause_button.setVisible(bool(display and display.get("bgm_enabled", True)))
         if editing and active and editing["id"] != active["id"]:
             context = f"正在编辑：{editing['name']}  ·  当前播放：{active['name']}"
         elif editing:
@@ -372,6 +379,48 @@ class CompanionShellMixin:
             self.player_volume.setValue(value)
             self.player_volume.blockSignals(False)
             self._label(self.player_volume_label, f"BGM {value}%")
+
+    def refresh_album_art(self, clear=False):
+        from PySide6.QtMultimedia import QMediaMetaData
+        from PySide6.QtGui import QImageReader
+        image = QImage()
+        if not clear and hasattr(self.audio, "bgm"):
+            metadata = self.audio.bgm.metaData()
+            for key in (QMediaMetaData.Key.CoverArtImage, QMediaMetaData.Key.ThumbnailImage):
+                candidate = metadata.value(key)
+                if isinstance(candidate, QPixmap):
+                    candidate = candidate.toImage()
+                if isinstance(candidate, QImage) and not candidate.isNull():
+                    image = candidate
+                    break
+            track = self.audio.bgm.source().toLocalFile()
+            if image.isNull() and track:
+                for name in ("cover.jpg", "cover.png", "folder.jpg", "folder.png"):
+                    path = Path(track).parent / name
+                    if path.is_file() and path.stat().st_size <= 8 * 1024 * 1024:
+                        reader = QImageReader(str(path))
+                        size = reader.size()
+                        if size.isValid():
+                            reader.setScaledSize(size.scaled(256, 256, Qt.AspectRatioMode.KeepAspectRatio))
+                            image = reader.read()
+                        if not image.isNull():
+                            break
+        if image.isNull():
+            self.album_art.clear(); self.album_art.setText("♫")
+        else:
+            pixmap = QPixmap.fromImage(image).scaled(44, 44, Qt.AspectRatioMode.KeepAspectRatioByExpanding,
+                                                    Qt.TransformationMode.SmoothTransformation)
+            self.album_art.setPixmap(pixmap.copy((pixmap.width()-44)//2, (pixmap.height()-44)//2, 44, 44))
+
+    def bgm_enabled_changed(self, enabled):
+        if not self.editing_id or not hasattr(self, "autosave") or self.autosave.busy:
+            return
+        if self.autosave.flush():
+            self.refresh_shell()
+        else:
+            self.bgm_enabled.blockSignals(True)
+            self.bgm_enabled.setChecked(self.store.profile(self.editing_id).get("bgm_enabled", True))
+            self.bgm_enabled.blockSignals(False)
 
     def preview_player_volume(self, value):
         active = self.store.profile(self.active_id)
@@ -444,12 +493,7 @@ class CompanionShellMixin:
         target = background_path(self.store, settings)
         image = image if image is not None else QImage(str(target)) if target and target.is_file() else QImage()
         self.hero.set_image(image)
-        if not image.isNull():
-            self.album_art.setPixmap(QPixmap.fromImage(image).scaled(44, 44, Qt.AspectRatioMode.KeepAspectRatioByExpanding,
-                                                                    Qt.TransformationMode.SmoothTransformation).copy(0, 0, 44, 44))
-        else:
-            self.album_art.clear()
-            self.album_art.setText("♫")
+        self.refresh_album_art()
         self.auto_color.blockSignals(True)
         self.auto_color.setChecked(settings["auto_color"])
         self.auto_color.blockSignals(False)

@@ -168,6 +168,7 @@ class Window(LibraryMixin, DialogueMixin, AudioLibraryMixin, CharacterMixin, Spe
         self.hover_help = HoverHelp(self)
         from .autosave import Autosave
         self.autosave = Autosave(self)
+        self.bgm_enabled.toggled.connect(self.bgm_enabled_changed)
         for error in self.registry.errors:
             self.log("扩展加载失败：" + error)
         self.audio.changed.connect(self.refresh_status)
@@ -484,7 +485,9 @@ class Window(LibraryMixin, DialogueMixin, AudioLibraryMixin, CharacterMixin, Spe
         self.original_audio_override.setCurrentIndex(max(0, self.original_audio_override.findData(p.get("original_audio_override", "auto"))))
         for widget, key in [(self.profile_enabled, "enabled"), (self.desktop_only, "desktop_only"),
                             (self.fullscreen_mute, "fullscreen_mute"), (self.bgm_enabled, "bgm_enabled"), (self.shuffle, "bgm_shuffle")]:
+            widget.blockSignals(True)
             widget.setChecked(p.get(key, True))
+            widget.blockSignals(False)
         for widget, key in [(self.voice_volume, "voice_volume"), (self.bgm_volume, "bgm_volume"),
                             (self.duck, "duck_percent"), (self.global_cooldown, "global_cooldown")]:
             widget.blockSignals(True)

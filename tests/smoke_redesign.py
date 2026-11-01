@@ -105,8 +105,8 @@ with tempfile.TemporaryDirectory(dir=output) as tmp, \
         from PySide6.QtWidgets import QMessageBox
         with patch.object(QMessageBox, "question", return_value=QMessageBox.StandardButton.No):
             w.profile_picker.setCurrentIndex(1)
-        report["canceled_profile_switch_restores_picker"] = w.editing_id == active["id"] and w.profile_picker.currentData() == active["id"]
-        w.profile_name.setText(active["name"])
+        report["profile_switch_autosaves_and_updates_picker"] = w.editing_id != active["id"] and w.profile_picker.currentData() == w.editing_id and Store(store.path).profile(active["id"])["name"] == "未保存的名称"
+        w.profile_name.setText(store.profile(w.editing_id)["name"])
         w.resize(1100, 780); app.processEvents()
         report["long_pages_do_not_force_oversized_window"] = w.width() <= 1100 and w.height() <= 780
         w.resize(1280, 900); app.processEvents()
