@@ -4,7 +4,7 @@ import random
 from pathlib import Path
 
 from PySide6.QtCore import QObject, QTimer, QUrl, Signal
-from PySide6.QtMultimedia import QAudioOutput, QMediaPlayer
+from PySide6.QtMultimedia import QAudioOutput, QMediaDevices, QMediaPlayer
 
 from .core import audio_files
 
@@ -21,6 +21,11 @@ class Audio(QObject):
         self.bgm = QMediaPlayer(self)
         self.voice.setAudioOutput(self.voice_output)
         self.bgm.setAudioOutput(self.bgm_output)
+        # QAudioOutput can retain the endpoint chosen when it was created.
+        # Keep the monitor alive, including while the window is in the tray.
+        self.media_devices = QMediaDevices(self)
+        self.media_devices.audioOutputsChanged.connect(self.sync_output_device)
+        self.sync_output_device()
         self.profile = None
         self.paused = False
         self.bgm_paused = False
@@ -36,6 +41,16 @@ class Audio(QObject):
     @property
     def busy(self):
         return self.voice.playbackState() == QMediaPlayer.PlaybackState.PlayingState or self.voice.mediaStatus() == QMediaPlayer.MediaStatus.LoadingMedia
+
+    def sync_output_device(self):
+        device = QMediaDevices.defaultAudioOutput()
+        # With no endpoint (e.g. during Bluetooth reconnection), wait for the
+        # next notification. Do not restart players or change pause/volume.
+        if device.isNull():
+            return
+        for output in (self.voice_output, self.bgm_output):
+            if output.device().id() != device.id():
+                output.setDevice(device)
 
     def set_profile(self, profile):
         self.stop()
@@ -53,6 +68,7 @@ class Audio(QObject):
                     and not self.paused and not self.bgm_paused and not self.bgm_blocked)
 
     def sync_bgm(self):
+        self.sync_output_device()
         if not self.bgm_allowed():
             self.bgm.pause()
         elif self.bgm.source().isEmpty() or self.bgm.mediaStatus() == QMediaPlayer.MediaStatus.EndOfMedia:
@@ -76,6 +92,7 @@ class Audio(QObject):
         self.bgm_output.setVolume(p.get("bgm_volume", 25) / 100 * duck)
 
     def play_voice(self, path):
+        self.sync_output_device()
         self.voice.stop()
         self.voice.setSource(QUrl.fromLocalFile(str(Path(path).resolve())))
         self.voice.play()
@@ -88,6 +105,7 @@ class Audio(QObject):
     def next_bgm(self):
         if not self.bgm_allowed():
             return
+        self.sync_output_device()
         self.files = audio_files(self.profile.get("bgm_dir", ""))
         available = [p for p in self.files if str(p) not in self.failed]
         if not available:

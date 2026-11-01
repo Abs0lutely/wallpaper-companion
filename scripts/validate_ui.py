@@ -30,6 +30,7 @@ SMOKES = (
     "smoke_duplicate_generation.py",
     "smoke_audio_scopes.py",
     "smoke_bundled_audio.py",
+    "smoke_output_device.py",
 )
 
 

@@ -2,6 +2,12 @@
 
 此文件描述可公开的源码状态，不包含开发者本机配置和路径。
 
+## 系统默认音频输出切换修复（本地，未推送）
+
+`companion/audio.py` 原先只在创建播放器时初始化 `QAudioOutput`，未处理 Windows 默认输出变更。现在持有 `QMediaDevices` 并监听 `audioOutputsChanged`，将语音与 BGM 输出同步到当前 `defaultAudioOutput`；播放语音、切歌和恢复 BGM 前再次核对。只对设备 ID 改变的输出调用 `setDevice`，不重建播放器、不重置媒体源、音量或暂停状态；默认设备暂不可用时等待后续通知。托盘隐藏不影响该监听。Qt 接口依据见 https://doc.qt.io/qt-6/qmediadevices.html 和 https://doc.qt.io/qt-6/qaudiooutput.html 。
+
+新增 `tests/smoke_output_device.py` 并接入 `scripts/validate_ui.py`：在隔离临时目录创建静音 WAV，仅对测试播放器使用本机两个真实输出端点，以模拟默认设备查询/通知验证播放中切换、切回、进度/音量保留、BGM 暂停保留、暂时无设备和播放前补校验。没有更改 Windows 默认设置，没有操作用户运行中的应用/API。报告 `output/smoke-output-device.json` 五项通过；音频控制和操作回应原生回归通过，110 项单元测试通过，compileall 与 diff 检查通过。首次新增测试在加载后立即清理时超时，测试增加等待播放进度后通过；首次单元测试受沙箱权限/子进程限制失败，改在批准的环境中使用同一隔离验证入口重跑通过。尚未人工点击 Windows 小喇叭端到端听评，不把模拟通知测试记为该实机操作已验证。仍只本地提交，未打包、替换已安装程序或推送。
+
 ## 最新图标更新（本地，未打包/推送）
 
 用户要求将二次元少女及项目意象结合，并最终提供粉发、樱花、玫瑰金耳机、夕阳的画面作为参考。已用内置 imagegen 基于该参考重绘头像式应用图标，采用 `readme-assets/app-icon.png`（1254×1254，透明外角）和 `readme-assets/app-icon.ico`（16/20/24/32/40/48/64/128/256 九档 PNG 帧）；只有最终采用图进入项目，原参考图与未采用候选不分发。完整提示词见 `readme-assets/app-icon-design.md`。
