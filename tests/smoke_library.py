@@ -43,17 +43,24 @@ def run_checks():
         app.processEvents()
         assert w.grab().save(str(output / "wallpaper-library.png"))
         report["starter_dialogues_loaded"] = len(w.edit_dialogues) == 38
+        report["generation_starts_unselected"] = not w.selected_dialogues()
+        w.select_dialogues("all")
         w.edit_dialogues[0]["text"] = "用户自己修改的台词。"
         w.render_dialogues()
         w.dialogue_table.item(1, 0).setCheckState(Qt.CheckState.Unchecked)
         report["save_dialogues"] = w.save_profile()
         loaded = Store(store.path).profile(w.editing_id)
-        report["dialogue_edits_persist"] = loaded["dialogues"][0]["text"] == "用户自己修改的台词。" and not loaded["dialogues"][1]["enabled"]
+        report["dialogue_edits_persist"] = loaded["dialogues"][0]["text"] == "用户自己修改的台词。" and loaded["dialogues"][1]["enabled"]
         w.tabs.setCurrentIndex(w.dialogue_tab_index)
         app.processEvents()
         assert w.grab().save(str(output / "dialogue-library.png"))
         w.send_dialogues_to_tts()
         report["dialogues_sent_to_generation"] = len(w.lines.toPlainText().splitlines()) == 37 and "用户自己修改" in w.lines.toPlainText()
+        w.dialogue_category_choice.setCurrentText("早晨")
+        w.select_dialogues("category")
+        report["category_selection_only"] = len(w.selected_dialogues()) == 6 and all(e["category"] == "早晨" for e in w.selected_dialogues())
+        w.select_dialogues("none")
+        report["clear_generation_selection"] = not w.selected_dialogues()
         w.library_search.setText("星空")
         w.check_library(False)
         report["filter_preserves_hidden_checks"] = len(w.checked_wallpapers()) == 1

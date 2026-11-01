@@ -286,6 +286,10 @@ class DialogueMixin:
         self.dialogue_table.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
         self.dialogue_table.cellDoubleClicked.connect(lambda r, c: self.edit_dialogue())
         layout.addWidget(self.dialogue_table, 1)
+        self.dialogue_category_choice = QComboBox()
+        layout.addWidget(row(button("全选台词", lambda: self.select_dialogues("all")),
+                             button("全不选台词", lambda: self.select_dialogues("none")),
+                             self.dialogue_category_choice, button("选择此分类", lambda: self.select_dialogues("category"))))
         layout.addWidget(row(button("＋ 新台词", self.add_dialogue), button("编辑", self.edit_dialogue), button("删除", self.delete_dialogues),
                              button("补充默认台词", self.add_starter_dialogues), button("保存台词库", self.save_dialogue_library, True)))
         self.skip_existing_dialogue_audio = QCheckBox("生成时跳过已存在的同名音频")
@@ -329,23 +333,39 @@ class DialogueMixin:
             return False
 
     def collect_dialogues(self):
-        for i, entry in enumerate(self.edit_dialogues):
-            entry["enabled"] = self.dialogue_table.item(i, 0).checkState() == Qt.CheckState.Checked
         return copy.deepcopy(self.edit_dialogues)
 
+    def select_dialogues(self, mode):
+        category = self.dialogue_category_choice.currentText()
+        for i, entry in enumerate(self.edit_dialogues):
+            selected = mode == "all" or mode == "category" and entry["category"] == category
+            self.dialogue_table.item(i, 0).setCheckState(Qt.CheckState.Checked if selected else Qt.CheckState.Unchecked)
+        self.log(f"本次生成已选择 {len(self.selected_dialogues())} 条台词；勾选不改变台词库内容。")
+
     def render_dialogues(self):
+        scope_id = self.editing_id or "shared"
+        selected = {self.dialogue_table.item(i, 0).data(Qt.ItemDataRole.UserRole)
+                    for i in range(self.dialogue_table.rowCount()) if self.dialogue_table.item(i, 0) and self.dialogue_table.item(i, 0).checkState() == Qt.CheckState.Checked}
+        if getattr(self, "dialogue_selection_scope", None) != scope_id:
+            selected = set()
+        self.dialogue_selection_scope = scope_id
         scope = "壁纸台词库：" + self.profile_name.text() if self.editing_id else "共享台词库（无需先绑定壁纸）"
         self.dialogue_context.setText(f"{scope} · {len(self.edit_dialogues)} 条；修改后点击保存台词库。")
         self.dialogue_table.setRowCount(len(self.edit_dialogues))
         for i, entry in enumerate(self.edit_dialogues):
             check = QTableWidgetItem()
             check.setFlags(Qt.ItemFlag.ItemIsEnabled | Qt.ItemFlag.ItemIsUserCheckable | Qt.ItemFlag.ItemIsSelectable)
-            check.setCheckState(Qt.CheckState.Checked if entry["enabled"] else Qt.CheckState.Unchecked)
+            check.setData(Qt.ItemDataRole.UserRole, entry["id"])
+            check.setCheckState(Qt.CheckState.Checked if entry["id"] in selected else Qt.CheckState.Unchecked)
             self.dialogue_table.setItem(i, 0, check)
             for j, key in enumerate(["category", "text"], 1):
                 item = QTableWidgetItem(entry[key])
                 item.setToolTip(entry[key])
                 self.dialogue_table.setItem(i, j, item)
+        previous = self.dialogue_category_choice.currentText()
+        self.dialogue_category_choice.clear()
+        self.dialogue_category_choice.addItems(list(dict.fromkeys(e["category"] for e in self.edit_dialogues)))
+        self.dialogue_category_choice.setCurrentText(previous)
 
     def add_dialogue(self):
         self.collect_dialogues()
@@ -382,7 +402,8 @@ class DialogueMixin:
         self.dialogue_context.setText(f"已补充 {added} 条默认台词，请保存台词库。" if added else "默认台词已齐全，无需重复添加。")
 
     def selected_dialogues(self):
-        return [entry for entry in normalize_dialogues(self.collect_dialogues()) if entry["enabled"]]
+        return [{**entry, "enabled": True} for i, entry in enumerate(normalize_dialogues(self.collect_dialogues()))
+                if self.dialogue_table.item(i, 0).checkState() == Qt.CheckState.Checked]
 
     def send_dialogues_to_tts(self):
         lines = self.selected_dialogues()
