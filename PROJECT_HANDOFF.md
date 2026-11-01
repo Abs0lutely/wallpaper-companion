@@ -2,6 +2,20 @@
 
 此文件描述可公开的源码状态，不包含开发者本机配置和路径。
 
+## 中英文界面（本地开发，2026-11-01，未推送 / 未打包）
+
+分支 `feature/interface-language` 基于 main `6325a3c`，首阶段提交 `1214d73`（语言设置及配置兼容）、第二阶段 `c482e09`（全界面翻译）。本轮不合并 main、不推送、不升级发行版本、不制作或替换安装包。当前已发布 v0.9.0 二进制不包含本次改动。
+
+新增 `companion/i18n.py` 和 `companion/translations_en.py`：稳定键、中文回退和命名格式参数；英文词典以 Python 模块随程序自动携带，不需网络翻译服务。`main.py` 读取 Store 后确定语言，再导入 / 创建界面并安装 Qt 标准按钮翻译。`packaging/wallpaper-companion.spec` 显式携带 `qtbase_zh_CN.qm`；本轮未制作实际包。
+
+`core.py` 配置新增 `ui_language`（`zh-CN` / `en-US`），缺失或非法值回退中文且保留其他配置。`ui.py` 的运行设置提供双语语言选择；接入 `autosave.py` 的切页保存、撤销、失败回退、恢复默认。修改仅在下次启动生效；保存通知和设置页会明确提示，不自动退出。关闭窗口留在托盘不算重启。恢复默认选中文，同样下次启动生效。
+
+已覆盖内置页面、规则 / 角色 / 资源 / 导入对话框、悬停说明、托盘、文件选择器标题、进度、通知、内置提供方参数与自身验证错误。业务仍用原 ID；`operation_voices.py` 将内置英文按钮标题映射回原语义以保持事件识别，操作规则动作列独立翻译。现有配置名、规则名、台词、分类目录、模型标签和文件名均不迁移，不切换配音或自动导入英语台词。中文分类出现在英文界面属于用户 / 资源数据。插件原文、外部 API 原始错误、历史日志及手册正文不自动翻译。长表单标签支持换行，英文侧栏加宽。
+
+验证：`scripts/validate_ui.py` 全部通过（119 项单元 / 协议测试、23 个原生流程）。新增 `tests/test_i18n.py` 覆盖旧配置、非法值、保存重载、翻译回退、词典键 / 命名参数完整性及内容保持；`tests/smoke_i18n.py` 与 `tests/smoke_i18n_zh.py` 各 38 项检查通过，包括语言保存、切页自动保存提示、撤销、保存失败、恢复默认、动态弹窗、Qt 按钮、事件 ID、数据兼容及真实生成按钮驱动的模拟合成。两种语言使用独立进程；1180×840 和 1024×768 窗口、当前 150% DPI 已检查，截图在忽略目录 `output/i18n-*`，报告 `output/i18n-{en-US,zh-CN}-report.json`，总报告 `output/ui-validation/summary.json`。验证入口为每轮 `WALLPAPER_COMPANION_DATA` 使用唯一 data-UUID 目录，并持续审计测试路径和阻止现有 9880 服务访问。
+
+首轮新增单元测试中的函数名错误已修正；受限环境的系统回收站操作失败、界面测试超时，在获准环境使用同一隔离入口重跑后均通过。未调用真实 GPT-SoVITS / 云端合成，没有操作既有应用或语音服务。`compileall`、`pip check`、`git diff --check` 通过。下一步可由用户在源码版切换语言试用；如要求发布，再按既定流程合并、更新版本、推送及云端打包，另验证实际包中的语言资源。
+
 ## 默认台词日语 / 英语素材增补（2026-11-01）
 
 `examples/dialogues/starter-{ja-JP,en-US}.json/.txt` 各 38 条，逐条对应 `companion/dialogues.py`；`operation-{ja-JP,en-US}.json/.txt` 各 52 条，逐条对应 `companion/action_lines.py`。两种语言合计 180 条翻译，未更改原中文默认台词、默认配音、软件界面语言或用户数据。陪伴分类保持原名以兼容现有壁纸规则；操作分类加语言后缀，并提供 `examples/presets/operation-voice-rules-{ja-JP,en-US}.json`，避免内置中文文件名筛选排除翻译配音。使用方法及语言输出目录建议见 `examples/dialogues/TRANSLATIONS.md`（中文、英语及日语说明）。

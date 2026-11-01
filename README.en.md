@@ -20,7 +20,7 @@ A standalone Windows app for interactive voice clips, scheduled greetings, and f
 
 <img src="readme-assets/home.png" alt="Home: wallpaper profiles, voice and BGM volume controls, and music player" width="100%" />
 
-<sub>Actual app screenshot with disposable demo data. The app interface is currently primarily in Chinese; this README does not add an English UI.</sub>
+<sub>Actual app screenshot with disposable demo data. The interface supports Simplified Chinese and English. Change it in Settings → Runtime settings → Interface language, save, then exit from the tray and reopen. Screenshots below show the Chinese UI.</sub>
 
 </div>
 

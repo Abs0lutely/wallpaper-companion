@@ -1,5 +1,17 @@
 # 壁纸声伴：功能和输入框使用手册
 
+## 界面语言 / Interface language
+
+进入左侧“设置”，在“运行设置”的“界面语言 / Interface language”选择“简体中文”或“English”。点击“保存运行设置”，或切换到其他页面触发自动保存；提示会说明下次启动生效。请从托盘菜单选择“退出”，再打开程序，单纯关闭窗口留在托盘不会重新加载语言。修改语言不会自动退出、打断播放或取消生成。
+
+切页自动保存后可用提示中的“撤销”恢复上次语言选择；“恢复默认配置”会把语言恢复为中文，仍需下次启动生效。未设置语言的旧配置和无效语言值默认中文，不影响其他配置。
+
+English: Open **Settings → Runtime settings → Interface language / 界面语言**, choose **English**, then click **Save runtime settings** or leave the page to autosave. Use **Exit** in the system tray and open the app again. Closing the window only hides it in the tray; it does not apply the new language. **Undo** reverses the last automatic save. Restoring default settings selects Simplified Chinese for the next start.
+
+切换只影响内置界面、弹窗、托盘、悬停说明、进度和程序自身提示，不翻译用户保存的配置名、规则名、台词、分类、路径、音频或模型名，也不会切换语音模型、配音语言或导入英文台词。已有中文配音继续可用；需要英文配音时另行导入英文台词并生成。第三方插件文字、外部接口原始错误及旧日志保持原样。本文仍为中文说明。
+
+Interface language does not translate your profiles, rules, dialogues, categories, paths, filenames or models, and does not change speech language. Existing Chinese recordings remain available. To create English speech, import the English dialogue packs and generate it separately. Plugin text, raw external API errors and historical logs retain their original language; this manual remains primarily Chinese.
+
 ## 新界面导航与背景
 
 左侧进入陪伴主页、壁纸库、音频库、台词库、语音生成、设置和运行记录。原“声音与互动”中的播放参数在“陪伴主页 → 声音设置”，目录、名称、绑定和原音频防冲突策略在“资源与绑定”，互动规则在同一行的“互动规则”。其他页面的功能保持可用。
