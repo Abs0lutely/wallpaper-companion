@@ -28,6 +28,7 @@ from .library_ui import LibraryMixin, DialogueMixin
 from .audio_library_ui import AudioLibraryMixin
 from .characters_ui import CharacterMixin
 from .speech_ui import SpeechFeedbackMixin
+from .generation_ui import GenerationReviewMixin
 
 EVENTS = {
     "key": "快捷键", "mouse_left": "鼠标左键", "mouse_right": "鼠标右键", "mouse_middle": "鼠标中键",
@@ -103,7 +104,7 @@ def app_icon():
 from .rules_ui import RuleDialog
 
 
-class Window(LibraryMixin, DialogueMixin, AudioLibraryMixin, CharacterMixin, SpeechFeedbackMixin, CompanionShellMixin, QMainWindow):
+class Window(LibraryMixin, DialogueMixin, AudioLibraryMixin, CharacterMixin, SpeechFeedbackMixin, GenerationReviewMixin, CompanionShellMixin, QMainWindow):
     job_done = Signal(object, object, object)
     hook_event = Signal(str, str)
     progress = Signal(str)
@@ -216,6 +217,11 @@ class Window(LibraryMixin, DialogueMixin, AudioLibraryMixin, CharacterMixin, Spe
         layout.addWidget(provider_scroll, 2)
         self.tts_output = QLineEdit()
         layout.addWidget(row(QLabel("生成保存目录"), path_field(self.tts_output)))
+        self.skip_existing_tts_audio = QCheckBox("生成前检查重复音频，默认跳过同名文件")
+        self.skip_existing_tts_audio.setChecked(True)
+        layout.addWidget(self.skip_existing_tts_audio)
+        self.transferred_dialogues = None
+        self.transferred_lines = ""
         self.start_api_button = button("启动本地 API", self.launch_api)
         self.check_api_button = button("检测连接", self.check_api)
         layout.addWidget(row(button("保存接口设置", self.save_tts), self.check_api_button,
@@ -1296,14 +1302,8 @@ class Window(LibraryMixin, DialogueMixin, AudioLibraryMixin, CharacterMixin, Spe
         except Exception as exc:
             self.report_error(str(exc))
             return
-        self.tts_busy = True
-        self.update_api_controls()
-        self.begin_generation(len(lines))
-        self.generation_cancel.clear()
-        self.generate_button.setEnabled(False)
-        self.tts_status.setText(f"正在生成 {len(lines)} 条语音，请稍候…")
-        protected = self.store.protected()
-        self.submit(lambda: generate(settings, lines, output, protected, self.progress.emit, provider, self.generation_cancel, status=self.generation_state.emit), self.generated, self.generation_error)
+        entries = self.transferred_dialogues if self.lines.toPlainText() == self.transferred_lines else None
+        self.begin_generation_review(lines, output, settings, provider, self.skip_existing_tts_audio.isChecked(), entries)
 
     def generated(self, paths):
         self.tts_busy = False
@@ -1312,7 +1312,8 @@ class Window(LibraryMixin, DialogueMixin, AudioLibraryMixin, CharacterMixin, Spe
             self.operation_voices.request("complete")
         self.update_api_controls()
         self.generate_button.setEnabled(True)
-        self.tts_status.setText(f"已保存 {len(paths)} 条语音。放在绑定目录中的文件会自动加入播放候选。")
+        skipped = max(0, getattr(self, "pending_generation_total", len(paths)) - len(paths))
+        self.tts_status.setText(f"已保存 {len(paths)} 条语音，跳过 {skipped} 条已有或重复音频。")
         self.finish_generation_progress(True, self.tts_status.text())
         for path in paths:
             self.log("已生成：" + path)

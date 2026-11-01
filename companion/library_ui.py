@@ -300,6 +300,8 @@ class DialogueMixin:
                              button("补充默认台词", self.add_starter_dialogues), button("保存台词库", self.save_dialogue_library, True)))
         self.skip_existing_dialogue_audio = QCheckBox("生成时跳过已存在的同名音频")
         self.skip_existing_dialogue_audio.setChecked(True)
+        self.skip_existing_dialogue_audio.toggled.connect(self.skip_existing_tts_audio.setChecked)
+        self.skip_existing_tts_audio.toggled.connect(self.skip_existing_dialogue_audio.setChecked)
         layout.addWidget(self.skip_existing_dialogue_audio)
         layout.addWidget(row(button("将勾选台词送到生成页", self.send_dialogues_to_tts),
                              button("按分类生成勾选台词", self.generate_dialogue_library, True)))
@@ -455,12 +457,15 @@ class DialogueMixin:
             self.log("请先勾选需要生成的台词，可全选、全不选或按分类选择。")
             return
         self.lines.setPlainText("\n".join(entry["text"] for entry in lines))
+        self.transferred_dialogues = copy.deepcopy(lines)
+        self.transferred_lines = self.lines.toPlainText()
         if self.editing_id:
             self.use_voice_dir()
         else:
             from .assets import shared_root
             self.tts_output.setText(str(shared_root(self.store) / "voice"))
         self.tabs.setCurrentIndex(2)
+        self.tts_status.setText(f"已接收 {len(lines)} 条台词，保留分类及跳过同名设置。生成前会检查重复；修改文本后按普通逐行模式生成。")
 
     def install_dialogue_rules(self):
         if not self.editing_id:
@@ -523,14 +528,8 @@ class DialogueMixin:
         except Exception as exc:
             self.report_error(str(exc))
             return
-        self.tts_busy = True
-        self.update_api_controls()
-        self.begin_generation(len(entries))
-        self.generation_cancel.clear()
-        self.generate_button.setEnabled(False)
-        self.tts_status.setText(f"正在按分类生成 {len(entries)} 条台词…")
         self.tabs.setCurrentIndex(2)
-        self.submit(lambda: generate_dialogue_entries(settings, entries, folder, protected, self.progress.emit, provider, skip, self.generation_cancel, status=self.generation_state.emit), self.dialogue_generated, self.generation_error)
+        self.begin_generation_review([entry["text"] for entry in entries], folder, settings, provider, skip, entries)
 
     def dialogue_generated(self, result):
         self.generated(result["paths"])
