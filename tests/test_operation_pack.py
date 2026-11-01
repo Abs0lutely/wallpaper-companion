@@ -34,10 +34,10 @@ class OperationPackTests(unittest.TestCase):
                 require_pack(root)
 
     def test_one_variant_per_action_is_ready_but_not_complete(self):
-        with tempfile.TemporaryDirectory() as tmp:
+        with tempfile.TemporaryDirectory(dir=ROOT / "output") as tmp:
             root=Path(tmp)
             for e in operation_dialogues()[::2]:
-                p=root/e["category"]/filename_for(e["text"]); p.parent.mkdir()
+                p=root/e["category"]/filename_for(e["text"],"模型标签"); p.parent.mkdir()
                 with wave.open(str(p),"wb") as f:
                     f.setparams((1,2,16000,0,"NONE","not compressed")); f.writeframes(b"\x01\x00"*1600)
             report=require_pack(root)

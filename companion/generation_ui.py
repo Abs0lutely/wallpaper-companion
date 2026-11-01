@@ -11,14 +11,14 @@ class GenerationReviewMixin:
         self.tts_busy = True; self.update_api_controls()
         self.generation_cancel.clear()
         self.begin_generation(len(lines))
-        self.tts_status.setText("正在检查输出目录中的同名音频，尚未调用语音服务…")
-        self.submit(lambda: generation_duplicates(lines, output, snapshot["protected"], snapshot["entries"]),
+        self.tts_status.setText("正在检查同名音频，尚未调用语音服务。文件模型标签：" + settings.get("_filename_model","未指定模型"))
+        self.submit(lambda: generation_duplicates(lines, output, snapshot["protected"], snapshot["entries"], settings.get("_filename_model")),
                     lambda duplicates: self.review_generation(duplicates, snapshot), self.generation_error)
 
-    def choose_duplicate_action(self, duplicates, total, skip):
+    def choose_duplicate_action(self, duplicates, total, skip, model_name=None):
         dialog = QMessageBox(self)
         dialog.setWindowTitle("发现同名音频")
-        dialog.setText(f"{total} 条待生成台词中，{len(duplicates)} 条已有同名音频或与本批次其他台词重名。\n请选择如何继续。原文件不会被覆盖。")
+        dialog.setText(f"{total} 条待生成台词中，{len(duplicates)} 条已有同名音频或与本批次其他台词重名。\n模型标签：{model_name or '未指定模型'}。对照当前模型及旧的无模型标签文件，其他模型单独保存。\n请选择如何继续。原文件不会被覆盖。")
         dialog.setDetailedText("\n".join((item["category"] + "/" if item["category"] else "") + item["text"] for item in duplicates))
         skip_button = dialog.addButton("跳过重复，生成其余", QMessageBox.ButtonRole.AcceptRole)
         all_button = dialog.addButton("全部生成，另存副本", QMessageBox.ButtonRole.ActionRole)
@@ -29,7 +29,7 @@ class GenerationReviewMixin:
         return "skip" if dialog.clickedButton() is skip_button else "all" if dialog.clickedButton() is all_button else "cancel"
 
     def review_generation(self, duplicates, snapshot):
-        action = self.choose_duplicate_action(duplicates, len(snapshot["lines"]), snapshot["skip"]) if duplicates else ("skip" if snapshot["skip"] else "all")
+        action = self.choose_duplicate_action(duplicates, len(snapshot["lines"]), snapshot["skip"], snapshot["settings"].get("_filename_model")) if duplicates else ("skip" if snapshot["skip"] else "all")
         if action == "cancel":
             self.tts_busy = False; self.update_api_controls()
             self.tts_status.setText("已取消生成，尚未调用语音服务。")

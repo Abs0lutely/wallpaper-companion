@@ -51,6 +51,13 @@ with tempfile.TemporaryDirectory(dir=output) as tmp, patch("companion.managed_ap
         w.tabs.setCurrentIndex(3); w.poll_seconds.setValue(11); w.tabs.setCurrentIndex(0)
         report["settings_navigation_autosave"] = Store(store.path).config["poll_seconds"] == 11
         report["settings_undo_updates_timer"] = w.autosave.undo() and w.poll_seconds.value() == 4 and w.poll.interval() == 4000
+        w.tabs.setCurrentIndex(2)
+        old_prompt=w.provider_widgets["prompt"].toPlainText()
+        w.provider_widgets["prompt"].setPlainText("仅用于测试的原文")
+        w.filename_model.setText("本次文件模型标签")
+        w.tabs.setCurrentIndex(0)
+        report["filename_model_and_provider_settings_autosave"] = Store(store.path).config["tts_filename_model"]=="本次文件模型标签" and Store(store.path).config["tts"]["prompt"]=="仅用于测试的原文"
+        report["tts_undo_restores_form_without_stale_cache_overwrite"] = w.autosave.undo() and w.filename_model.text()=="" and w.provider_widgets["prompt"].toPlainText()==old_prompt
         old = copy.deepcopy(store.config); disk = store.path.read_bytes()
         w.voice_dir.setText(str(Path(tmp) / "does-not-exist"))
         page = w.tabs.currentIndex(); w.tabs.setCurrentIndex(1)

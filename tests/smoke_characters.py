@@ -97,7 +97,9 @@ def initial():
 def generated(first, second):
     settings, text = api.synthesize.call_args.args
     report["generate_uses_selected_snapshot"] = api.synthesize.call_count == 1 and "角色甲" in settings["gpt_weights"] and settings["text_lang"] == "zh" and text == "角色预设测试。"
-    report["audio_saved_by_dialogue_name"] = (root / "generated/角色预设测试。.wav").is_file()
+    from companion.core import filename_for
+    label=w.generation_settings()["_filename_model"]
+    report["audio_saved_by_dialogue_and_model_name"] = (root / "generated" / filename_for("角色预设测试。",label)).is_file() and bool(label)
     report["external_switch_permission_is_boolean"] = Store(store.path).config["tts"]["allow_external_model_switch"] is False
     # Reopen from persisted settings, without starting or loading the API.
     other = Window(Store(store.path), hooks=False)

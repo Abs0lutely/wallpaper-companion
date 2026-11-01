@@ -106,7 +106,7 @@ def defaults() -> dict:
     return dict(version=4, we_dir=we_dir, workshop_dir=workshop_dir, library_roots=[], library_backend="wallpaper_engine", ffprobe="",
                 monitor=0, poll_seconds=4, manual_profile="", profiles=[], hover_help=True, shared_asset_dir="",
                 operation_voice_enabled=True, operation_voice_dir="",
-                operation_voice_rules=default_rules(), operation_voice_min_interval=1.2,
+                operation_voice_rules=default_rules(), operation_voice_min_interval=1.2, tts_filename_model="",
                 appearance=dict(background="", accent="#edb2c4", auto_color=True),
                 wallpaper_backend="wallpaper_engine", audio_backend="qt", input_backend="pynput",
                 enabled_plugins=[], tts_provider="gpt_sovits", tts_providers={}, tts_characters=[], tts_character="", audio_detector="builtin",
@@ -126,6 +126,8 @@ class Store:
                 self.config.update(saved)
                 if not isinstance(self.config["operation_voice_enabled"], bool) or not isinstance(self.config["operation_voice_dir"], str):
                     raise ValueError("操作语音开关必须是布尔值，目录必须是文本")
+                if not isinstance(self.config["tts_filename_model"],str) or len(self.config["tts_filename_model"])>200:
+                    raise ValueError("音频文件模型标签必须是200字以内的文本")
                 from .operation_rules import config_payload
                 self.config["operation_voice_rules"] = config_payload(self.config)["rules"]
                 self.config["operation_voice_min_interval"] = config_payload(self.config)["min_interval"]
@@ -219,7 +221,16 @@ class RuleEngine:
         return None
 
 
-def filename_for(text: str) -> str:
+def filename_for(text: str, model_name: str | None = None) -> str:
+    if model_name:
+        tag = Path(filename_for(model_name)).stem
+        if len(tag) > 24:
+            tag = tag[:15] + "_" + hashlib.sha256(model_name.encode()).hexdigest()[:8]
+        name = Path(filename_for(text)).stem
+        available = 70 - len(tag) - 1
+        if len(name) > available:
+            name = name[:available-9] + "_" + hashlib.sha256(text.encode()).hexdigest()[:8]
+        return name + "-" + tag + ".wav"
     name = re.sub(r'[<>:"/\\|?*\x00-\x1f]', "_", text.strip()).rstrip(" .")
     if not name:
         raise ValueError("台词不能为空")
@@ -230,7 +241,7 @@ def filename_for(text: str) -> str:
     return name + ".wav"
 
 
-def save_generated(folder, text, data, protected=()):
+def save_generated(folder, text, data, protected=(), model_name=None):
     import io
     import wave
     with wave.open(io.BytesIO(data), "rb") as wav:
@@ -238,7 +249,7 @@ def save_generated(folder, text, data, protected=()):
             raise ValueError("接口返回了空 WAV")
     directory = writable_path(folder, protected)
     directory.mkdir(parents=True, exist_ok=True)
-    filename = filename_for(text)
+    filename = filename_for(text, model_name)
     base = Path(filename).stem
     for index in range(10000):
         target = writable_path(directory / (filename if index == 0 else f"{base} ({index + 1}).wav"), protected)

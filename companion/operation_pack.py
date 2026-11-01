@@ -21,16 +21,19 @@ def validate_pack(root):
     root = Path(root).resolve()
     found, missing = [], []
     categories = set()
+    from .audio_names import matching_files
     for entry in operation_dialogues():
         relative = Path(entry["category"]) / filename_for(entry["text"])
-        path = root / relative
-        if not path.is_file():
+        files = matching_files(root/entry["category"],entry["text"])
+        if not files:
             missing.append(relative.as_posix())
             continue
-        if path.is_symlink() or not path.resolve().is_relative_to(root) or path.stat().st_size > 30 * 1024 * 1024:
-            raise ValueError("语音包文件不安全或过大：" + str(relative))
-        validate_wave(path)
-        found.append(relative.as_posix())
+        for path in files:
+            if path.is_symlink() or not path.resolve().is_relative_to(root) or path.suffix.lower()!=".wav":
+                raise ValueError("语音包需要目录内的安全 WAV 文件：" + path.name)
+            validate_wave(path)
+            name=path.relative_to(root).as_posix()
+            if name not in found: found.append(name)
         categories.add(entry["category"])
     expected = {entry["category"] for entry in operation_dialogues()}
     return dict(complete=not missing, ready=categories==expected, found=found, missing=missing, missing_categories=sorted(expected-categories))

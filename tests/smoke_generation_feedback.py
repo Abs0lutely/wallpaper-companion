@@ -30,6 +30,7 @@ def wait(predicate):
 with patch("companion.managed_api.api") as api, patch("companion.secrets.read_secret",return_value=""),patch("companion.secrets.write_secret"):
     api.owns_service.return_value=False
     w=Window(store,hooks=False); w.show(); w.navigation[2].click(); w.report_error=errors.append
+    w.filename_model.setText("测试模型")
     def synthesize(settings,text):
         for stage in ("等待模型加载（模拟）", "正在合成（模拟）"):
             settings["_tts_status"](stage); time.sleep(.07)
@@ -52,7 +53,7 @@ with patch("companion.managed_api.api") as api, patch("companion.secrets.read_se
         report["stage_output_includes_api_and_saving"]="等待模型" in w.tts_stage_output.toPlainText() and "WAV" in w.tts_stage_output.toPlainText()
         w.tts_output.setText(str(root/"failed")); w.lines.setPlainText("保留第一条\n失败条目"); w.generate_audio(); wait(lambda:not w.tts_busy)
         report["failure_does_not_falsely_reach_completion"]=w.tts_progress.value()==1 and w.tts_progress.maximum()==2 and w.tts_activity.isHidden() and "未完成" in w.tts_progress.format()
-        report["failure_keeps_saved_file_and_reports_error"]=(root/"failed/保留第一条.wav").is_file() and len(errors)==1 and "fixture generation failed" in errors[0]
+        report["failure_keeps_saved_file_and_reports_error"]=(root/"failed/保留第一条-测试模型.wav").is_file() and len(errors)==1 and "fixture generation failed" in errors[0]
         w.hide(); QTest.qWait(30)
         report["hiding_window_hides_toast"]=not w.action_feedback.toast.isVisible()
         (output/"smoke-generation-feedback.json").write_text(json.dumps(report,indent=2),encoding="utf-8")

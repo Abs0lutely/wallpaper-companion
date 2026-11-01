@@ -34,16 +34,17 @@ def classify_button(button):
 def scan_clips(roots, rules=None):
     from .operation_rules import default_rules
     result = {event: [] for event in EVENT_LINES}
-    category_stems = {category: {Path(filename_for(line)).stem.casefold() for line in lines} for category, lines in EVENT_LINES.values()}
+    category_lines = {category: lines for category, lines in EVENT_LINES.values()}
+    from .audio_names import matches_any_model
     for rule in rules if rules is not None else default_rules():
         event, category = rule["event"], rule["category"]
-        stems = category_stems.get(category)
+        lines = category_lines.get(category)
         for root in roots:
             folder = Path(root) / category
             if not folder.is_dir():
                 continue
             try:
-                paths = [str(p) for p in folder.iterdir() if p.is_file() and p.suffix.casefold() in AUDIO_EXTENSIONS and (stems is None or p.stem.casefold() in stems)]
+                paths = [str(p) for p in folder.iterdir() if p.is_file() and p.suffix.casefold() in AUDIO_EXTENSIONS and (lines is None or any(matches_any_model(p.stem,line) for line in lines))]
             except OSError:
                 paths = []
             if paths:

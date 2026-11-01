@@ -40,7 +40,7 @@ class Autosave(QObject):
                     **{k: c.currentData() for k, c in w.backend_combos.items()},
                     enabled_plugins=[w.plugin_list.item(i).text() for i in range(w.plugin_list.count())
                                      if w.plugin_list.item(i).checkState() == Qt.CheckState.Checked]),
-                    tts=(w.provider_choice.currentData(), w.tts_settings()),
+                    tts=(w.provider_choice.currentData(), w.tts_settings(), w.filename_model.text().strip()),
                     shared=w.shared_audio_root.text().strip(), roots=w.extra_library_roots.toPlainText())
 
     def remember(self, key):

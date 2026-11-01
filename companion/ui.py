@@ -217,7 +217,12 @@ class Window(LibraryMixin, DialogueMixin, AudioLibraryMixin, CharacterMixin, Spe
         layout.addWidget(provider_scroll, 2)
         self.tts_output = QLineEdit()
         layout.addWidget(row(QLabel("生成保存目录"), path_field(self.tts_output)))
-        self.skip_existing_tts_audio = QCheckBox("生成前检查重复音频，默认跳过同名文件")
+        self.filename_model = QLineEdit()
+        self.filename_model.setMaxLength(200)
+        self.filename_model.setToolTip("仅影响新音频的文件名，不会切换模型。留空按匹配的角色预设、权重名或服务模型/音色推断；外部 API 未指定模型时标为未指定模型。")
+        self.filename_model.setPlaceholderText("留空按当前角色 / 权重 / 服务模型和音色推断；无法确定时使用“未指定模型”")
+        layout.addWidget(row(QLabel("文件名中的模型标签"), self.filename_model))
+        self.skip_existing_tts_audio = QCheckBox("跳过已存在的同名音频（生成前仍会确认）")
         self.skip_existing_tts_audio.setChecked(True)
         layout.addWidget(self.skip_existing_tts_audio)
         self.transferred_dialogues = None
@@ -1183,6 +1188,8 @@ class Window(LibraryMixin, DialogueMixin, AudioLibraryMixin, CharacterMixin, Spe
             return False
 
     def load_tts(self):
+        self.filename_model.setText(self.store.config.get("tts_filename_model", ""))
+        self.rendered_provider = ""  # Restoring saved settings must not stash the stale form over them.
         self.provider_cache = copy.deepcopy(self.store.config.get("tts_providers", {}))
         self.provider_cache.setdefault("gpt_sovits", self.store.config["tts"])
         index = self.provider_choice.findData(self.store.config.get("tts_provider", "gpt_sovits"))
@@ -1194,6 +1201,14 @@ class Window(LibraryMixin, DialogueMixin, AudioLibraryMixin, CharacterMixin, Spe
     def tts_settings(self):
         self.stash_provider()
         return copy.deepcopy(self.provider_cache[self.provider_choice.currentData()])
+
+    def generation_settings(self):
+        from .audio_names import infer_model_label
+        settings = self.tts_settings()
+        identifier = self.character_choice.currentData() if self.provider_choice.currentData()=="gpt_sovits" else None
+        character = next((e for e in self.store.config.get("tts_characters",[]) if e["id"]==identifier),None)
+        label = self.filename_model.text().strip() or infer_model_label(settings,self.provider_choice.currentData(),character)
+        return {**settings,"_filename_model":label}
 
     def save_tts(self):
         self.stash_provider()
@@ -1210,6 +1225,7 @@ class Window(LibraryMixin, DialogueMixin, AudioLibraryMixin, CharacterMixin, Spe
                         account = identifier if secret_key == "api_key" else identifier + ":" + secret_key
                         write_secret(account, values.pop(secret_key))
             self.store.config["tts_provider"] = self.provider_choice.currentData()
+            self.store.config["tts_filename_model"] = self.filename_model.text().strip()
             self.store.config["tts_providers"] = sanitized
             self.store.config["tts"] = sanitized.get("gpt_sovits", self.store.config["tts"])
             if self.provider_choice.currentData() == "gpt_sovits":
@@ -1324,7 +1340,7 @@ class Window(LibraryMixin, DialogueMixin, AudioLibraryMixin, CharacterMixin, Spe
             if not output:
                 raise ValueError("请选择生成保存目录")
             writable_path(output, self.store.protected())
-            settings = self.tts_settings()
+            settings = self.generation_settings()
             if not self.save_tts():
                 return
             provider = self.registry.speech[self.provider_choice.currentData()]

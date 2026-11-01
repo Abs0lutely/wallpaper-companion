@@ -518,7 +518,7 @@ class DialogueMixin:
                 raise ValueError("请勾选台词，并先在声音与互动页选择语音目录")
             if not self.save_dialogue_library():
                 return
-            settings = self.tts_settings()
+            settings = self.generation_settings()
             if not self.save_tts():
                 return
             provider = self.registry.speech[self.provider_choice.currentData()]

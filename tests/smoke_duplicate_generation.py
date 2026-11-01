@@ -27,6 +27,7 @@ with tempfile.TemporaryDirectory(dir=out) as tmp, patch("companion.managed_api.a
     api.synthesize.return_value = data
     store = Store(Path(tmp)/"data/config.json"); store.config.update(we_dir="", workshop_dir="")
     w = Window(store, hooks=False); w.report_error = errors.append; w.show()
+    w.filename_model.setText("模型A")
     def wait(predicate):
         deadline = time.monotonic()+7
         while not predicate():
@@ -52,7 +53,7 @@ with tempfile.TemporaryDirectory(dir=out) as tmp, patch("companion.managed_api.a
         choose("取消"); w.generate_audio(); wait(lambda:not w.tts_busy)
         report["cancel_never_synthesizes_or_changes_existing_audio"] = not api.synthesize.called and existing.read_bytes() == data and len(list(root.rglob("*.wav"))) == 1
         choose("跳过重复，生成其余"); w.generate_audio(); wait(lambda:not w.tts_busy)
-        report["skip_generates_only_missing_in_original_category"] = api.synthesize.call_count == 1 and (root/"夜间"/filename_for("新音频")).is_file() and existing.read_bytes() == data
+        report["skip_generates_only_missing_in_original_category"] = api.synthesize.call_count == 1 and (root/"夜间"/filename_for("新音频","模型A")).is_file() and existing.read_bytes() == data
         before = api.synthesize.call_count
         choose("跳过重复，生成其余"); w.generate_audio(); wait(lambda:not w.tts_busy)
         report["all_existing_skips_without_api_work"] = api.synthesize.call_count == before and "跳过 2" in w.tts_status.text()

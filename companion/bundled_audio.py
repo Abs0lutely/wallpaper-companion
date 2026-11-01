@@ -9,6 +9,15 @@ def bundled_root():
     return ROOT / "examples/audio"
 
 
+def entry_file(root, entry):
+    from .core import filename_for
+    from .audio_names import matches_any_model
+    name=entry.get("filename",filename_for(entry["text"]))
+    if not isinstance(name,str) or Path(name).name!=name or Path(name).suffix.lower()!=".wav" or not matches_any_model(Path(name).stem,entry["text"]):
+        raise ValueError("分发音频文件名不匹配台词，或包含目录路径")
+    return Path(root)/entry["category"]/name
+
+
 def validate_starter_pack(root=None):
     root = Path(root) if root is not None else bundled_root()/"starter-voice"
     manifest = json.loads((root/"manifest.json").read_text(encoding="utf-8"))
@@ -20,8 +29,8 @@ def validate_starter_pack(root=None):
     seen=set()
     for entry in manifest["files"]:
         key = entry["category"],entry["text"]
-        relative = Path(entry["category"])/filename_for(entry["text"])
-        file = root/relative
+        file = entry_file(root,entry)
+        relative = file.relative_to(root)
         if key not in known or key in seen or file.is_symlink() or not file.resolve().is_relative_to(root.resolve()):
             raise ValueError("随附示例语音不在默认台词清单内或路径异常")
         if hashlib.sha256(file.read_bytes()).hexdigest() != entry["sha256"]:
@@ -46,14 +55,14 @@ def validate_bundled_manifest(root=None):
         key=entry["pack"],entry["category"],entry["text"]
         if key not in known or key in seen:
             raise ValueError("分发音频不在已知台词清单内或重复")
-        file=root/known[key]
+        file=entry_file(root/entry["pack"],entry)
         if file.is_symlink() or not file.resolve().is_relative_to(root.resolve()) or hashlib.sha256(file.read_bytes()).hexdigest()!=entry["sha256"]:
             raise ValueError("分发音频哈希或路径校验失败")
         validate_wave(file); seen.add(key)
     if not seen:
         raise ValueError("分发音频清单为空")
     actual={p.resolve() for p in root.rglob("*.wav")}
-    listed={(root/known[key]).resolve() for key in seen}
+    listed={entry_file(root/e["pack"],e).resolve() for e in manifest["files"]}
     if actual != listed:
         raise ValueError("分发目录存在清单之外或缺失的音频")
     return manifest

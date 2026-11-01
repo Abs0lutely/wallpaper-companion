@@ -11,6 +11,7 @@ from companion.action_lines import operation_dialogues
 from companion.dialogues import starter_dialogues
 from companion.core import filename_for,writable_path
 from companion.operation_pack import require_pack,validate_wave
+from companion.audio_names import matching_files
 
 
 def main():
@@ -25,13 +26,18 @@ def main():
         missing[pack]=[]
         for e in entries:
             relative=Path(e["category"])/filename_for(e["text"])
-            file=source/relative
-            if not file.is_file():
+            options=matching_files(source/e["category"],e["text"])
+            legacy=source/relative
+            if not options:
                 missing[pack].append(relative.as_posix()); continue
+            if legacy in options: file=legacy
+            elif len(options)==1: file=options[0]
+            else: raise ValueError("同一台词有多个模型版本，请先选择要分发的版本："+str(relative))
+            relative=Path(e["category"])/file.name
             if file.is_symlink() or not file.resolve().is_relative_to(source):
                 raise ValueError("源音频含链接或路径异常")
             info=validate_wave(file)
-            found.append(dict(pack=pack,category=e["category"],text=e["text"],sha256=hashlib.sha256(file.read_bytes()).hexdigest(),bytes=file.stat().st_size,**info))
+            found.append(dict(pack=pack,category=e["category"],text=e["text"],filename=file.name,sha256=hashlib.sha256(file.read_bytes()).hexdigest(),bytes=file.stat().st_size,**info))
             destination=writable_path(target/pack/relative)
             if not destination.is_relative_to(target) or destination.exists() and hashlib.sha256(destination.read_bytes()).hexdigest()!=found[-1]["sha256"]:
                 raise ValueError("分发目录已有不同内容，请先人工审阅："+str(relative))
@@ -40,7 +46,7 @@ def main():
     manifest=dict(format="wallpaper-companion-bundled-audio",version=1,origin="用户提供并授权随程序分发的默认台词合成音频",files=found,missing=missing)
     if args.apply:
         for e in found:
-            relative=Path(e["category"])/filename_for(e["text"])
+            relative=Path(e["category"])/e["filename"]
             destination=target/e["pack"]/relative
             destination.parent.mkdir(parents=True,exist_ok=True)
             if not destination.exists(): shutil.copy2(source/relative,destination)
