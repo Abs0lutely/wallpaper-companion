@@ -29,6 +29,7 @@ SMOKES = (
     "smoke_operation_voices.py",
     "smoke_duplicate_generation.py",
     "smoke_audio_scopes.py",
+    "smoke_bundled_audio.py",
 )
 
 
@@ -51,6 +52,8 @@ def worker(name):
         # Prevent discovery from reading the running WE instance or its libraries.
         stack.enter_context(patch.object(paths, "discover_wallpaper_engine", return_value=("", "")))
         from companion import core, services, runtime
+        # Routine regressions use synthetic assets, never the shipped real voice clips.
+        stack.enter_context(patch("companion.bundled_audio.bundled_root", return_value=VALIDATION/"empty-bundled-audio"))
         assert core.ROOT.resolve() == ROOT
         assert core.DATA.resolve() == DATA
         assert runtime.LAYOUT.plugin_dir.resolve().is_relative_to(ROOT)

@@ -95,6 +95,9 @@ def main():
     sys.path.insert(0, str(ROOT))
     from companion.operation_pack import require_pack
     require_pack(ROOT / "examples/audio/operation-voice")
+    from companion.bundled_audio import validate_starter_pack, validate_bundled_manifest
+    validate_starter_pack(ROOT / "examples/audio/starter-voice")
+    validate_bundled_manifest(ROOT / "examples/audio")
     prepare()
     if not args.skip_freeze:
         subprocess.run([sys.executable, "-m", "PyInstaller", "--noconfirm", "--clean", "--distpath", str(ROOT / "dist"),

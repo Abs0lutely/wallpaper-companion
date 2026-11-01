@@ -509,7 +509,7 @@ class Window(LibraryMixin, DialogueMixin, AudioLibraryMixin, CharacterMixin, Spe
         self.original_audio_policy.setCurrentIndex(max(0, self.original_audio_policy.findData(p.get("original_audio_policy", "safe"))))
         self.original_audio_override.setCurrentIndex(max(0, self.original_audio_override.findData(p.get("original_audio_override", "auto"))))
         for widget, key in [(self.profile_enabled, "enabled"), (self.desktop_only, "desktop_only"),
-                            (self.fullscreen_mute, "fullscreen_mute"), (self.bgm_enabled, "bgm_enabled"), (self.shuffle, "bgm_shuffle")]:
+                            (self.fullscreen_mute, "fullscreen_mute"), (self.bgm_enabled, "bgm_enabled"), (self.shuffle, "bgm_shuffle"), (self.bundled_demo_enabled,"use_bundled_demo")]:
             widget.blockSignals(True)
             widget.setChecked(p.get(key, True))
             widget.blockSignals(False)
@@ -538,6 +538,7 @@ class Window(LibraryMixin, DialogueMixin, AudioLibraryMixin, CharacterMixin, Spe
                  enabled=self.profile_enabled.isChecked(), desktop_only=self.desktop_only.isChecked(),
                  fullscreen_mute=self.fullscreen_mute.isChecked(), bgm_enabled=self.bgm_enabled.isChecked(),
                  bgm_shuffle=self.shuffle.isChecked(), voice_volume=self.voice_volume.value(),
+                 use_bundled_demo=self.bundled_demo_enabled.isChecked(),
                  bgm_volume=self.bgm_volume.value(), duck_percent=self.duck.value(), global_cooldown=self.global_cooldown.value(),
                  rules=copy.deepcopy(self.edit_rules), dialogues=self.collect_dialogues())
         return p
@@ -915,7 +916,7 @@ class Window(LibraryMixin, DialogueMixin, AudioLibraryMixin, CharacterMixin, Spe
             self.report_error(str(exc))
 
     def preview_voice(self):
-        self.preview(audio_files(self.voice_dir.text()))
+        self.preview(candidates(self.draft_profile(),dict(source="",keyword="")) if self.editing_id else audio_files(self.voice_dir.text()))
 
     def preview(self, files):
         if not files:

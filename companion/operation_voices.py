@@ -127,10 +127,11 @@ class OperationVoices(QObject):
             return
         from .assets import shared_root
         from .operation_rules import config_payload
+        from .bundled_audio import bundled_root
         rules = config_payload(self.w.store.config)["rules"]
         self.rules = {rule["event"]: rule for rule in rules}
         roots = [self.w.store.config.get("operation_voice_dir", ""), self.w.voice_dir.text().strip(),
-                 shared_root(self.w.store) / "voice", ROOT / "examples/audio/operation-voice"]
+                 shared_root(self.w.store) / "voice", bundled_root() / "operation-voice"]
         roots = [str(r) for r in roots if str(r).strip()]
         self.scanning = True; self.last_scan = time.monotonic()
         def ready(clips):

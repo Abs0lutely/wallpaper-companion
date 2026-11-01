@@ -16,6 +16,10 @@ def locations(store):
             if (legacy / kind).is_dir():
                 result.append(dict(id="legacy-shared:" + kind, scope="shared:" + kind,
                     label="旧共享目录 · " + label, path=str(legacy / kind), profile="", kind=kind))
+    from .bundled_audio import bundled_root
+    bundled = bundled_root()
+    if bundled.is_dir() and next(bundled.glob("*/*/*.wav"),None) is not None:
+        result.append(dict(id="bundled:voice",label="随附默认语音（只读）",path=str(bundled),profile="",kind="voice",read_only=True))
     for profile in store.config["profiles"]:
         for kind, label in [("voice", "语音"), ("bgm", "BGM")]:
             path = profile.get(kind + "_dir", "")
@@ -38,7 +42,8 @@ def inventory(sources):
             try:
                 actual = path.resolve()
                 item = records.setdefault(identity(str(actual)), dict(path=str(actual), name=path.name,
-                    bytes=path.stat().st_size, locations=[], profiles=[], kinds=[], usages=[]))
+                    bytes=path.stat().st_size, locations=[], profiles=[], kinds=[], usages=[], read_only=False))
+                item["read_only"] = item["read_only"] or source.get("read_only", False)
                 usage = dict(label=source["label"], directory=str(folder))
                 if usage not in item["usages"]:
                     item["usages"].append(usage)

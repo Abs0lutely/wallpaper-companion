@@ -29,7 +29,7 @@ def main():
             if not dst.exists():
                 shutil.copy2(src, dst)
     print(json.dumps(result, ensure_ascii=False, indent=2))
-    return 0 if result["complete"] else 1
+    return 0 if result["ready"] else 1
 
 
 if __name__ == "__main__":

@@ -84,7 +84,11 @@ def run(destination):
         checks["autosave_and_operation_controls_present"] = hasattr(window, "autosave") and window.operation_voice_enabled.isChecked() and not window.selected_dialogues()
         from .operation_pack import require_pack
         if report["frozen"]:
-            checks["distributed_operation_voice_pack_complete"] = require_pack(ROOT / "examples/audio/operation-voice")["complete"]
+            checks["distributed_operation_voice_actions_covered"] = require_pack(ROOT / "examples/audio/operation-voice")["ready"]
+            from .bundled_audio import validate_starter_pack, validate_bundled_manifest
+            checks["distributed_starter_voice_pack_verified"] = bool(validate_starter_pack()["files"])
+            checks["distributed_default_audio_hashes_verified"] = bool(validate_bundled_manifest()["files"])
+        store.config["operation_voice_enabled"] = False  # Keep the remaining diagnostics' audio deterministic.
         from .sovits_config import model_key
         checks["model_config_dependency_available"] = model_key({}) is None
         window.audio.message.connect(lambda s: report["media_errors"].append(s) if "失败" in s else None)

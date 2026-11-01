@@ -81,6 +81,8 @@ class AudioLibraryMixin:
                 combo.addItem("全部已配置目录", "all")
             added = set()
             for source in self.audio_sources:
+                if not include_all and source.get("read_only"):
+                    continue
                 key = source.get("scope", source["id"]) if include_all else source["id"]
                 if key in added:
                     continue
@@ -241,6 +243,9 @@ class AudioLibraryMixin:
         records = self.selected_library_audio()
         if not records:
             self.log("请先选择需要删除的音频，可使用全选或 Ctrl / Shift 多选。")
+            return
+        if any(item.get("read_only") for item in records):
+            self.report_error("随附默认语音为只读资源，不能删除。可先复制到自己的音频目录再管理副本。")
             return
         count = len({p for item in records for p in item["profiles"]})
         if QMessageBox.question(self, "将音频移入回收站", f"将 {len(records)} 个文件移入系统回收站？\n涉及 {count} 个配置的音频目录；共享文件移除后影响所有使用者，精确文件规则可能失效。\n配置和壁纸绑定保留，不会永久删除文件。", QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No, QMessageBox.StandardButton.No) != QMessageBox.StandardButton.Yes:

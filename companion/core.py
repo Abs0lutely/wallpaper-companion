@@ -70,6 +70,17 @@ def candidates(profile: dict, rule: dict) -> list[Path]:
         files = [Path(source)] if Path(source).suffix.lower() in AUDIO_EXTENSIONS else []
     else:
         files = audio_files(source)
+    if not rule.get("source", "").strip():
+        from .action_lines import EVENT_LINES
+        operation_categories = {category for category, _ in EVENT_LINES.values()}
+        root = Path(source).expanduser() if source else None
+        files = [p for p in files if root is None or not p.relative_to(root).parts or p.relative_to(root).parts[0] not in operation_categories]
+    if not files and profile.get("use_bundled_demo", False) and not audio_files(profile.get("voice_dir", "")):
+        from .bundled_audio import bundled_root
+        relative = rule.get("source", "").strip()
+        if not relative or not Path(relative).is_absolute() and ".." not in Path(relative).parts and ":" not in relative:
+            fallback = bundled_root()/"starter-voice"/relative
+            files = [fallback] if fallback.is_file() and fallback.suffix.lower() in AUDIO_EXTENSIONS else audio_files(str(fallback))
     keyword = rule.get("keyword", "").strip().casefold()
     return [p for p in files if not keyword or keyword in p.stem.casefold()]
 
@@ -83,7 +94,7 @@ def new_rule(event="key", name="快捷键回应") -> dict:
 def new_profile(name="新的壁纸配置", wallpaper="") -> dict:
     from .dialogues import starter_dialogues
     return dict(id=uuid.uuid4().hex, name=name, wallpaper=wallpaper, voice_dir="", bgm_dir="",
-                asset_dir="", private_asset_dir="", dialogue_file="", original_audio_policy="safe", original_audio_override="auto", bgm_paused=False,
+                asset_dir="", private_asset_dir="", dialogue_file="", original_audio_policy="safe", original_audio_override="auto", bgm_paused=False, use_bundled_demo=True,
                 enabled=True, desktop_only=True, fullscreen_mute=True, bgm_enabled=True,
                 bgm_shuffle=True, voice_volume=80, bgm_volume=25, duck_percent=25,
                 global_cooldown=8, dialogues=starter_dialogues(), rules=[new_rule(), new_rule("random", "随机陪伴 · 每 5–10 分钟")])
@@ -128,8 +139,10 @@ class Store:
                 from .dialogues import starter_dialogues
                 for profile in self.config["profiles"]:
                     profile.setdefault("dialogues", starter_dialogues())
-                    for key, value in dict(asset_dir="", private_asset_dir="", dialogue_file="", original_audio_policy="safe", original_audio_override="auto", bgm_paused=False).items():
+                    for key, value in dict(asset_dir="", private_asset_dir="", dialogue_file="", original_audio_policy="safe", original_audio_override="auto", bgm_paused=False, use_bundled_demo=False).items():
                         profile.setdefault(key, value)
+                    if not isinstance(profile["use_bundled_demo"],bool):
+                        raise ValueError("随附示例语音开关必须是布尔值")
             except (ValueError, OSError) as exc:
                 raise ValueError(f"无法读取配置 {self.path}：{exc}。原文件已保留。") from exc
 
@@ -141,7 +154,8 @@ class Store:
         temp.replace(path)
 
     def protected(self):
-        return [p for p in [self.config.get("we_dir"), self.config.get("workshop_dir"), *self.config.get("library_roots", [])] if p]
+        from .bundled_audio import bundled_root
+        return [p for p in [self.config.get("we_dir"), self.config.get("workshop_dir"), *self.config.get("library_roots", []), str(bundled_root())] if p]
 
     def profile(self, profile_id):
         return next((p for p in self.config["profiles"] if p["id"] == profile_id), None)
