@@ -1,4 +1,5 @@
 """Native companion navigation, local artwork preferences, and persistent player."""
+from .i18n import tr
 from pathlib import Path
 
 from PySide6.QtCore import QRectF, Qt, QTimer
@@ -68,7 +69,7 @@ class CompanionShellMixin:
         header = QWidget()
         header_layout = QHBoxLayout(header)
         header_layout.setContentsMargins(22, 10, 20, 10)
-        title = QLabel("壁纸声伴")
+        title = QLabel(tr('ui.e52fa9b152e1', '壁纸声伴'))
         title.setObjectName("brand")
         header_layout.addWidget(title)
         wordmark = hint("WALLPAPER COMPANION")
@@ -76,9 +77,9 @@ class CompanionShellMixin:
         wordmark.setStyleSheet("font-size:10px; letter-spacing:1px;")
         header_layout.addWidget(wordmark)
         header_layout.addStretch()
-        self.help_button = button("悬停说明：开启" if self.store.config.get("hover_help", True) else "悬停说明：关闭", self.toggle_hover_help)
+        self.help_button = button(tr('ui.4d9a0c931f4b', '悬停说明：开启') if self.store.config.get("hover_help", True) else tr('ui.f0eddb923dcd', '悬停说明：关闭'), self.toggle_hover_help)
         header_layout.addWidget(self.help_button)
-        header_layout.addWidget(button("打开使用手册", lambda: self.open_document("USER_GUIDE.md")))
+        header_layout.addWidget(button(tr('ui.3aea1202cc8a', '打开使用手册'), lambda: self.open_document("USER_GUIDE.md")))
         outer.addWidget(header)
 
         body = QHBoxLayout()
@@ -87,15 +88,16 @@ class CompanionShellMixin:
         outer.addLayout(body, 1)
         sidebar = QFrame()
         sidebar.setObjectName("sidebar")
-        sidebar.setFixedWidth(190)
+        from .i18n import language
+        sidebar.setFixedWidth(224 if language() == "en-US" else 190)
         side = QVBoxLayout(sidebar)
         side.setContentsMargins(12, 18, 12, 15)
         side.setSpacing(5)
         body.addWidget(sidebar)
         self.navigation = {}
         self.nav_group = QButtonGroup(self)
-        for label, glyph, index in [("陪伴主页", "♡", 0), ("壁纸库", "▧", 4),
-                                     ("音频库", "♫", 6), ("台词库", "☷", 5), ("语音生成", "♪", 2)]:
+        for label, glyph, index in [(tr('ui.ab3938f7627e', '陪伴主页'), "♡", 0), (tr('ui.99ffa5dff575', '壁纸库'), "▧", 4),
+                                     (tr('ui.4f0534b98d95', '音频库'), "♫", 6), (tr('ui.40949e0e28ee', '台词库'), "☷", 5), (tr('ui.9bb997df388a', '语音生成'), "♪", 2)]:
             nav = button(f"{glyph}   {label}", lambda checked=False, i=index: self.tabs.setCurrentIndex(i))
             nav.setObjectName("nav")
             nav.setCheckable(True)
@@ -103,31 +105,31 @@ class CompanionShellMixin:
             self.navigation[index] = nav
             side.addWidget(nav)
         side.addSpacing(16)
-        side.addWidget(hint("壁纸配置 · 可多选管理"))
+        side.addWidget(hint(tr('ui.a154bc5ed5be', '壁纸配置 · 可多选管理')))
         self.profiles = QListWidget()
         self.profiles.setSelectionMode(QAbstractItemView.SelectionMode.ExtendedSelection)
         self.profiles.setMinimumHeight(60)
         self.profiles.setMaximumHeight(140)
         self.profiles.currentRowChanged.connect(self.select_profile)
         side.addWidget(self.profiles, 1)
-        side.addWidget(button("＋ 绑定当前壁纸", self.bind_current, True))
-        manage = QPushButton("配置管理")
+        side.addWidget(button(tr('ui.25c4baf40e31', '＋ 绑定当前壁纸'), self.bind_current, True))
+        manage = QPushButton(tr('ui.134891399b36', '配置管理'))
         menu = QMenu(manage)
-        menu.addAction("新建配置", self.add_profile)
-        menu.addAction("删除选中配置…", self.delete_profile)
+        menu.addAction(tr('ui.76e025a95831', '新建配置'), self.add_profile)
+        menu.addAction(tr('ui.bd5f7c8d592f', '删除选中配置…'), self.delete_profile)
         menu.addSeparator()
-        menu.addAction("扫描 / 批量绑定壁纸…", lambda: self.tabs.setCurrentIndex(self.library_tab_index))
+        menu.addAction(tr('ui.602e8ee41e62', '扫描 / 批量绑定壁纸…'), lambda: self.tabs.setCurrentIndex(self.library_tab_index))
         manage.setMenu(menu)
         side.addWidget(manage)
         side.addStretch()
-        for label, glyph, index in [("运行记录", "≋", 7), ("设置", "⚙", 3)]:
+        for label, glyph, index in [(tr('ui.6e55e0f207bf', '运行记录'), "≋", 7), (tr('ui.df3d58c7d84b', '设置'), "⚙", 3)]:
             nav = button(f"{glyph}   {label}", lambda checked=False, i=index: self.tabs.setCurrentIndex(i))
             nav.setObjectName("nav")
             nav.setCheckable(True)
             self.nav_group.addButton(nav)
             self.navigation[index] = nav
             side.addWidget(nav)
-        side.addWidget(hint("本地陪伴空间\n关闭窗口后留在托盘"))
+        side.addWidget(hint(tr('ui.36312210bd1e', '本地陪伴空间\n关闭窗口后留在托盘')))
 
         workspace = QWidget()
         workspace.setObjectName("workspace")
@@ -137,13 +139,13 @@ class CompanionShellMixin:
         body.addWidget(workspace, 1)
         heading = QHBoxLayout()
         titles = QVBoxLayout()
-        self.page_title = QLabel("属于你的陪伴时光")
+        self.page_title = QLabel(tr('ui.159bb13681fc', '属于你的陪伴时光'))
         self.page_title.setObjectName("pageTitle")
         titles.addWidget(self.page_title)
-        self.page_subtitle = hint("声音、音乐，还有一点温柔。")
+        self.page_subtitle = hint(tr('ui.66db33083bd6', '声音、音乐，还有一点温柔。'))
         titles.addWidget(self.page_subtitle)
         heading.addLayout(titles, 1)
-        self.import_background_button = button("导入背景…", self.choose_background)
+        self.import_background_button = button(tr('ui.d171abc76927', '导入背景…'), self.choose_background)
         heading.addWidget(self.import_background_button)
         work.addLayout(heading)
 
@@ -154,28 +156,28 @@ class CompanionShellMixin:
         caption.setObjectName("heroCaption")
         hero_layout.addWidget(caption)
         hero_layout.addStretch()
-        self.current_label = QLabel("正在检测…")
+        self.current_label = QLabel(tr('ui.e8b970bc3e05', '正在检测…'))
         self.current_label.setObjectName("current")
         self.current_label.setWordWrap(True)
         hero_layout.addWidget(self.current_label)
         self.status_label = QLabel()
         self.status_label.setObjectName("status")
         hero_layout.addWidget(self.status_label)
-        self.hero.setToolTip("导入你喜欢的角色或壁纸图片，建立自己的陪伴空间。")
+        self.hero.setToolTip(tr('ui.3551796ca083', '导入你喜欢的角色或壁纸图片，建立自己的陪伴空间。'))
         work.addWidget(self.hero)
 
         context = QHBoxLayout()
-        context.addWidget(QLabel("正在编辑"))
+        context.addWidget(QLabel(tr('ui.37dadf4857a5', '正在编辑')))
         self.profile_picker = QComboBox()
         self.profile_picker.setMinimumContentsLength(12)
         self.profile_picker.setSizeAdjustPolicy(QComboBox.SizeAdjustPolicy.AdjustToMinimumContentsLengthWithIcon)
         self.profile_picker.currentIndexChanged.connect(self.pick_profile)
         context.addWidget(self.profile_picker, 1)
-        self.manual = QCheckBox("手动使用选中配置")
-        self.manual.setToolTip("关闭时自动跟随壁纸；开启后将选中的配置用于播放。")
+        self.manual = QCheckBox(tr('ui.e068cc5c53fe', '手动使用选中配置'))
+        self.manual.setToolTip(tr('ui.d2bfc754754b', '关闭时自动跟随壁纸；开启后将选中的配置用于播放。'))
         self.manual.toggled.connect(self.set_manual)
         context.addWidget(self.manual)
-        context.addWidget(button("立即检测", lambda: self.detect(command=True)))
+        context.addWidget(button(tr('ui.14ca09ce1fd2', '立即检测'), lambda: self.detect(command=True)))
         work.addLayout(context)
         self.editing_context = hint("")
         work.addWidget(self.editing_context)
@@ -186,7 +188,7 @@ class CompanionShellMixin:
         switch.setSpacing(14)
         self.home_buttons = []
         home_group = QButtonGroup(self)
-        for label, section in [("声音设置", 0), ("互动规则", 1), ("资源与绑定", 2)]:
+        for label, section in [(tr('ui.db78bb2404bf', '声音设置'), 0), (tr('ui.a0aee4954b3e', '互动规则'), 1), (tr('ui.2825fb5b3efb', '资源与绑定'), 2)]:
             tab = button(label, lambda checked=False, s=section: self.show_home_section(s))
             tab.setObjectName("homeTab")
             tab.setCheckable(True)
@@ -210,7 +212,7 @@ class CompanionShellMixin:
         self.logs = QPlainTextEdit()
         self.logs.setReadOnly(True)
         self.logs.setMaximumBlockCount(500)
-        self.tabs.addTab(self.logs, "运行记录")
+        self.tabs.addTab(self.logs, tr('ui.6e55e0f207bf', '运行记录'))
         # Long provider forms and library toolbars must not set the window's
         # minimum size. Keep stable tab indices for host mixins and extensions.
         for index in (1, 2, 4, 5, 6, 7):
@@ -228,7 +230,7 @@ class CompanionShellMixin:
         self.profiles.currentRowChanged.connect(lambda _: QTimer.singleShot(0, self.refresh_shell))
 
         self.build_player(outer)
-        self.footer = hint("独立伴随 · 音频与配置保存在自己的目录 · 输入监听不记录文本")
+        self.footer = hint(tr('ui.196ce29e0738', '独立伴随 · 音频与配置保存在自己的目录 · 输入监听不记录文本'))
         self.footer.setContentsMargins(20, 3, 20, 4)
         outer.addWidget(self.footer)
         self.background_busy = False
@@ -248,17 +250,17 @@ class CompanionShellMixin:
         self.album_art.setAlignment(Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(self.album_art)
         track = QVBoxLayout()
-        self.track_title = QLabel("等待播放")
+        self.track_title = QLabel(tr('ui.8b820cb9dec3', '等待播放'))
         self.track_title.setMaximumWidth(270)
         self.track_title.setWordWrap(True)
-        self.track_detail = hint("绑定壁纸，或手动启用一个配置")
+        self.track_detail = hint(tr('ui.9404112a5fcc', '绑定壁纸，或手动启用一个配置'))
         self.track_detail.setMaximumWidth(300)
         track.addWidget(self.track_title)
         track.addWidget(self.track_detail)
         layout.addLayout(track, 1)
-        self.player_bgm_button = button("暂停 BGM", self.toggle_bgm)
+        self.player_bgm_button = button(tr('ui.c3812eeebd5f', '暂停 BGM'), self.toggle_bgm)
         layout.addWidget(self.player_bgm_button)
-        layout.addWidget(button("下一首", self.audio.next_bgm))
+        layout.addWidget(button(tr('ui.486e42475adb', '下一首'), self.audio.next_bgm))
         volume = QVBoxLayout()
         self.player_volume_label = hint("BGM 25%")
         volume.addWidget(self.player_volume_label)
@@ -275,7 +277,7 @@ class CompanionShellMixin:
         self.pending_player_volume = None
         volume.addWidget(self.player_volume)
         layout.addLayout(volume)
-        self.pause_button = button("暂停伴随", self.toggle_pause)
+        self.pause_button = button(tr('ui.a555aecaab24', '暂停伴随'), self.toggle_pause)
         layout.addWidget(self.pause_button)
         for control in player.findChildren(QPushButton):
             control.setSizePolicy(QSizePolicy.Policy.Maximum, QSizePolicy.Policy.Preferred)
@@ -301,11 +303,11 @@ class CompanionShellMixin:
         nav_index = 0 if home else index
         if nav_index in self.navigation:
             self.navigation[nav_index].setChecked(True)
-        names = {0: "属于你的陪伴时光", 1: "属于你的陪伴时光", 2: "让台词有自己的声音",
-                 3: "让空间更像你", 4: "我的壁纸与角色", 5: "把想说的话留下来",
-                 6: "听见喜欢的声音", 7: "运行记录"}
-        self.page_title.setText(names.get(index, "壁纸声伴"))
-        self.page_subtitle.setText("声音、音乐，还有一点温柔。" if home else "本地陪伴空间 · 配置与资源由你掌控")
+        names = {0: tr('ui.159bb13681fc', '属于你的陪伴时光'), 1: tr('ui.159bb13681fc', '属于你的陪伴时光'), 2: tr('ui.a0a2a14cca67', '让台词有自己的声音'),
+                 3: tr('ui.307e2177e537', '让空间更像你'), 4: tr('ui.316671b9cfe4', '我的壁纸与角色'), 5: tr('ui.fdaac06efb7e', '把想说的话留下来'),
+                 6: tr('ui.e0ad716bdcbf', '听见喜欢的声音'), 7: tr('ui.6e55e0f207bf', '运行记录')}
+        self.page_title.setText(names.get(index, tr('ui.e52fa9b152e1', '壁纸声伴')))
+        self.page_subtitle.setText(tr('ui.66db33083bd6', '声音、音乐，还有一点温柔。') if home else tr('ui.2b8259671499', '本地陪伴空间 · 配置与资源由你掌控'))
         selected = 1 if index == 1 else (2 if self.profile_sections.currentIndex() == 1 else 0)
         self.home_buttons[selected].setChecked(True)
         self.refresh_shell()
@@ -340,11 +342,11 @@ class CompanionShellMixin:
         self.player_container.setVisible(bool(display and display.get("bgm_enabled", True)))
         self.bgm_pause_button.setVisible(bool(display and display.get("bgm_enabled", True)))
         if editing and active and editing["id"] != active["id"]:
-            context = f"正在编辑：{editing['name']}  ·  当前播放：{active['name']}"
+            context = tr('ui.c166c0e33253', '正在编辑：{value0}  ·  当前播放：{value1}', value0=editing['name'], value1=active['name'])
         elif editing:
-            context = "正在编辑当前播放配置" if active else "当前仅编辑配置，尚未播放"
+            context = tr('ui.cacc0ee18fce', '正在编辑当前播放配置') if active else tr('ui.3b236e623cf1', '当前仅编辑配置，尚未播放')
         else:
-            context = "还没有配置，请绑定当前壁纸或新建配置。"
+            context = tr('ui.640e76bf5ba3', '还没有配置，请绑定当前壁纸或新建配置。')
         self._label(self.editing_context, context)
         for slider, spin in [(self.voice_slider, self.voice_volume), (self.bgm_slider, self.bgm_volume)]:
             if not slider.isSliderDown():
@@ -352,25 +354,25 @@ class CompanionShellMixin:
                 slider.setValue(spin.value())
                 slider.blockSignals(False)
         last = getattr(self.audio, "last_bgm", None)
-        self._label(self.track_title, Path(last).stem if last else (active["name"] if active else "等待播放"))
+        self._label(self.track_title, Path(last).stem if last else (active["name"] if active else tr('ui.8b820cb9dec3', '等待播放')))
         if self.paused:
-            detail = "伴随已暂停"
+            detail = tr('ui.19e7ef1108f9', '伴随已暂停')
         elif self.fullscreen:
-            detail = "全屏应用中 · 声音已暂停"
+            detail = tr('ui.066d23c474f3', '全屏应用中 · 声音已暂停')
         elif not active:
-            detail = "绑定壁纸，或手动启用一个配置"
+            detail = tr('ui.9404112a5fcc', '绑定壁纸，或手动启用一个配置')
         elif not active.get("enabled", True):
-            detail = "当前配置已停用"
+            detail = tr('ui.e8ec8fbb9f87', '当前配置已停用')
         elif getattr(self.audio, "bgm_blocked", False):
-            detail = "BGM 防冲突暂停 · " + self.original_audio.get("detail", "")
+            detail = tr('ui.d6445388f3ea', 'BGM 防冲突暂停 · ') + self.original_audio.get("detail", "")
         elif getattr(self.audio, "bgm_paused", False):
-            detail = "BGM 已暂停 · 角色语音仍可触发"
+            detail = tr('ui.be92dcb9eb88', 'BGM 已暂停 · 角色语音仍可触发')
         elif not active.get("bgm_enabled", True):
-            detail = "BGM 已关闭 · 角色语音仍可触发"
+            detail = tr('ui.70cd0344165c', 'BGM 已关闭 · 角色语音仍可触发')
         else:
-            detail = ("角色正在说话 · " if self.audio.busy else "") + active["name"]
+            detail = (tr('ui.f7736b2f6176', '角色正在说话 · ') if self.audio.busy else "") + active["name"]
         self._label(self.track_detail, detail)
-        self._label(self.player_bgm_button, "继续 BGM" if getattr(self.audio, "bgm_paused", False) else "暂停 BGM")
+        self._label(self.player_bgm_button, tr('ui.01dd4a6cb900', '继续 BGM') if getattr(self.audio, "bgm_paused", False) else tr('ui.c3812eeebd5f', '暂停 BGM'))
         self.player_bgm_button.setEnabled(bool(active))
         self.player_volume.setEnabled(bool(active))
         if not self.player_volume.isSliderDown() and self.pending_player_volume is None:
@@ -454,7 +456,7 @@ class CompanionShellMixin:
             profile["bgm_volume"] = old
             self.audio.set_volumes()
             self.refresh_shell()
-            self.report_error("保存播放器音量失败：" + str(exc))
+            self.report_error(tr('ui.37efe54298a0', '保存播放器音量失败：') + str(exc))
             return
         if self.editing_id == key:
             self.bgm_volume.blockSignals(True)
@@ -469,18 +471,18 @@ class CompanionShellMixin:
         card.setObjectName("card")
         layout = QVBoxLayout(card)
         layout.setContentsMargins(18, 15, 18, 15)
-        title = QLabel("外观与背景")
+        title = QLabel(tr('ui.8e14d59b28cd', '外观与背景'))
         title.setObjectName("sectionTitle")
         layout.addWidget(title)
         self.appearance_status = hint("")
         layout.addWidget(self.appearance_status)
-        layout.addWidget(row(button("导入背景图片…", self.choose_background),
-                             button("恢复默认外观", self.reset_appearance)))
-        self.auto_color = QCheckBox("从背景自动提取主题色")
-        self.auto_color.setToolTip("提取图片中的主要色相，并调成适合深色界面的柔和强调色；关闭后使用樱粉。")
+        layout.addWidget(row(button(tr('ui.754b1acce291', '导入背景图片…'), self.choose_background),
+                             button(tr('ui.1ffb176f0f75', '恢复默认外观'), self.reset_appearance)))
+        self.auto_color = QCheckBox(tr('ui.29aecfb26626', '从背景自动提取主题色'))
+        self.auto_color.setToolTip(tr('ui.8470fcf31e3c', '提取图片中的主要色相，并调成适合深色界面的柔和强调色；关闭后使用樱粉。'))
         self.auto_color.toggled.connect(self.toggle_auto_color)
         layout.addWidget(self.auto_color)
-        layout.addWidget(hint("图片只在本机处理，并复制到声伴的数据目录。移走原图不会影响已导入背景。"))
+        layout.addWidget(hint(tr('ui.1da72f08a187', '图片只在本机处理，并复制到声伴的数据目录。移走原图不会影响已导入背景。')))
         self.appearance_card = card
         self.tabs.widget(3).widget().layout().insertWidget(0, card)
 
@@ -498,13 +500,13 @@ class CompanionShellMixin:
         self.auto_color.setChecked(settings["auto_color"])
         self.auto_color.blockSignals(False)
         if target and image.isNull():
-            description = "背景文件不可用，已使用默认底色。可重新导入。"
+            description = tr('ui.4e8cdb3de88d', '背景文件不可用，已使用默认底色。可重新导入。')
         else:
-            description = ("自定义背景" if target else "默认背景") + f" · {'自动配色' if settings['auto_color'] else '固定樱粉'} · {accent.upper()}"
+            description = (tr('ui.93f86d8d65a0', '自定义背景') if target else tr('ui.acd91815cc19', '默认背景')) + f" · {tr('ui.661499ed97e8', '自动配色') if settings['auto_color'] else tr('ui.abeb3dd78a77', '固定樱粉')} · {accent.upper()}"
         self.appearance_status.setText(description)
 
     def choose_background(self):
-        source, _ = QFileDialog.getOpenFileName(self, "导入背景图片", "", "图片 (*.png *.jpg *.jpeg *.webp *.bmp);;所有文件 (*)")
+        source, _ = QFileDialog.getOpenFileName(self, tr('ui.cb1c66e02da4', '导入背景图片'), "", tr('ui.214242addd61', '图片 (*.png *.jpg *.jpeg *.webp *.bmp);;所有文件 (*)'))
         if source:
             self.import_background(source)
 
@@ -514,17 +516,17 @@ class CompanionShellMixin:
         self.background_busy = True
         self.import_background_button.setEnabled(False)
         self.appearance_card.setEnabled(False)
-        self.appearance_status.setText("正在本机读取背景并提取配色…")
+        self.appearance_status.setText(tr('ui.94dd2bc3c938', '正在本机读取背景并提取配色…'))
         def ready(prepared):
             try:
                 settings = normalize_appearance(self.store.config.get("appearance"))
                 settings.update(background=prepared["name"], accent=prepared["accent"])
                 save_appearance(self.store, settings, prepared)
                 self.apply_appearance(prepared["image"])
-                self.log("背景已导入并保存在本机数据目录。")
+                self.log(tr('ui.69b35caa9522', '背景已导入并保存在本机数据目录。'))
             except Exception as exc:
                 self.apply_appearance()
-                self.report_error("背景导入失败：" + str(exc))
+                self.report_error(tr('ui.d33b7d211354', '背景导入失败：') + str(exc))
             finally:
                 self.background_busy = False
                 self.import_background_button.setEnabled(True)
@@ -534,7 +536,7 @@ class CompanionShellMixin:
             self.import_background_button.setEnabled(True)
             self.appearance_card.setEnabled(True)
             self.apply_appearance()
-            self.report_error("背景导入失败：" + str(error))
+            self.report_error(tr('ui.d33b7d211354', '背景导入失败：') + str(error))
         self.submit(lambda: prepare_background(source), ready, failed)
 
     def toggle_auto_color(self, enabled):
@@ -543,12 +545,12 @@ class CompanionShellMixin:
         try:
             save_appearance(self.store, settings)
         except Exception as exc:
-            self.report_error("保存外观失败：" + str(exc))
+            self.report_error(tr('ui.5aab3f85181d', '保存外观失败：') + str(exc))
         self.apply_appearance(self.hero.image)
 
     def reset_appearance(self):
         try:
             save_appearance(self.store, {})
         except Exception as exc:
-            self.report_error("恢复外观失败：" + str(exc))
+            self.report_error(tr('ui.0ff6b066637f', '恢复外观失败：') + str(exc))
         self.apply_appearance()

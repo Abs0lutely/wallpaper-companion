@@ -1,5 +1,6 @@
 """Read-only library discovery and explicit bulk binding plans."""
 from __future__ import annotations
+from .i18n import tr
 
 import copy
 import json
@@ -21,7 +22,7 @@ def scan_wallpapers(config):
             continue
         root = Path(value).expanduser()
         if not root.is_dir():
-            warnings.append("扫描目录不存在：" + str(root))
+            warnings.append(tr('ui.7c2aff9f5212', '扫描目录不存在：') + str(root))
             continue
         # Walk prunes once a project is found, without following directory links.
         def onerror(error):
@@ -40,10 +41,10 @@ def scan_wallpapers(config):
                 data = json.loads(project.read_text(encoding="utf-8-sig"))
                 entry = data.get("file", "")
                 if not isinstance(entry, str) or not entry:
-                    raise ValueError("缺少入口 file")
+                    raise ValueError(tr('ui.c53b931405fc', '缺少入口 file'))
                 path = (project.parent / entry).resolve()
                 if project.parent not in path.parents:
-                    raise ValueError("入口越出壁纸目录")
+                    raise ValueError(tr('ui.87f1601cd978', '入口越出壁纸目录'))
                 # Published scene projects usually name scene.json in metadata,
                 # while WE ships that entry inside scene.pkg. No unpacking needed.
                 if not path.is_file() and str(data.get("type", "")).casefold() == "scene" and path.suffix.casefold() == ".json":
@@ -51,9 +52,9 @@ def scan_wallpapers(config):
                     if packed.is_file():
                         path = packed
                 if not path.is_file():
-                    raise ValueError("入口不存在或越出壁纸目录")
+                    raise ValueError(tr('ui.a0279aa16cab', '入口不存在或越出壁纸目录'))
                 record = dict(path=str(path), title=str(data.get("title") or project.parent.name),
-                              type=str(data.get("type", "未知")), project=str(project),
+                              type=str(data.get("type", tr('ui.4d8c1c5b4283', '未知'))), project=str(project),
                               workshop_id=project.parent.name if project.parent.name.isdigit() else "",
                               directory=str(project.parent), source=str(root))
                 records[identity(str(path))] = record
@@ -66,20 +67,20 @@ def plan_bindings(config, records, *, mode="shared", voice_dir="", bgm_dir="", a
     from .core import DATA
     from .assets import load_dialogues, resource_paths
     if mode not in {"shared", "separate", "shared_root"}:
-        raise ValueError("未知绑定模式")
+        raise ValueError(tr('ui.a1369110fc03', '未知绑定模式'))
     if not records:
-        raise ValueError("请先勾选壁纸")
+        raise ValueError(tr('ui.dab41cc84cc5', '请先勾选壁纸'))
     updated = copy.deepcopy(config)
     protected = [p for p in [config.get("we_dir"), config.get("workshop_dir"), *config.get("library_roots", [])] if p]
     template = next((p for p in config["profiles"] if p["id"] == template_id), None)
     if template_id and template is None:
-        raise ValueError("模板配置不存在")
+        raise ValueError(tr('ui.aa8843aa4416', '模板配置不存在'))
     if mode == "shared":
-        for label, value in [("语音", voice_dir), ("BGM", bgm_dir)]:
+        for label, value in [(tr('ui.89fcbbfdca16', '语音'), voice_dir), ("BGM", bgm_dir)]:
             if value and not Path(value).is_dir():
-                raise ValueError(label + "目录不存在")
+                raise ValueError(label + tr('ui.85c016964ce0', '目录不存在'))
         if not voice_dir:
-            raise ValueError("共享模式请选择语音目录")
+            raise ValueError(tr('ui.21cdbd30399b', '共享模式请选择语音目录'))
     created = changed = skipped = 0
     directories = []
     dialogue_files = {}
@@ -90,7 +91,7 @@ def plan_bindings(config, records, *, mode="shared", voice_dir="", bgm_dir="", a
             continue
         seen.add(key)
         if not Path(record["path"]).is_file():
-            raise ValueError("壁纸入口已失效，请重新扫描：" + record["path"])
+            raise ValueError(tr('ui.020c3a7616c7', '壁纸入口已失效，请重新扫描：') + record["path"])
         profile = next((p for p in updated["profiles"] if identity(p["wallpaper"]) == key), None)
         if profile and not update_existing:
             skipped += 1

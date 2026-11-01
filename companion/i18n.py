@@ -37,7 +37,11 @@ def source_text(text):
 
 
 def install_qt_translation(app):
-    from PySide6.QtCore import QLibraryInfo, QTranslator
+    from PySide6.QtCore import QLibraryInfo, QTranslator, QLocale
+    QLocale.setDefault(QLocale("en_US" if _LANGUAGE == "en-US" else "zh_CN"))
+    previous = getattr(app, "_companion_translator", None)
+    if previous is not None:
+        app.removeTranslator(previous)
     translator = QTranslator(app)
     if _LANGUAGE == "zh-CN" and translator.load("qtbase_zh_CN", QLibraryInfo.path(QLibraryInfo.LibraryPath.TranslationsPath)):
         app.installTranslator(translator)

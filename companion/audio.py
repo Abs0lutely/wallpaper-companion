@@ -1,4 +1,5 @@
 from __future__ import annotations
+from .i18n import tr
 
 import random
 from pathlib import Path
@@ -34,7 +35,7 @@ class Audio(QObject):
         self.failed = set()
         self.last_bgm = None
         self.voice.playbackStateChanged.connect(self._voice_state)
-        self.voice.errorOccurred.connect(lambda error, text: self.message.emit("语音播放失败：" + text))
+        self.voice.errorOccurred.connect(lambda error, text: self.message.emit(tr('ui.ecaa76ff966a', '语音播放失败：') + text))
         self.bgm.errorOccurred.connect(self._bgm_error)
         self.bgm.mediaStatusChanged.connect(self._bgm_status)
 
@@ -96,7 +97,7 @@ class Audio(QObject):
         self.voice.stop()
         self.voice.setSource(QUrl.fromLocalFile(str(Path(path).resolve())))
         self.voice.play()
-        self.message.emit("语音：" + Path(path).stem)
+        self.message.emit(tr('ui.ef22c9aee39c', '语音：') + Path(path).stem)
 
     def _voice_state(self, state):
         self.set_volumes()
@@ -130,7 +131,7 @@ class Audio(QObject):
     def _bgm_error(self, error, text):
         if self.last_bgm:
             self.failed.add(str(self.last_bgm))
-        self.message.emit("BGM 播放失败，跳过此文件：" + text)
+        self.message.emit(tr('ui.7e509393a425', 'BGM 播放失败，跳过此文件：') + text)
         QTimer.singleShot(200, self.next_bgm)
 
     def set_paused(self, paused):

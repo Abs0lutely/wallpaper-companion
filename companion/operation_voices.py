@@ -1,4 +1,5 @@
 """Semantic UI speech using prepared clips only. Never starts or calls a TTS API."""
+from .i18n import tr
 import random
 import time
 import weakref
@@ -15,7 +16,8 @@ def classify_button(button):
     explicit = button.property("voiceEvent")
     if explicit in EVENT_LINES:
         return explicit
-    text = button.text().replace("&", "")
+    from .i18n import source_text
+    text = source_text(button.text().replace("&", ""))
     pairs = [("撤销|撤回", "undo"), ("恢复默认", "reset"), ("关闭自建|关闭接口", "api_stop"),
              ("启动本地|启动接口", "api_start"), ("生成", "generate"), ("停止试听|播放参考|试听", "preview"),
              ("下一首", "next"), ("继续", "resume"), ("暂停|停止", "pause"), ("保存", "save"),
@@ -139,7 +141,7 @@ class OperationVoices(QObject):
             self.scanning = False
             self.clips = clips
             count = sum(bool(paths) for paths in clips.values())
-            self.w.operation_voice_status.setText(f"操作语音：已找到 {count}/{len(EVENT_LINES)} 类。" + ("缺少的分类保持静音；请导入操作台词并生成音频。" if count < len(EVENT_LINES) else "已准备好。"))
+            self.w.operation_voice_status.setText(tr('ui.21e1f8615b62', '操作语音：已找到 {value0}/{value1} 类。', value0=count, value1=len(EVENT_LINES)) + (tr('ui.1b0b41411191', '缺少的分类保持静音；请导入操作台词并生成音频。') if count < len(EVENT_LINES) else tr('ui.f9e30640af36', '已准备好。')))
             if self.refresh_pending:
                 self.refresh_pending = False
                 self.refresh()
@@ -147,7 +149,7 @@ class OperationVoices(QObject):
 
     def scan_failed(self, error):
         self.scanning = False
-        self.w.operation_voice_status.setText("操作语音读取失败：" + str(error))
+        self.w.operation_voice_status.setText(tr('ui.476f066fd195', '操作语音读取失败：') + str(error))
 
     def request(self, event, delayed=False):
         if self.closed or not self.w.store.config.get("operation_voice_enabled", True) or not self.w.isVisible():

@@ -1,4 +1,5 @@
 """Editable starter lines written for this project, not scraped game dialogue."""
+from .i18n import tr
 import copy
 import uuid
 
@@ -20,21 +21,21 @@ def starter_dialogues():
 
 def normalize_dialogues(entries):
     if not isinstance(entries, list):
-        raise ValueError("台词库必须是列表")
+        raise ValueError(tr('ui.b2f4f27d3a7b', '台词库必须是列表'))
     result = []
     seen_ids = set()
     for entry in entries:
         if not isinstance(entry, dict) or not isinstance(entry.get("text"), str):
-            raise ValueError("每条台词需要 text 文本字段")
+            raise ValueError(tr('ui.0e4081250077', '每条台词需要 text 文本字段'))
         text = entry["text"].strip()
         if not text or len(text) > 4000:
-            raise ValueError("每条台词长度需要为 1–4000 字符")
+            raise ValueError(tr('ui.220f7f0dffbf', '每条台词长度需要为 1–4000 字符'))
         category = str(entry.get("category", "闲置陪伴")).strip()
         reserved = {"CON", "PRN", "AUX", "NUL", *(f"COM{i}" for i in range(1, 10)), *(f"LPT{i}" for i in range(1, 10))}
         if (not category or len(category) > 60 or any(c in category for c in '/\\<>:"|?*')
                 or any(ord(c) < 32 for c in category) or category.rstrip(" .") != category
                 or category.split(".")[0].upper() in reserved):
-            raise ValueError("台词分类需要是有效的子目录名称")
+            raise ValueError(tr('ui.9ffe37840476', '台词分类需要是有效的子目录名称'))
         identifier = str(entry.get("id", ""))
         if not identifier or identifier in seen_ids:
             identifier = uuid.uuid4().hex

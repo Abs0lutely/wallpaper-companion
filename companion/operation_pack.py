@@ -1,4 +1,5 @@
 """Exact-manifest WAV validation for redistributable operation voice packs."""
+from .i18n import tr
 import wave
 from pathlib import Path
 from .action_lines import operation_dialogues
@@ -8,12 +9,12 @@ from .core import filename_for
 def validate_wave(path):
     path = Path(path)
     if path.stat().st_size > 30 * 1024 * 1024:
-        raise ValueError("语音包文件过大：" + path.name)
+        raise ValueError(tr('ui.a74e733f9aaa', '语音包文件过大：') + path.name)
     with wave.open(str(path),"rb") as sound:
         if sound.getnframes() < sound.getframerate()/10 or sound.getsampwidth()!=2:
-            raise ValueError("语音包需要至少 0.1 秒的 16-bit PCM WAV：" + path.name)
+            raise ValueError(tr('ui.36c929b56440', '语音包需要至少 0.1 秒的 16-bit PCM WAV：') + path.name)
         if not any(sound.readframes(sound.getnframes())):
-            raise ValueError("语音包文件为静音：" + path.name)
+            raise ValueError(tr('ui.d3ab2b689ca0', '语音包文件为静音：') + path.name)
         return dict(seconds=round(sound.getnframes()/sound.getframerate(),4),sample_rate=sound.getframerate(),channels=sound.getnchannels())
 
 
@@ -30,7 +31,7 @@ def validate_pack(root):
             continue
         for path in files:
             if path.is_symlink() or not path.resolve().is_relative_to(root) or path.suffix.lower()!=".wav":
-                raise ValueError("语音包需要目录内的安全 WAV 文件：" + path.name)
+                raise ValueError(tr('ui.e7ddcafef9f1', '语音包需要目录内的安全 WAV 文件：') + path.name)
             validate_wave(path)
             name=path.relative_to(root).as_posix()
             if name not in found: found.append(name)
@@ -42,5 +43,5 @@ def validate_pack(root):
 def require_pack(root):
     result = validate_pack(root)
     if not result["ready"]:
-        raise ValueError(f"默认操作语音未覆盖全部动作，缺 {len(result['missing_categories'])} 类。请先准备分发语音包；同类第二条为可选变体，不复制其他台词冒充。")
+        raise ValueError(tr('ui.4d1820dcfd9b', '默认操作语音未覆盖全部动作，缺 {value0} 类。请先准备分发语音包；同类第二条为可选变体，不复制其他台词冒充。', value0=len(result['missing_categories'])))
     return result

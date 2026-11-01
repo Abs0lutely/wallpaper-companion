@@ -1,9 +1,12 @@
 # PyInstaller onedir build: keep Qt DLLs replaceable and avoid temporary extraction.
 from pathlib import Path
 
+from PySide6.QtCore import QLibraryInfo
+
 root = Path(SPECPATH).parent
+qt_translation = Path(QLibraryInfo.path(QLibraryInfo.LibraryPath.TranslationsPath)) / "qtbase_zh_CN.qm"
 a = Analysis(
-    [str(root / "main.py")], pathex=[str(root)], binaries=[], datas=[],
+    [str(root / "main.py")], pathex=[str(root)], binaries=[], datas=[(str(qt_translation), "PySide6/translations")] if qt_translation.is_file() else [],
     hiddenimports=["pynput.keyboard._win32", "pynput.mouse._win32",
                    "keyring.backends.Windows", "win32ctypes.pywin32.win32cred"],
     excludes=["tkinter", "PySide6.QtWebEngineCore", "PySide6.QtWebEngineWidgets"],

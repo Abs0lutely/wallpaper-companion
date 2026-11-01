@@ -1,4 +1,5 @@
 """Independent or shared resource folders and file-backed dialogue libraries."""
+from .i18n import tr
 import copy
 import json
 from pathlib import Path
@@ -25,10 +26,10 @@ def channel_resources(profile, shared, private, modes, protected=()):
     for key in ("voice_dir", "bgm_dir", "dialogue_file"):
         mode = modes.get(key, "custom")
         if mode not in {"shared", "private", "custom"}:
-            raise ValueError("未知资源目录模式")
+            raise ValueError(tr('ui.f06ae05900e7', '未知资源目录模式'))
         value = shared_values[key] if mode == "shared" else private_values[key] if mode == "private" else profile.get(key, "")
         if not value:
-            raise ValueError("自定义目录为空，请选择共享或专用模式")
+            raise ValueError(tr('ui.594a673d20a5', '自定义目录为空，请选择共享或专用模式'))
         result[key] = str(writable_path(value, protected))
     result["asset_dir"] = private_values["asset_dir"]
     result["private_asset_dir"] = private_values["asset_dir"]
