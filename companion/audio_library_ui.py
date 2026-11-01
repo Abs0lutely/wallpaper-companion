@@ -37,8 +37,11 @@ class AudioLibraryMixin:
         self.audio_table.setColumnWidth(4, 280)
         self.audio_table.cellDoubleClicked.connect(lambda *_: self.preview_library_audio())
         layout.addWidget(self.audio_table, 1)
+        layout.addWidget(row(button("全选当前列表", lambda: self.select_library_audio(True)),
+                             button("全不选", lambda: self.select_library_audio(False)),
+                             hint("支持 Ctrl / Shift 多选；删除和复制对全部选中文件生效。")))
         layout.addWidget(row(button("试听所选", self.preview_library_audio), button("停止试听", self.audio.voice.stop),
-                             button("打开所选文件目录", self.open_library_audio_folder), button("移入回收站…", self.recycle_library_audio)))
+                             button("打开所选文件目录", self.open_library_audio_folder), button("删除", self.recycle_library_audio)))
         self.audio_target = QComboBox()
         self.audio_category = QLineEdit()
         self.audio_category.setPlaceholderText("可选分类子目录，例如：早安")
@@ -131,6 +134,16 @@ class AudioLibraryMixin:
         return [self.audio_table.item(index.row(), 0).data(Qt.ItemDataRole.UserRole)
                 for index in self.audio_table.selectionModel().selectedRows() if not self.audio_table.isRowHidden(index.row())]
 
+    def select_library_audio(self, selected):
+        from PySide6.QtCore import QItemSelectionModel
+        self.audio_table.clearSelection()
+        if selected:
+            for index in range(self.audio_table.rowCount()):
+                if not self.audio_table.isRowHidden(index):
+                    self.audio_table.selectionModel().select(self.audio_table.model().index(index, 0),
+                        QItemSelectionModel.SelectionFlag.Select | QItemSelectionModel.SelectionFlag.Rows)
+        self.audio_library_status.setText(f"已选择 {len(self.selected_library_audio())} 个音频；可批量复制或删除。")
+
     def preview_library_audio(self):
         records = self.selected_library_audio()
         if records:
@@ -138,8 +151,14 @@ class AudioLibraryMixin:
 
     def open_library_audio_folder(self):
         records = self.selected_library_audio()
+        if not records:
+            records = [self.audio_table.item(i, 0).data(Qt.ItemDataRole.UserRole)
+                       for i in range(self.audio_table.rowCount()) if not self.audio_table.isRowHidden(i)][:1]
         if records:
             self.open_folder(str(Path(records[0]["path"]).parent))
+            self.log("已打开音频所在目录：" + str(Path(records[0]["path"]).parent))
+        else:
+            self.log("当前列表没有音频，请先导入文件或调整筛选。")
 
     def audio_target_path(self):
         source = next((s for s in self.audio_sources if s["id"] == self.audio_target.currentData()), None)
@@ -204,6 +223,7 @@ class AudioLibraryMixin:
             return
         records = self.selected_library_audio()
         if not records:
+            self.log("请先选择需要删除的音频，可使用全选或 Ctrl / Shift 多选。")
             return
         count = len({p for item in records for p in item["profiles"]})
         if QMessageBox.question(self, "将音频移入回收站", f"将 {len(records)} 个文件移入系统回收站？\n涉及 {count} 个配置的音频目录；共享文件移除后影响所有使用者，精确文件规则可能失效。\n配置和壁纸绑定保留，不会永久删除文件。", QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No, QMessageBox.StandardButton.No) != QMessageBox.StandardButton.Yes:
