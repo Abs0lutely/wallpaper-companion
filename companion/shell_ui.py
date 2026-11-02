@@ -121,6 +121,8 @@ class CompanionShellMixin:
         menu.addAction(tr('ui.bd5f7c8d592f', '删除选中配置…'), self.delete_profile)
         menu.addSeparator()
         self.scan_bind_action = menu.addAction(tr('ui.602e8ee41e62', '扫描 / 批量绑定壁纸…'), lambda: self.tabs.setCurrentIndex(self.library_tab_index))
+        from .pack_text import p
+        menu.addAction(p("export"), self.export_companion_pack)
         manage.setMenu(menu)
         side.addWidget(manage)
         side.addStretch()
@@ -182,6 +184,8 @@ class CompanionShellMixin:
         self.detect_button=button(tr('ui.14ca09ce1fd2', '立即检测'), lambda: self.detect(command=True))
         context.addWidget(self.detect_button)
         context.addWidget(button(tr("mode.label","运行模式"),lambda:self.tabs.setCurrentIndex(3)))
+        from .pack_text import p
+        context.addWidget(button(p("title"), self.open_companion_packs))
         work.addLayout(context)
         self.editing_context = hint("")
         work.addWidget(self.editing_context)

@@ -1,6 +1,9 @@
 """Bilingual companion-pack captions; data names and content are never translated."""
 from .i18n import tr
 TEXT = {
+ 'bind_missing': ('未检测到当前壁纸。请先启动 WE 并播放壁纸。', 'No current wallpaper detected. Start WE and play a wallpaper first.'),
+ 'bind_conflict': ('该壁纸已有其他方案，未更改原绑定。', 'This wallpaper already has another profile; its link was not changed.'),
+ 'bind_confirm': ('将当前包方案关联到这张壁纸，并切换为跟随 WE？', 'Link this pack profile to the current wallpaper and switch to following WE?'),
  'title': ('选择陪伴包', 'Choose a companion pack'),
  'invalid': ('陪伴包格式、文件清单或校验值无效。', 'Invalid pack format, file inventory or checksum.'),
  'unsafe': ('陪伴包包含不安全的路径、文件或内容。', 'The pack contains unsafe paths, files or content.'),

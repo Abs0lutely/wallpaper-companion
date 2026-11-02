@@ -37,6 +37,7 @@ SMOKES = (
     "smoke_i18n_zh.py",
     "smoke_multilingual.py",
     "smoke_multilingual_en.py",
+    "smoke_packs.py", "smoke_packs_en.py",
 )
 
 
