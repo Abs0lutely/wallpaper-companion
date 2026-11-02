@@ -1063,7 +1063,8 @@ EN = {
     "voices.transfer_edited": "Text changed: ordinary lines will be saved to the output directory without their original categories.",
     "voices.switch": "Switch categories",
     "voices.switched": "Updated {count} default categories. Custom categories, toggles and cooldowns kept; save to apply.",
-    "voices.transfer_help": "Send checked lines to generation to preserve category folders. Editing the transferred text switches to ordinary line generation. Applying category rules replaces current rules."
+    "voices.transfer_help": "Send checked lines to generation to preserve category folders. Editing the transferred text switches to ordinary line generation. Applying category rules replaces current rules.",
+    "voices.demo_language": "Bundled demo voice language"
 }
 SOURCES = {
     "documents.overview": "使用说明",
@@ -2103,5 +2104,6 @@ SOURCES = {
     "voices.transfer_edited": "文本已修改：将按普通逐行模式保存到输出目录，不再使用原分类。",
     "voices.switch": "快速切换分类",
     "voices.switched": "已更新 {count} 项默认分类；自定义分类、开关和冷却保留，保存后生效。",
-    "voices.transfer_help": "勾选后送到生成页，将按原分类保存音频；修改转入的文本后改为普通逐行生成。分类规则会替换当前规则。"
+    "voices.transfer_help": "勾选后送到生成页，将按原分类保存音频；修改转入的文本后改为普通逐行生成。分类规则会替换当前规则。",
+    "voices.demo_language": "随附示例配音语言"
 }

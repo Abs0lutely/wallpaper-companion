@@ -106,6 +106,9 @@ def build_profile(window):
     for control in [w.profile_enabled, w.bgm_enabled, w.desktop_only, w.fullscreen_mute, w.shuffle, w.bundled_demo_enabled]:
         play.addWidget(control)
     play.addStretch()
+    w.demo_language=QComboBox()
+    w.demo_language.addItem("中文", "zh-CN");w.demo_language.addItem("日本語", "ja-JP")
+    play.addWidget(QLabel(tr("voices.demo_language", "随附示例配音语言")));play.addWidget(w.demo_language)
     cards.addWidget(play_card, 1)
     sounds.addStretch()
     sound_scroll = QScrollArea()

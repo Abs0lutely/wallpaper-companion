@@ -1,7 +1,7 @@
 {
   "format": "wallpaper-companion-bundled-audio",
   "version": 1,
-  "origin": "用户提供并授权随程序分发的默认台词合成音频",
+  "origin": "User-authorized Chinese and Japanese default recordings",
   "files": [
     {
       "pack": "starter-voice",
@@ -992,6 +992,816 @@
       "seconds": 5.24,
       "sample_rate": 48000,
       "channels": 1
+    },
+    {
+      "pack": "starter-voice-ja-JP",
+      "locale": "ja-JP",
+      "category": "点击回应·ja-JP",
+      "text": "ん？ ここにいるよ。",
+      "filename": "ん？ ここにいるよ。-恋人不行-紫阳花(开心).wav",
+      "bytes": 119084,
+      "sha256": "a53c0cbc806638b503bbc3b2a91d4d2e1719451f227682e72c39d36347d7c335"
+    },
+    {
+      "pack": "starter-voice-ja-JP",
+      "locale": "ja-JP",
+      "category": "点击回应·ja-JP",
+      "text": "何か新しい発見でもあった？",
+      "filename": "何か新しい発見でもあった？-恋人不行-紫阳花(开心).wav",
+      "bytes": 149804,
+      "sha256": "99ff6c762717e2c942bbd7a3bebdb4fd2203af2713de6634b52a1d149a485b63"
+    },
+    {
+      "pack": "starter-voice-ja-JP",
+      "locale": "ja-JP",
+      "category": "点击回应·ja-JP",
+      "text": "わかったよ。このままそばにいるね。",
+      "filename": "わかったよ。このままそばにいるね。-恋人不行-紫阳花(开心).wav",
+      "bytes": 184364,
+      "sha256": "04965808b1ef5bb97f279dd88147c9d9b26ce66ed37de4bbe8b41b99ed1df3f8"
+    },
+    {
+      "pack": "starter-voice-ja-JP",
+      "locale": "ja-JP",
+      "category": "点击回应·ja-JP",
+      "text": "急がなくていいよ。一緒にゆっくり進もう。",
+      "filename": "急がなくていいよ。一緒にゆっくり進もう。-恋人不行-紫阳花(开心).wav",
+      "bytes": 212524,
+      "sha256": "9906d846c4a4b6b14f60d474ddd1bad83ac3b559ed84e6113efba3ba83a61dcc"
+    },
+    {
+      "pack": "starter-voice-ja-JP",
+      "locale": "ja-JP",
+      "category": "点击回应·ja-JP",
+      "text": "今日も一緒に頑張ろうね。",
+      "filename": "今日も一緒に頑張ろうね。-恋人不行-紫阳花(开心).wav",
+      "bytes": 113964,
+      "sha256": "306ad6055aba48a95d66da81a1aa6fee6961ab9d9262f1167e341fad9f8be15d"
+    },
+    {
+      "pack": "starter-voice-ja-JP",
+      "locale": "ja-JP",
+      "category": "点击回应·ja-JP",
+      "text": "ひと休みしてから続けてもいいんだよ。",
+      "filename": "ひと休みしてから続けてもいいんだよ。-恋人不行-紫阳花(开心).wav",
+      "bytes": 162604,
+      "sha256": "267fdd3ad748fb623db3a952d435b08d8d3881281c5db0e123d6bbcc579abba6"
+    },
+    {
+      "pack": "starter-voice-ja-JP",
+      "locale": "ja-JP",
+      "category": "点击回应·ja-JP",
+      "text": "呼んでくれたら、すぐに来るよ。",
+      "filename": "呼んでくれたら、すぐに来るよ。-恋人不行-紫阳花(开心).wav",
+      "bytes": 174124,
+      "sha256": "4cc4d1f49f9066cda68957fd9d9af83a146f942a732d6392fa4a3d3c0fdb24d7"
+    },
+    {
+      "pack": "starter-voice-ja-JP",
+      "locale": "ja-JP",
+      "category": "点击回应·ja-JP",
+      "text": "気分を変えて、一曲聴いてみない？",
+      "filename": "気分を変えて、一曲聴いてみない？-恋人不行-紫阳花(开心).wav",
+      "bytes": 189484,
+      "sha256": "17fb5107e8e36e35b25879478f60cf0dadea4ed9415943c666ce33a4c41e6d4e"
+    },
+    {
+      "pack": "starter-voice-ja-JP",
+      "locale": "ja-JP",
+      "category": "返回桌面·ja-JP",
+      "text": "おかえり。今日もお疲れさま。",
+      "filename": "おかえり。今日もお疲れさま。-恋人不行-紫阳花(开心).wav",
+      "bytes": 156204,
+      "sha256": "9c4c07f35c292d601bf1cd83f6a13fb7bfefdaf2dd17e4aa401e7d0959c48d80"
+    },
+    {
+      "pack": "starter-voice-ja-JP",
+      "locale": "ja-JP",
+      "category": "返回桌面·ja-JP",
+      "text": "おかえり。ちょうどいいから、少し休もうか。",
+      "filename": "おかえり。ちょうどいいから、少し休もうか。-恋人不行-紫阳花(开心).wav",
+      "bytes": 236844,
+      "sha256": "ca7117127c9ae3ed7d32018abc6206c0603205823db8558ef9d16c63dd55f303"
+    },
+    {
+      "pack": "starter-voice-ja-JP",
+      "locale": "ja-JP",
+      "category": "返回桌面·ja-JP",
+      "text": "用事は順調に進んだ？",
+      "filename": "用事は順調に進んだ？-恋人不行-紫阳花(开心).wav",
+      "bytes": 126764,
+      "sha256": "829a8ea248f3be25f0a6db462e9655969a7ef6a9c2fde2b72555ee96eb61b479"
+    },
+    {
+      "pack": "starter-voice-ja-JP",
+      "locale": "ja-JP",
+      "category": "返回桌面·ja-JP",
+      "text": "デスクトップの準備はできてるよ。次は何をしようか？",
+      "filename": "デスクトップの準備はできてるよ。次は何をしようか？-恋人不行-紫阳花(开心).wav",
+      "bytes": 266284,
+      "sha256": "75eac5422ae455d0c0be5ed2097dcf79ce6a109fc48de8d67fdb6e8b5556cb36"
+    },
+    {
+      "pack": "starter-voice-ja-JP",
+      "locale": "ja-JP",
+      "category": "返回桌面·ja-JP",
+      "text": "また会えたね。一緒に続きをやろう。",
+      "filename": "また会えたね。一緒に続きをやろう。-恋人不行-紫阳花(开心).wav",
+      "bytes": 186924,
+      "sha256": "eecb9461455eed989c5ed49d9252591a900397014558043a74b9dcdbc0b32dd1"
+    },
+    {
+      "pack": "starter-voice-ja-JP",
+      "locale": "ja-JP",
+      "category": "返回桌面·ja-JP",
+      "text": "おかえり。まずはぐっと伸びをしよう。",
+      "filename": "おかえり。まずはぐっと伸びをしよう。-恋人不行-紫阳花(开心).wav",
+      "bytes": 189484,
+      "sha256": "b4790724ecb1a53445cfd7219a76222fb873a5904311e91cff4754cc99a742f7"
+    },
+    {
+      "pack": "starter-voice-ja-JP",
+      "locale": "ja-JP",
+      "category": "早晨·ja-JP",
+      "text": "おはよう。新しい一日の始まりだね。",
+      "filename": "おはよう。新しい一日の始まりだね。-恋人不行-紫阳花(开心).wav",
+      "bytes": 202284,
+      "sha256": "f6fba383cddf9882fcea1b26da7b17b88d97efdb841ec73acdc094c561a72af6"
+    },
+    {
+      "pack": "starter-voice-ja-JP",
+      "locale": "ja-JP",
+      "category": "早晨·ja-JP",
+      "text": "おはよう。まずはゆっくり身支度をしよう。",
+      "filename": "おはよう。まずはゆっくり身支度をしよう。-恋人不行-紫阳花(开心).wav",
+      "bytes": 194604,
+      "sha256": "9ef2244ff44a50621e8b2ede9f5030b13485333938f8306b830f005a7b597bc7"
+    },
+    {
+      "pack": "starter-voice-ja-JP",
+      "locale": "ja-JP",
+      "category": "早晨·ja-JP",
+      "text": "おはよう。今日も一歩ずつ進もうね。",
+      "filename": "おはよう。今日も一歩ずつ進もうね。-恋人不行-紫阳花(开心).wav",
+      "bytes": 192044,
+      "sha256": "692fece32e30e096bf9f8581fc4e889e9da33818fe566623fd9fbd42d512aec4"
+    },
+    {
+      "pack": "starter-voice-ja-JP",
+      "locale": "ja-JP",
+      "category": "早晨·ja-JP",
+      "text": "おはよう。朝ごはんも忘れずにね。",
+      "filename": "おはよう。朝ごはんも忘れずにね。-恋人不行-紫阳花(开心).wav",
+      "bytes": 179244,
+      "sha256": "6601f6867e823d593024bad65b7a2b4c379394013bfd1f461643ddf18809a894"
+    },
+    {
+      "pack": "starter-voice-ja-JP",
+      "locale": "ja-JP",
+      "category": "早晨·ja-JP",
+      "text": "おはよう。今日は小さなうれしいことがあるといいね。",
+      "filename": "おはよう。今日は小さなうれしいことがあるといいね。-恋人不行-紫阳花(开心).wav",
+      "bytes": 250924,
+      "sha256": "a31010895ac4c34ab98b423b75ebc06c70a7de0e9e31547f9d75c5c4d66cc729"
+    },
+    {
+      "pack": "starter-voice-ja-JP",
+      "locale": "ja-JP",
+      "category": "早晨·ja-JP",
+      "text": "おはよう。まずは小さなことから始めよう。",
+      "filename": "おはよう。まずは小さなことから始めよう。-恋人不行-紫阳花(开心).wav",
+      "bytes": 207404,
+      "sha256": "739d0d336478f974026c38d9f24e3163696646501d55a2aa1f90f312e943f05e"
+    },
+    {
+      "pack": "starter-voice-ja-JP",
+      "locale": "ja-JP",
+      "category": "白天·ja-JP",
+      "text": "こんにちは。お水もちゃんと飲んでね。",
+      "filename": "こんにちは。お水もちゃんと飲んでね。-恋人不行-紫阳花(开心).wav",
+      "bytes": 181804,
+      "sha256": "1224897a812300bdee3b96cc221049fb24ddd08161f1759ee7c8f21ad8ae287d"
+    },
+    {
+      "pack": "starter-voice-ja-JP",
+      "locale": "ja-JP",
+      "category": "白天·ja-JP",
+      "text": "しばらく頑張ったね。少し目を休めよう。",
+      "filename": "しばらく頑張ったね。少し目を休めよう。-恋人不行-紫阳花(开心).wav",
+      "bytes": 225324,
+      "sha256": "28faa057cd2a7451d35a3ff12499d32eb19469373b1f76559342c9ea318963e3"
+    },
+    {
+      "pack": "starter-voice-ja-JP",
+      "locale": "ja-JP",
+      "category": "白天·ja-JP",
+      "text": "一度に全部終わらせなくていいよ。まずは目の前の一つから。",
+      "filename": "一度に全部終わらせなくていいよ。まずは目の前の一つから。-恋人不行-紫阳花(开心).wav",
+      "bytes": 281644,
+      "sha256": "24c3729b131210b128125fd05a6cfe8f2020ac181d613f7d55228a614bb34ee2"
+    },
+    {
+      "pack": "starter-voice-ja-JP",
+      "locale": "ja-JP",
+      "category": "白天·ja-JP",
+      "text": "今日はもう少し進められたね。この調子でいこう。",
+      "filename": "今日はもう少し進められたね。この調子でいこう。-恋人不行-紫阳花(开心).wav",
+      "bytes": 233004,
+      "sha256": "416008bac1ac690dfbf6196b74e198858582c3a3d3b0d5786867b0bf500a3376"
+    },
+    {
+      "pack": "starter-voice-ja-JP",
+      "locale": "ja-JP",
+      "category": "白天·ja-JP",
+      "text": "少し疲れたら、楽な姿勢に変えてみよう。",
+      "filename": "少し疲れたら、楽な姿勢に変えてみよう。-恋人不行-紫阳花(开心).wav",
+      "bytes": 220204,
+      "sha256": "8dfcf91b93872d8d2b6904fabf2c4c0628d8ed934400e95617b6fbe76ff34efc"
+    },
+    {
+      "pack": "starter-voice-ja-JP",
+      "locale": "ja-JP",
+      "category": "白天·ja-JP",
+      "text": "外の光がきれいだね。時間があったら、遠くを眺めてみて。",
+      "filename": "外の光がきれいだね。時間があったら、遠くを眺めてみて。-恋人不行-紫阳花(开心).wav",
+      "bytes": 321324,
+      "sha256": "5ebe81de0dc1307a9d72bcbf0458f26d3c6a71235c31a81a282e7ab3c0cae2c9"
+    },
+    {
+      "pack": "starter-voice-ja-JP",
+      "locale": "ja-JP",
+      "category": "夜间·ja-JP",
+      "text": "おやすみ。あまり夜更かししないでね。",
+      "filename": "おやすみ。あまり夜更かししないでね。-恋人不行-紫阳花(开心).wav",
+      "bytes": 197164,
+      "sha256": "68b4b5e9536a21a0eec6677e5bff08caa159abf8b6e92c9be191408dad2bf545"
+    },
+    {
+      "pack": "starter-voice-ja-JP",
+      "locale": "ja-JP",
+      "category": "夜间·ja-JP",
+      "text": "もう夜も遅いね。今日はここまでにしよう。",
+      "filename": "もう夜も遅いね。今日はここまでにしよう。-恋人不行-紫阳花(开心).wav",
+      "bytes": 217644,
+      "sha256": "c3bdbeff193899610f0706a0ebbdb3aae65887a84271799f19a7abbe860f19bd"
+    },
+    {
+      "pack": "starter-voice-ja-JP",
+      "locale": "ja-JP",
+      "category": "夜间·ja-JP",
+      "text": "おやすみ。残りは明日、ゆっくり片づけよう。",
+      "filename": "おやすみ。残りは明日、ゆっくり片づけよう。-恋人不行-紫阳花(开心).wav",
+      "bytes": 265004,
+      "sha256": "057a0b39352601bfeeb59c49bfad71d8cd5ab20c442908a0ed827fce4d6c7c7b"
+    },
+    {
+      "pack": "starter-voice-ja-JP",
+      "locale": "ja-JP",
+      "category": "夜间·ja-JP",
+      "text": "この区切りまで終わったら、休む準備をしよう。",
+      "filename": "この区切りまで終わったら、休む準備をしよう。-恋人不行-紫阳花(开心).wav",
+      "bytes": 227884,
+      "sha256": "5bcd5d0e6e6b39abf3018c0c613689e44357ae67b308d939d09af761a0982456"
+    },
+    {
+      "pack": "starter-voice-ja-JP",
+      "locale": "ja-JP",
+      "category": "夜间·ja-JP",
+      "text": "おやすみ。今夜はぐっすり眠れますように。",
+      "filename": "おやすみ。今夜はぐっすり眠れますように。-恋人不行-紫阳花(开心).wav",
+      "bytes": 215084,
+      "sha256": "c41ec6a6811cd957a0ea36bb7497b34e6f5268dc95140d66c1a794247e0eb9f5"
+    },
+    {
+      "pack": "starter-voice-ja-JP",
+      "locale": "ja-JP",
+      "category": "夜间·ja-JP",
+      "text": "今日もお疲れさま。自分のために、少し静かな時間を残してあげてね。",
+      "filename": "今日もお疲れさま。自分のために、少し静かな時間を残してあげてね。-恋人不行-紫阳花(开心).wav",
+      "bytes": 357164,
+      "sha256": "33afecb40e7283628c9983587e572b0076f622613a8a36bc8ea7d6e30caa8356"
+    },
+    {
+      "pack": "starter-voice-ja-JP",
+      "locale": "ja-JP",
+      "category": "闲置陪伴·ja-JP",
+      "text": "こうして静かに過ごすのもいいね。",
+      "filename": "こうして静かに過ごすのもいいね。-恋人不行-紫阳花(开心).wav",
+      "bytes": 152364,
+      "sha256": "c0d1f2170c9a0bbc6ed76e2a608d3eba418c3b4a1c2bbf645eb284c34c06ec48"
+    },
+    {
+      "pack": "starter-voice-ja-JP",
+      "locale": "ja-JP",
+      "category": "闲置陪伴·ja-JP",
+      "text": "すぐに返事をしなくても大丈夫。ここにいるよ。",
+      "filename": "すぐに返事をしなくても大丈夫。ここにいるよ。-恋人不行-紫阳花(开心).wav",
+      "bytes": 235564,
+      "sha256": "e397bbf4b9ebb80aa89ffedde4959d268a8b7414b7c2706b8dbf379cbbae35de"
+    },
+    {
+      "pack": "starter-voice-ja-JP",
+      "locale": "ja-JP",
+      "category": "闲置陪伴·ja-JP",
+      "text": "デスクトップを整理して、気持ちよく始めてみない？",
+      "filename": "デスクトップを整理して、気持ちよく始めてみない？-恋人不行-紫阳花(开心).wav",
+      "bytes": 253484,
+      "sha256": "871dc42a353d85c13c5681536886f907c59f8f61348bbec6c7e6fdcf7ee34a20"
+    },
+    {
+      "pack": "starter-voice-ja-JP",
+      "locale": "ja-JP",
+      "category": "闲置陪伴·ja-JP",
+      "text": "音楽を聴きながら、ゆっくりやっていこう。",
+      "filename": "音楽を聴きながら、ゆっくりやっていこう。-恋人不行-紫阳花(开心).wav",
+      "bytes": 194604,
+      "sha256": "84bfacd1c40e9ce67c18cd68a771dc68f922cd0b8d9e130a15b94cbf845148ca"
+    },
+    {
+      "pack": "starter-voice-ja-JP",
+      "locale": "ja-JP",
+      "category": "闲置陪伴·ja-JP",
+      "text": "たまにはぼんやりするのも、心の充電になるよ。",
+      "filename": "たまにはぼんやりするのも、心の充電になるよ。-恋人不行-紫阳花(开心).wav",
+      "bytes": 250924,
+      "sha256": "fc51e7321e9539b9590d829b3566849824701981d7627afced60d3ad627ef380"
+    },
+    {
+      "pack": "starter-voice-ja-JP",
+      "locale": "ja-JP",
+      "category": "闲置陪伴·ja-JP",
+      "text": "準備ができたら、また一緒に続きをしよう。",
+      "filename": "準備ができたら、また一緒に続きをしよう。-恋人不行-紫阳花(开心).wav",
+      "bytes": 217644,
+      "sha256": "ab723e80ae0c09a51454e075ee2df2d448830e588433896fd5091669c1ee27b9"
+    },
+    {
+      "pack": "operation-voice-ja-JP",
+      "locale": "ja-JP",
+      "category": "操作·回应·ja-JP",
+      "text": "うん、聞こえたよ。一緒にゆっくり進もうね。",
+      "filename": "うん、聞こえたよ。一緒にゆっくり進もうね。-恋人不行-紫阳花(开心).wav",
+      "bytes": 222764,
+      "sha256": "2e188e18b98a8b22ddcb41df3fd034af5b1fc60d478b20a62d6cf66daf4170e7"
+    },
+    {
+      "pack": "operation-voice-ja-JP",
+      "locale": "ja-JP",
+      "category": "操作·回应·ja-JP",
+      "text": "小さな仕草にも、ちゃんと応えたいんだ。",
+      "filename": "小さな仕草にも、ちゃんと応えたいんだ。-恋人不行-紫阳花(开心).wav",
+      "bytes": 212524,
+      "sha256": "86dd5e3478442319ce5ba310915bd24303dd99b038b1692b6d6619d51facc4c4"
+    },
+    {
+      "pack": "operation-voice-ja-JP",
+      "locale": "ja-JP",
+      "category": "操作·切换页面·ja-JP",
+      "text": "別の場所ものぞいてみよう。あなたの歩幅でついていくね。",
+      "filename": "別の場所ものぞいてみよう。あなたの歩幅でついていくね。-恋人不行-紫阳花(开心).wav",
+      "bytes": 258604,
+      "sha256": "2711721114c0b36cd0e735689503551a2c1c2a9154fb82f724390048944b04e0"
+    },
+    {
+      "pack": "operation-voice-ja-JP",
+      "locale": "ja-JP",
+      "category": "操作·切换页面·ja-JP",
+      "text": "見たいものはここにあるよ。一緒に探そう。",
+      "filename": "見たいものはここにあるよ。一緒に探そう。-恋人不行-紫阳花(开心).wav",
+      "bytes": 215084,
+      "sha256": "e8fd9c1d2f6aceb5763553a09da9cd77d7353332f3d2a8df4437ac69d6b586ae"
+    },
+    {
+      "pack": "operation-voice-ja-JP",
+      "locale": "ja-JP",
+      "category": "操作·修改设置·ja-JP",
+      "text": "好きなように変えていいんだよ。ここはあなたの場所だから。",
+      "filename": "好きなように変えていいんだよ。ここはあなたの場所だから。-恋人不行-紫阳花(开心).wav",
+      "bytes": 248364,
+      "sha256": "63762d3ee1c4cc6bfd0cd0be152ec269ed486103ed9104a5196b845ac61701f0"
+    },
+    {
+      "pack": "operation-voice-ja-JP",
+      "locale": "ja-JP",
+      "category": "操作·修改设置·ja-JP",
+      "text": "少しずつ変えることも、自分の気持ちを大切にすることだね。",
+      "filename": "少しずつ変えることも、自分の気持ちを大切にすることだね。-恋人不行-紫阳花(开心).wav",
+      "bytes": 294444,
+      "sha256": "8155e80295cefb0867207b5376134f3fab6d6e4689aafb7c353282cfa1aeb14f"
+    },
+    {
+      "pack": "operation-voice-ja-JP",
+      "locale": "ja-JP",
+      "category": "操作·保存·ja-JP",
+      "text": "この気持ち、大事にしまっておくね。",
+      "filename": "この気持ち、大事にしまっておくね。-恋人不行-紫阳花(开心).wav",
+      "bytes": 184364,
+      "sha256": "6130c831fd113ddfe555645039885b38acbef2ee59d91958c05beae709cd97eb"
+    },
+    {
+      "pack": "operation-voice-ja-JP",
+      "locale": "ja-JP",
+      "category": "操作·保存·ja-JP",
+      "text": "こんな小さな工夫も、大切に覚えておきたいね。",
+      "filename": "こんな小さな工夫も、大切に覚えておきたいね。-恋人不行-紫阳花(开心).wav",
+      "bytes": 248364,
+      "sha256": "4a9a75cd060c444d522dfffc2d605743d0d584ad46d2ad69321f3bc8d09e24a3"
+    },
+    {
+      "pack": "operation-voice-ja-JP",
+      "locale": "ja-JP",
+      "category": "操作·撤销·ja-JP",
+      "text": "もう一度選び直してもいいんだよ。いつでも戻れるから。",
+      "filename": "もう一度選び直してもいいんだよ。いつでも戻れるから。-恋人不行-紫阳花(开心).wav",
+      "bytes": 258604,
+      "sha256": "beecd88e7c8cad13c9134066c736dd41399ed2b2bc8dbb4d7668fb880c88820e"
+    },
+    {
+      "pack": "operation-voice-ja-JP",
+      "locale": "ja-JP",
+      "category": "操作·撤销·ja-JP",
+      "text": "心配しないで。さっきのところに戻って、ゆっくり決めよう。",
+      "filename": "心配しないで。さっきのところに戻って、ゆっくり決めよう。-恋人不行-紫阳花(开心).wav",
+      "bytes": 303404,
+      "sha256": "a6c8fa7bd03f48a1623b88b461cfacb657b8fe98b786923c3bf28960b2085580"
+    },
+    {
+      "pack": "operation-voice-ja-JP",
+      "locale": "ja-JP",
+      "category": "操作·恢复默认·ja-JP",
+      "text": "最初からやり直したくなったら、また一緒に始めよう。",
+      "filename": "最初からやり直したくなったら、また一緒に始めよう。-恋人不行-紫阳花(开心).wav",
+      "bytes": 240684,
+      "sha256": "0e4993dc64fd007406a15aedfa064c42e08cb9ca9434ab576c6e25a9d9447eea"
+    },
+    {
+      "pack": "operation-voice-ja-JP",
+      "locale": "ja-JP",
+      "category": "操作·恢复默认·ja-JP",
+      "text": "もう一度整えてみよう。好きな声も思い出も、ちゃんと残っているよ。",
+      "filename": "もう一度整えてみよう。好きな声も思い出も、ちゃんと残っているよ。-恋人不行-紫阳花(开心).wav",
+      "bytes": 352044,
+      "sha256": "e726984eab50eb17475ffa023ec6afaa581d7e3606a04e9294c6896e1714bf08"
+    },
+    {
+      "pack": "operation-voice-ja-JP",
+      "locale": "ja-JP",
+      "category": "操作·新建·ja-JP",
+      "text": "これから好きになるもののために、少し場所ができたね。",
+      "filename": "これから好きになるもののために、少し場所ができたね。-恋人不行-紫阳花(开心).wav",
+      "bytes": 266284,
+      "sha256": "1c9b7f097f2b3b66c24299724a6368a281e5c0fdd181d88395c42633342da005"
+    },
+    {
+      "pack": "operation-voice-ja-JP",
+      "locale": "ja-JP",
+      "category": "操作·新建·ja-JP",
+      "text": "この小さな一歩から、あなたの物語を少しずつ足していこう。",
+      "filename": "この小さな一歩から、あなたの物語を少しずつ足していこう。-恋人不行-紫阳花(开心).wav",
+      "bytes": 302124,
+      "sha256": "630ddaa638b5a90c4e0abcc1c8da7b588d106ba39cfa2e2608513d1236a6ddc3"
+    },
+    {
+      "pack": "operation-voice-ja-JP",
+      "locale": "ja-JP",
+      "category": "操作·编辑·ja-JP",
+      "text": "伝えたい気持ちに近づくように、言葉を整えてみよう。聞いているよ。",
+      "filename": "伝えたい気持ちに近づくように、言葉を整えてみよう。聞いているよ。-恋人不行-紫阳花(开心).wav",
+      "bytes": 329004,
+      "sha256": "f4a3bd67489408f7e2baefc8f45d68c771e221c27dbb750a62a4764288ce3b98"
+    },
+    {
+      "pack": "operation-voice-ja-JP",
+      "locale": "ja-JP",
+      "category": "操作·编辑·ja-JP",
+      "text": "一度で決めなくてもいいよ。好きな形に、ゆっくり磨いていこう。",
+      "filename": "一度で決めなくてもいいよ。好きな形に、ゆっくり磨いていこう。-恋人不行-紫阳花(开心).wav",
+      "bytes": 326444,
+      "sha256": "d86f8e6bbe9dc74ee85ed3369051930857654dfacad1e967010531aea797699e"
+    },
+    {
+      "pack": "operation-voice-ja-JP",
+      "locale": "ja-JP",
+      "category": "操作·删除·ja-JP",
+      "text": "手放すものを、もう一度確かめよう。急いで決めなくていいからね。",
+      "filename": "手放すものを、もう一度確かめよう。急いで決めなくていいからね。-恋人不行-紫阳花(开心).wav",
+      "bytes": 331564,
+      "sha256": "93dff5648854fe86c34cc6ecc96f76f25ddda1c35b08d245fb5a2f2775360e0d"
+    },
+    {
+      "pack": "operation-voice-ja-JP",
+      "locale": "ja-JP",
+      "category": "操作·删除·ja-JP",
+      "text": "整理する前に、もう一度見てみよう。名残惜しいものは、まだ残しておこう。",
+      "filename": "整理する前に、もう一度見てみよう。名残惜しいものは、まだ残しておこう。-恋人不行-紫阳花(开心).wav",
+      "bytes": 384044,
+      "sha256": "ac5cd361fe781170e88a185affead6c0eb17aadef2af7948472a637376175713"
+    },
+    {
+      "pack": "operation-voice-ja-JP",
+      "locale": "ja-JP",
+      "category": "操作·选择·ja-JP",
+      "text": "いちばん好きなものを選んでね。誰かに合わせなくてもいいんだよ。",
+      "filename": "いちばん好きなものを選んでね。誰かに合わせなくてもいいんだよ。-恋人不行-紫阳花(开心).wav",
+      "bytes": 286764,
+      "sha256": "c1ea7a7a4b03407b88fdf767e9064cdcbe4d4fbb284350bb854434b977424286"
+    },
+    {
+      "pack": "operation-voice-ja-JP",
+      "locale": "ja-JP",
+      "category": "操作·选择·ja-JP",
+      "text": "大切に選んだ小さなお気に入り、私もちゃんと覚えているよ。",
+      "filename": "大切に選んだ小さなお気に入り、私もちゃんと覚えているよ。-恋人不行-紫阳花(开心).wav",
+      "bytes": 299564,
+      "sha256": "55581867be5206de7397d25b7c9ca7a759597f3b694b67dfad8e86f0d7fd695f"
+    },
+    {
+      "pack": "operation-voice-ja-JP",
+      "locale": "ja-JP",
+      "category": "操作·开启·ja-JP",
+      "text": "うん。このひとときが、もう少しあなたのそばに届きますように。",
+      "filename": "うん。このひとときが、もう少しあなたのそばに届きますように。-恋人不行-紫阳花(开心).wav",
+      "bytes": 322604,
+      "sha256": "d7a171665f93234e301d11dd9ae3ab5eb5806dcf4e3601609e0f213f91e02747"
+    },
+    {
+      "pack": "operation-voice-ja-JP",
+      "locale": "ja-JP",
+      "category": "操作·开启·ja-JP",
+      "text": "好きな声のために、小さな窓を開けておこう。",
+      "filename": "好きな声のために、小さな窓を開けておこう。-恋人不行-紫阳花(开心).wav",
+      "bytes": 240684,
+      "sha256": "b6061ca80c0b0c5c4779e2f22e5a44a9a61e53e36101538841d8907d942df306"
+    },
+    {
+      "pack": "operation-voice-ja-JP",
+      "locale": "ja-JP",
+      "category": "操作·关闭·ja-JP",
+      "text": "静かに過ごしたいときもあるよね。そっと待っているよ。",
+      "filename": "静かに過ごしたいときもあるよね。そっと待っているよ。-恋人不行-紫阳花(开心).wav",
+      "bytes": 245804,
+      "sha256": "ce6f6faf376222b4dea9b5880dcb84149b8385dd1980f764651ce6f4892a67ec"
+    },
+    {
+      "pack": "operation-voice-ja-JP",
+      "locale": "ja-JP",
+      "category": "操作·关闭·ja-JP",
+      "text": "今は自分の時間を大切にしてね。準備ができたら、また呼んで。",
+      "filename": "今は自分の時間を大切にしてね。準備ができたら、また呼んで。-恋人不行-紫阳花(开心).wav",
+      "bytes": 339244,
+      "sha256": "94f999eefb5dee004f142f2b074d430e9488459f20f3ae33a04d905f14c75e61"
+    },
+    {
+      "pack": "operation-voice-ja-JP",
+      "locale": "ja-JP",
+      "category": "操作·打开目录·ja-JP",
+      "text": "お気に入りの声がどこにあるのか、一緒に見にいこう。",
+      "filename": "お気に入りの声がどこにあるのか、一緒に見にいこう。-恋人不行-紫阳花(开心).wav",
+      "bytes": 248364,
+      "sha256": "b113768b0a97fac2cb3837573d21faf18167eeacc03452a20642725df6f2f214"
+    },
+    {
+      "pack": "operation-voice-ja-JP",
+      "locale": "ja-JP",
+      "category": "操作·打开目录·ja-JP",
+      "text": "ここから進めば、大切にしまったものに会えるよ。",
+      "filename": "ここから進めば、大切にしまったものに会えるよ。-恋人不行-紫阳花(开心).wav",
+      "bytes": 248364,
+      "sha256": "995ccae8bdaa8d1c8f31c4af2cbdd12eb3a143325592ef3636cb933375b78327"
+    },
+    {
+      "pack": "operation-voice-ja-JP",
+      "locale": "ja-JP",
+      "category": "操作·查看说明·ja-JP",
+      "text": "慣れていなくても大丈夫。一つずつ見ていこう。",
+      "filename": "慣れていなくても大丈夫。一つずつ見ていこう。-恋人不行-紫阳花(开心).wav",
+      "bytes": 230444,
+      "sha256": "a0a0daf27d2ef94cc085c19790f9a32bdd500e4dd71d2d07361a5dde70388649"
+    },
+    {
+      "pack": "operation-voice-ja-JP",
+      "locale": "ja-JP",
+      "category": "操作·查看说明·ja-JP",
+      "text": "わからないことがあったら、少し立ち止まって読んでみよう。一緒に覚えていこうね。",
+      "filename": "わからないことがあったら、少し立ち止まって読んでみよう。一緒に覚えていこうね。-恋人不行-紫阳花(开心).wav",
+      "bytes": 352044,
+      "sha256": "74ffea008679525fc99aec2a730dc9e8ca615f19458f6cfe615fd2fb888cceb5"
+    },
+    {
+      "pack": "operation-voice-ja-JP",
+      "locale": "ja-JP",
+      "category": "操作·导入·ja-JP",
+      "text": "好きなものを持っておいで。ちゃんと場所を空けてあるよ。",
+      "filename": "好きなものを持っておいで。ちゃんと場所を空けてあるよ。-恋人不行-紫阳花(开心).wav",
+      "bytes": 233004,
+      "sha256": "2e7086fc1deac5e95d3a92c0f8244488434b8778d2deb3801e32ba006e1968b5"
+    },
+    {
+      "pack": "operation-voice-ja-JP",
+      "locale": "ja-JP",
+      "category": "操作·导入·ja-JP",
+      "text": "新しい声や物語も、私たちの日常になっていくんだね。",
+      "filename": "新しい声や物語も、私たちの日常になっていくんだね。-恋人不行-紫阳花(开心).wav",
+      "bytes": 309804,
+      "sha256": "c103507db536d2d0d56af61f9a6c4053deb52fcaf69e13c775853ea802336ba5"
+    },
+    {
+      "pack": "operation-voice-ja-JP",
+      "locale": "ja-JP",
+      "category": "操作·导出·ja-JP",
+      "text": "心を込めてまとめたものを、持ち歩ける小さな贈り物にしよう。",
+      "filename": "心を込めてまとめたものを、持ち歩ける小さな贈り物にしよう。-恋人不行-紫阳花(开心).wav",
+      "bytes": 320044,
+      "sha256": "6d330de86205e7d7b12d5dc6c2ff2f34eb3276098b15d40496af0e10fd3f9525"
+    },
+    {
+      "pack": "operation-voice-ja-JP",
+      "locale": "ja-JP",
+      "category": "操作·导出·ja-JP",
+      "text": "好きなものは控えを残しておこう。また会いたくなったとき、見つけられるように。",
+      "filename": "好きなものは控えを残しておこう。また会いたくなったとき、見つけられるように。-恋人不行-紫阳花(开心).wav",
+      "bytes": 372524,
+      "sha256": "9d387591c4b095a16a24dc25780bc3621dbcd5525d50531b46ebc454d062e9fc"
+    },
+    {
+      "pack": "operation-voice-ja-JP",
+      "locale": "ja-JP",
+      "category": "操作·扫描·ja-JP",
+      "text": "あなたの声や景色がどこにあるのか、探してみるね。",
+      "filename": "あなたの声や景色がどこにあるのか、探してみるね。-恋人不行-紫阳花(开心).wav",
+      "bytes": 276524,
+      "sha256": "8499aaa7e4bad792b82c27e18dfb9450b7cca98a9471d094451d225ac08bb620"
+    },
+    {
+      "pack": "operation-voice-ja-JP",
+      "locale": "ja-JP",
+      "category": "操作·扫描·ja-JP",
+      "text": "少し待っててね。散らばったお気に入りを、一緒に集めよう。",
+      "filename": "少し待っててね。散らばったお気に入りを、一緒に集めよう。-恋人不行-紫阳花(开心).wav",
+      "bytes": 298284,
+      "sha256": "cb2b10b3ee6ff3de5af8d6213b5594958ebef4a50279427a25456da95d8373c2"
+    },
+    {
+      "pack": "operation-voice-ja-JP",
+      "locale": "ja-JP",
+      "category": "操作·生成语音·ja-JP",
+      "text": "この言葉に、少しずつ声をつけていこう。伝えたい気持ちが届きますように。",
+      "filename": "この言葉に、少しずつ声をつけていこう。伝えたい気持ちが届きますように。-恋人不行-紫阳花(开心).wav",
+      "bytes": 364844,
+      "sha256": "37838016087ee14923f3b1868318e83be9e99d71a0dffe7891c089500e0c4533"
+    },
+    {
+      "pack": "operation-voice-ja-JP",
+      "locale": "ja-JP",
+      "category": "操作·生成语音·ja-JP",
+      "text": "伝えたい言葉を声に託そう。待つ時間も、少し優しくなるね。",
+      "filename": "伝えたい言葉を声に託そう。待つ時間も、少し優しくなるね。-恋人不行-紫阳花(开心).wav",
+      "bytes": 352044,
+      "sha256": "895d4039739efb965ebbf6de4e23649c750b5cea2d5501398993cc845c67b9af"
+    },
+    {
+      "pack": "operation-voice-ja-JP",
+      "locale": "ja-JP",
+      "category": "操作·启动接口·ja-JP",
+      "text": "まずは声のお手伝いさんに準備してもらおう。もうすぐ一緒に始められるよ。",
+      "filename": "まずは声のお手伝いさんに準備してもらおう。もうすぐ一緒に始められるよ。-恋人不行-紫阳花(开心).wav",
+      "bytes": 337964,
+      "sha256": "5129a56adee13bf207c924a9ae62cd9b011c534f00c5e654ce62b55bbd0d3576"
+    },
+    {
+      "pack": "operation-voice-ja-JP",
+      "locale": "ja-JP",
+      "category": "操作·启动接口·ja-JP",
+      "text": "声がゆっくり目を覚ますまで、少し準備の時間をあげよう。",
+      "filename": "声がゆっくり目を覚ますまで、少し準備の時間をあげよう。-恋人不行-紫阳花(开心).wav",
+      "bytes": 289324,
+      "sha256": "ccd8c838f42c0181151325a2b8a935b07ac1013d614b1b5774282c0102749380"
+    },
+    {
+      "pack": "operation-voice-ja-JP",
+      "locale": "ja-JP",
+      "category": "操作·关闭接口·ja-JP",
+      "text": "ここまで終わったね。声のお手伝いさんにも、少し休んでもらおう。",
+      "filename": "ここまで終わったね。声のお手伝いさんにも、少し休んでもらおう。-恋人不行-紫阳花(开心).wav",
+      "bytes": 326444,
+      "sha256": "c7a2c50fd5e0aaf7d4d1be0171c36d5f27b767a3b4373c7cc37ca6eb4421f57c"
+    },
+    {
+      "pack": "operation-voice-ja-JP",
+      "locale": "ja-JP",
+      "category": "操作·关闭接口·ja-JP",
+      "text": "今はそっとしまっておこう。必要になったら、また会おうね。",
+      "filename": "今はそっとしまっておこう。必要になったら、また会おうね。-恋人不行-紫阳花(开心).wav",
+      "bytes": 295724,
+      "sha256": "ca52837502949cf11d42cf5136665d14744e3a253e377fd7da3e59e9320db94b"
+    },
+    {
+      "pack": "operation-voice-ja-JP",
+      "locale": "ja-JP",
+      "category": "操作·暂停·ja-JP",
+      "text": "少し立ち止まろう。ずっと急がなくてもいいんだよ。",
+      "filename": "少し立ち止まろう。ずっと急がなくてもいいんだよ。-恋人不行-紫阳花(开心).wav",
+      "bytes": 233004,
+      "sha256": "f5f49fbfb9cfcaae6394e3452456bd79ba428fd3222d3cd7b13e3ea65abaa0b3"
+    },
+    {
+      "pack": "operation-voice-ja-JP",
+      "locale": "ja-JP",
+      "category": "操作·暂停·ja-JP",
+      "text": "静かなひとときを自分にあげるのも、いいことだね。",
+      "filename": "静かなひとときを自分にあげるのも、いいことだね。-恋人不行-紫阳花(开心).wav",
+      "bytes": 258604,
+      "sha256": "2e6aca75a2fb26a1a76c51396c8bcb1428f9b1d1f01b254b2c4615af3e56ffcb"
+    },
+    {
+      "pack": "operation-voice-ja-JP",
+      "locale": "ja-JP",
+      "category": "操作·继续·ja-JP",
+      "text": "準備はできた？ また一緒に、少し先へ進もう。",
+      "filename": "準備はできた？ また一緒に、少し先へ進もう。-恋人不行-紫阳花(开心).wav",
+      "bytes": 267564,
+      "sha256": "9cd4a971e5e4dfd8da37dd393e0947404509ff7ae749ecb214da88e6c41e2c6d"
+    },
+    {
+      "pack": "operation-voice-ja-JP",
+      "locale": "ja-JP",
+      "category": "操作·继续·ja-JP",
+      "text": "うん。好きなメロディーに、またそばにいてもらおう。",
+      "filename": "うん。好きなメロディーに、またそばにいてもらおう。-恋人不行-紫阳花(开心).wav",
+      "bytes": 245804,
+      "sha256": "5e715ff4c22cb619819e4688506fbf2ba328eea5acc9fa2287e58d30442a73ad"
+    },
+    {
+      "pack": "operation-voice-ja-JP",
+      "locale": "ja-JP",
+      "category": "操作·下一首·ja-JP",
+      "text": "次の曲にしてみよう。今の気持ちにぴったりのメロディーかもしれないね。",
+      "filename": "次の曲にしてみよう。今の気持ちにぴったりのメロディーかもしれないね。-恋人不行-紫阳花(开心).wav",
+      "bytes": 317484,
+      "sha256": "fea7e25fe3d5070b36bfddb384538f7bde771f9ded7012389592d8715df5ba52"
+    },
+    {
+      "pack": "operation-voice-ja-JP",
+      "locale": "ja-JP",
+      "category": "操作·下一首·ja-JP",
+      "text": "気分のリズムを変えて、新しいメロディーと少し歩こう。",
+      "filename": "気分のリズムを変えて、新しいメロディーと少し歩こう。-恋人不行-紫阳花(开心).wav",
+      "bytes": 281644,
+      "sha256": "39505567773626b189fb593f33609991ab4baec28143717bb227b25d9594d45a"
+    },
+    {
+      "pack": "operation-voice-ja-JP",
+      "locale": "ja-JP",
+      "category": "操作·试听·ja-JP",
+      "text": "まずは聴いてみよう。好きな声は、ゆっくり決めていいんだよ。",
+      "filename": "まずは聴いてみよう。好きな声は、ゆっくり決めていいんだよ。-恋人不行-紫阳花(开心).wav",
+      "bytes": 308524,
+      "sha256": "e70f37b91b7700ce8f13235e19bda018defa88af434b39c742a476696c44fbd9"
+    },
+    {
+      "pack": "operation-voice-ja-JP",
+      "locale": "ja-JP",
+      "category": "操作·试听·ja-JP",
+      "text": "この短い声に、少し耳を貸してみて。気に入ってもらえるかな。",
+      "filename": "この短い声に、少し耳を貸してみて。気に入ってもらえるかな。-恋人不行-紫阳花(开心).wav",
+      "bytes": 339244,
+      "sha256": "c929f35337fe2e17045d499694f5d93f56d2cbfffc442cff7b383e0d01f91885"
+    },
+    {
+      "pack": "operation-voice-ja-JP",
+      "locale": "ja-JP",
+      "category": "操作·未完成·ja-JP",
+      "text": "この作業はまだ終わっていないみたい。表示を確かめて、一緒にもう一度試そう。",
+      "filename": "この作業はまだ終わっていないみたい。表示を確かめて、一緒にもう一度試そう。-恋人不行-紫阳花(开心).wav",
+      "bytes": 372524,
+      "sha256": "d48aa82999244b67477426eb4918e85ca05a03f622d9c923e91d768ced58a7ed"
+    },
+    {
+      "pack": "operation-voice-ja-JP",
+      "locale": "ja-JP",
+      "category": "操作·未完成·ja-JP",
+      "text": "慌てなくて大丈夫。少し困ったことが起きたみたい。ゆっくり直していこう。",
+      "filename": "慌てなくて大丈夫。少し困ったことが起きたみたい。ゆっくり直していこう。-恋人不行-紫阳花(开心).wav",
+      "bytes": 352044,
+      "sha256": "99aeb6a3b223c3a43399149afa2c7a7db11985bf2418fd60dd5f9af2f852a045"
+    },
+    {
+      "pack": "operation-voice-ja-JP",
+      "locale": "ja-JP",
+      "category": "操作·完成·ja-JP",
+      "text": "ここまでできたよ。待っていてくれた声が、ここにあるよ。",
+      "filename": "ここまでできたよ。待っていてくれた声が、ここにあるよ。-恋人不行-紫阳花(开心).wav",
+      "bytes": 290604,
+      "sha256": "520dcc41c5c5dd4baf9c4faaf2b7f7a5ecfbf9d7de6bf25d0494b95c8ec91214"
+    },
+    {
+      "pack": "operation-voice-ja-JP",
+      "locale": "ja-JP",
+      "category": "操作·完成·ja-JP",
+      "text": "また一つできたね。この声が、心を少し温めてくれますように。",
+      "filename": "また一つできたね。この声が、心を少し温めてくれますように。-恋人不行-紫阳花(开心).wav",
+      "bytes": 359724,
+      "sha256": "6f64dbca3b052f6d8a3568b6ef3156fbe7f045911de3e79a697da2cd88fd31d0"
     }
   ],
   "missing": {

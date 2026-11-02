@@ -64,9 +64,9 @@ def candidates(profile: dict, rule: dict) -> list[Path]:
     source = rule.get("source", "").strip() or profile.get("voice_dir", "")
     if source and not Path(source).is_absolute():
         base = profile.get("voice_dir", "")
-        if not base:
+        if not base and not profile.get("use_bundled_demo",False):
             return []
-        source = str(Path(base) / source)
+        source = str(Path(base) / source) if base else ""
     if source and Path(source).is_file():
         files = [Path(source)] if Path(source).suffix.lower() in AUDIO_EXTENSIONS else []
     else:
@@ -108,7 +108,7 @@ def new_profile(name=None, wallpaper="") -> dict:
         name = tr('ui.49a7b7657842', '新的壁纸配置')
     from .dialogues import starter_dialogues
     return dict(id=uuid.uuid4().hex, name=name, wallpaper=wallpaper, voice_dir="", bgm_dir="",
-                asset_dir="", private_asset_dir="", dialogue_file="", original_audio_policy="safe", original_audio_override="auto", bgm_paused=False, use_bundled_demo=True,
+                asset_dir="", private_asset_dir="", dialogue_file="", original_audio_policy="safe", original_audio_override="auto", bgm_paused=False, use_bundled_demo=True, demo_language="zh-CN",
                 enabled=True, desktop_only=True, fullscreen_mute=True, bgm_enabled=True,
                 bgm_shuffle=True, voice_volume=80, bgm_volume=25, duck_percent=25,
                 global_cooldown=8, dialogues=starter_dialogues(), rules=[new_rule(), new_rule("random", tr('ui.cdd7f524c681', '随机陪伴 · 每 5–10 分钟'))])
@@ -157,6 +157,7 @@ class Store:
                 from .dialogues import starter_dialogues
                 for profile in self.config["profiles"]:
                     profile.setdefault("dialogues", starter_dialogues())
+                    if profile.get("demo_language") not in {"zh-CN", "ja-JP"}:profile["demo_language"]="zh-CN"
                     for key, value in dict(asset_dir="", private_asset_dir="", dialogue_file="", original_audio_policy="safe", original_audio_override="auto", bgm_paused=False, use_bundled_demo=False).items():
                         profile.setdefault(key, value)
                     if not isinstance(profile["use_bundled_demo"],bool):

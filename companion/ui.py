@@ -529,6 +529,7 @@ class Window(LibraryMixin, DialogueMixin, AudioLibraryMixin, CharacterMixin, Spe
             widget.blockSignals(True)
             widget.setValue(p[key])
             widget.blockSignals(False)
+        self.demo_language.setCurrentIndex(max(0,self.demo_language.findData(p.get("demo_language","zh-CN"))))
         self.edit_rules = copy.deepcopy(p["rules"])
         self.edit_dialogues = copy.deepcopy(p.get("dialogues", []))
         self.render_dialogues()
@@ -549,7 +550,7 @@ class Window(LibraryMixin, DialogueMixin, AudioLibraryMixin, CharacterMixin, Spe
                  enabled=self.profile_enabled.isChecked(), desktop_only=self.desktop_only.isChecked(),
                  fullscreen_mute=self.fullscreen_mute.isChecked(), bgm_enabled=self.bgm_enabled.isChecked(),
                  bgm_shuffle=self.shuffle.isChecked(), voice_volume=self.voice_volume.value(),
-                 use_bundled_demo=self.bundled_demo_enabled.isChecked(),
+                 use_bundled_demo=self.bundled_demo_enabled.isChecked(), demo_language=self.demo_language.currentData(),
                  bgm_volume=self.bgm_volume.value(), duck_percent=self.duck.value(), global_cooldown=self.global_cooldown.value(),
                  rules=copy.deepcopy(self.edit_rules), dialogues=self.collect_dialogues())
         return p

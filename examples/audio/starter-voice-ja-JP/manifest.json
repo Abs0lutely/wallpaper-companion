@@ -1,0 +1,312 @@
+{
+  "format": "wallpaper-companion-starter-audio",
+  "version": 1,
+  "locale": "ja-JP",
+  "files": [
+    {
+      "locale": "ja-JP",
+      "category": "点击回应·ja-JP",
+      "text": "ん？ ここにいるよ。",
+      "filename": "ん？ ここにいるよ。-恋人不行-紫阳花(开心).wav",
+      "bytes": 119084,
+      "sha256": "a53c0cbc806638b503bbc3b2a91d4d2e1719451f227682e72c39d36347d7c335"
+    },
+    {
+      "locale": "ja-JP",
+      "category": "点击回应·ja-JP",
+      "text": "何か新しい発見でもあった？",
+      "filename": "何か新しい発見でもあった？-恋人不行-紫阳花(开心).wav",
+      "bytes": 149804,
+      "sha256": "99ff6c762717e2c942bbd7a3bebdb4fd2203af2713de6634b52a1d149a485b63"
+    },
+    {
+      "locale": "ja-JP",
+      "category": "点击回应·ja-JP",
+      "text": "わかったよ。このままそばにいるね。",
+      "filename": "わかったよ。このままそばにいるね。-恋人不行-紫阳花(开心).wav",
+      "bytes": 184364,
+      "sha256": "04965808b1ef5bb97f279dd88147c9d9b26ce66ed37de4bbe8b41b99ed1df3f8"
+    },
+    {
+      "locale": "ja-JP",
+      "category": "点击回应·ja-JP",
+      "text": "急がなくていいよ。一緒にゆっくり進もう。",
+      "filename": "急がなくていいよ。一緒にゆっくり進もう。-恋人不行-紫阳花(开心).wav",
+      "bytes": 212524,
+      "sha256": "9906d846c4a4b6b14f60d474ddd1bad83ac3b559ed84e6113efba3ba83a61dcc"
+    },
+    {
+      "locale": "ja-JP",
+      "category": "点击回应·ja-JP",
+      "text": "今日も一緒に頑張ろうね。",
+      "filename": "今日も一緒に頑張ろうね。-恋人不行-紫阳花(开心).wav",
+      "bytes": 113964,
+      "sha256": "306ad6055aba48a95d66da81a1aa6fee6961ab9d9262f1167e341fad9f8be15d"
+    },
+    {
+      "locale": "ja-JP",
+      "category": "点击回应·ja-JP",
+      "text": "ひと休みしてから続けてもいいんだよ。",
+      "filename": "ひと休みしてから続けてもいいんだよ。-恋人不行-紫阳花(开心).wav",
+      "bytes": 162604,
+      "sha256": "267fdd3ad748fb623db3a952d435b08d8d3881281c5db0e123d6bbcc579abba6"
+    },
+    {
+      "locale": "ja-JP",
+      "category": "点击回应·ja-JP",
+      "text": "呼んでくれたら、すぐに来るよ。",
+      "filename": "呼んでくれたら、すぐに来るよ。-恋人不行-紫阳花(开心).wav",
+      "bytes": 174124,
+      "sha256": "4cc4d1f49f9066cda68957fd9d9af83a146f942a732d6392fa4a3d3c0fdb24d7"
+    },
+    {
+      "locale": "ja-JP",
+      "category": "点击回应·ja-JP",
+      "text": "気分を変えて、一曲聴いてみない？",
+      "filename": "気分を変えて、一曲聴いてみない？-恋人不行-紫阳花(开心).wav",
+      "bytes": 189484,
+      "sha256": "17fb5107e8e36e35b25879478f60cf0dadea4ed9415943c666ce33a4c41e6d4e"
+    },
+    {
+      "locale": "ja-JP",
+      "category": "返回桌面·ja-JP",
+      "text": "おかえり。今日もお疲れさま。",
+      "filename": "おかえり。今日もお疲れさま。-恋人不行-紫阳花(开心).wav",
+      "bytes": 156204,
+      "sha256": "9c4c07f35c292d601bf1cd83f6a13fb7bfefdaf2dd17e4aa401e7d0959c48d80"
+    },
+    {
+      "locale": "ja-JP",
+      "category": "返回桌面·ja-JP",
+      "text": "おかえり。ちょうどいいから、少し休もうか。",
+      "filename": "おかえり。ちょうどいいから、少し休もうか。-恋人不行-紫阳花(开心).wav",
+      "bytes": 236844,
+      "sha256": "ca7117127c9ae3ed7d32018abc6206c0603205823db8558ef9d16c63dd55f303"
+    },
+    {
+      "locale": "ja-JP",
+      "category": "返回桌面·ja-JP",
+      "text": "用事は順調に進んだ？",
+      "filename": "用事は順調に進んだ？-恋人不行-紫阳花(开心).wav",
+      "bytes": 126764,
+      "sha256": "829a8ea248f3be25f0a6db462e9655969a7ef6a9c2fde2b72555ee96eb61b479"
+    },
+    {
+      "locale": "ja-JP",
+      "category": "返回桌面·ja-JP",
+      "text": "デスクトップの準備はできてるよ。次は何をしようか？",
+      "filename": "デスクトップの準備はできてるよ。次は何をしようか？-恋人不行-紫阳花(开心).wav",
+      "bytes": 266284,
+      "sha256": "75eac5422ae455d0c0be5ed2097dcf79ce6a109fc48de8d67fdb6e8b5556cb36"
+    },
+    {
+      "locale": "ja-JP",
+      "category": "返回桌面·ja-JP",
+      "text": "また会えたね。一緒に続きをやろう。",
+      "filename": "また会えたね。一緒に続きをやろう。-恋人不行-紫阳花(开心).wav",
+      "bytes": 186924,
+      "sha256": "eecb9461455eed989c5ed49d9252591a900397014558043a74b9dcdbc0b32dd1"
+    },
+    {
+      "locale": "ja-JP",
+      "category": "返回桌面·ja-JP",
+      "text": "おかえり。まずはぐっと伸びをしよう。",
+      "filename": "おかえり。まずはぐっと伸びをしよう。-恋人不行-紫阳花(开心).wav",
+      "bytes": 189484,
+      "sha256": "b4790724ecb1a53445cfd7219a76222fb873a5904311e91cff4754cc99a742f7"
+    },
+    {
+      "locale": "ja-JP",
+      "category": "早晨·ja-JP",
+      "text": "おはよう。新しい一日の始まりだね。",
+      "filename": "おはよう。新しい一日の始まりだね。-恋人不行-紫阳花(开心).wav",
+      "bytes": 202284,
+      "sha256": "f6fba383cddf9882fcea1b26da7b17b88d97efdb841ec73acdc094c561a72af6"
+    },
+    {
+      "locale": "ja-JP",
+      "category": "早晨·ja-JP",
+      "text": "おはよう。まずはゆっくり身支度をしよう。",
+      "filename": "おはよう。まずはゆっくり身支度をしよう。-恋人不行-紫阳花(开心).wav",
+      "bytes": 194604,
+      "sha256": "9ef2244ff44a50621e8b2ede9f5030b13485333938f8306b830f005a7b597bc7"
+    },
+    {
+      "locale": "ja-JP",
+      "category": "早晨·ja-JP",
+      "text": "おはよう。今日も一歩ずつ進もうね。",
+      "filename": "おはよう。今日も一歩ずつ進もうね。-恋人不行-紫阳花(开心).wav",
+      "bytes": 192044,
+      "sha256": "692fece32e30e096bf9f8581fc4e889e9da33818fe566623fd9fbd42d512aec4"
+    },
+    {
+      "locale": "ja-JP",
+      "category": "早晨·ja-JP",
+      "text": "おはよう。朝ごはんも忘れずにね。",
+      "filename": "おはよう。朝ごはんも忘れずにね。-恋人不行-紫阳花(开心).wav",
+      "bytes": 179244,
+      "sha256": "6601f6867e823d593024bad65b7a2b4c379394013bfd1f461643ddf18809a894"
+    },
+    {
+      "locale": "ja-JP",
+      "category": "早晨·ja-JP",
+      "text": "おはよう。今日は小さなうれしいことがあるといいね。",
+      "filename": "おはよう。今日は小さなうれしいことがあるといいね。-恋人不行-紫阳花(开心).wav",
+      "bytes": 250924,
+      "sha256": "a31010895ac4c34ab98b423b75ebc06c70a7de0e9e31547f9d75c5c4d66cc729"
+    },
+    {
+      "locale": "ja-JP",
+      "category": "早晨·ja-JP",
+      "text": "おはよう。まずは小さなことから始めよう。",
+      "filename": "おはよう。まずは小さなことから始めよう。-恋人不行-紫阳花(开心).wav",
+      "bytes": 207404,
+      "sha256": "739d0d336478f974026c38d9f24e3163696646501d55a2aa1f90f312e943f05e"
+    },
+    {
+      "locale": "ja-JP",
+      "category": "白天·ja-JP",
+      "text": "こんにちは。お水もちゃんと飲んでね。",
+      "filename": "こんにちは。お水もちゃんと飲んでね。-恋人不行-紫阳花(开心).wav",
+      "bytes": 181804,
+      "sha256": "1224897a812300bdee3b96cc221049fb24ddd08161f1759ee7c8f21ad8ae287d"
+    },
+    {
+      "locale": "ja-JP",
+      "category": "白天·ja-JP",
+      "text": "しばらく頑張ったね。少し目を休めよう。",
+      "filename": "しばらく頑張ったね。少し目を休めよう。-恋人不行-紫阳花(开心).wav",
+      "bytes": 225324,
+      "sha256": "28faa057cd2a7451d35a3ff12499d32eb19469373b1f76559342c9ea318963e3"
+    },
+    {
+      "locale": "ja-JP",
+      "category": "白天·ja-JP",
+      "text": "一度に全部終わらせなくていいよ。まずは目の前の一つから。",
+      "filename": "一度に全部終わらせなくていいよ。まずは目の前の一つから。-恋人不行-紫阳花(开心).wav",
+      "bytes": 281644,
+      "sha256": "24c3729b131210b128125fd05a6cfe8f2020ac181d613f7d55228a614bb34ee2"
+    },
+    {
+      "locale": "ja-JP",
+      "category": "白天·ja-JP",
+      "text": "今日はもう少し進められたね。この調子でいこう。",
+      "filename": "今日はもう少し進められたね。この調子でいこう。-恋人不行-紫阳花(开心).wav",
+      "bytes": 233004,
+      "sha256": "416008bac1ac690dfbf6196b74e198858582c3a3d3b0d5786867b0bf500a3376"
+    },
+    {
+      "locale": "ja-JP",
+      "category": "白天·ja-JP",
+      "text": "少し疲れたら、楽な姿勢に変えてみよう。",
+      "filename": "少し疲れたら、楽な姿勢に変えてみよう。-恋人不行-紫阳花(开心).wav",
+      "bytes": 220204,
+      "sha256": "8dfcf91b93872d8d2b6904fabf2c4c0628d8ed934400e95617b6fbe76ff34efc"
+    },
+    {
+      "locale": "ja-JP",
+      "category": "白天·ja-JP",
+      "text": "外の光がきれいだね。時間があったら、遠くを眺めてみて。",
+      "filename": "外の光がきれいだね。時間があったら、遠くを眺めてみて。-恋人不行-紫阳花(开心).wav",
+      "bytes": 321324,
+      "sha256": "5ebe81de0dc1307a9d72bcbf0458f26d3c6a71235c31a81a282e7ab3c0cae2c9"
+    },
+    {
+      "locale": "ja-JP",
+      "category": "夜间·ja-JP",
+      "text": "おやすみ。あまり夜更かししないでね。",
+      "filename": "おやすみ。あまり夜更かししないでね。-恋人不行-紫阳花(开心).wav",
+      "bytes": 197164,
+      "sha256": "68b4b5e9536a21a0eec6677e5bff08caa159abf8b6e92c9be191408dad2bf545"
+    },
+    {
+      "locale": "ja-JP",
+      "category": "夜间·ja-JP",
+      "text": "もう夜も遅いね。今日はここまでにしよう。",
+      "filename": "もう夜も遅いね。今日はここまでにしよう。-恋人不行-紫阳花(开心).wav",
+      "bytes": 217644,
+      "sha256": "c3bdbeff193899610f0706a0ebbdb3aae65887a84271799f19a7abbe860f19bd"
+    },
+    {
+      "locale": "ja-JP",
+      "category": "夜间·ja-JP",
+      "text": "おやすみ。残りは明日、ゆっくり片づけよう。",
+      "filename": "おやすみ。残りは明日、ゆっくり片づけよう。-恋人不行-紫阳花(开心).wav",
+      "bytes": 265004,
+      "sha256": "057a0b39352601bfeeb59c49bfad71d8cd5ab20c442908a0ed827fce4d6c7c7b"
+    },
+    {
+      "locale": "ja-JP",
+      "category": "夜间·ja-JP",
+      "text": "この区切りまで終わったら、休む準備をしよう。",
+      "filename": "この区切りまで終わったら、休む準備をしよう。-恋人不行-紫阳花(开心).wav",
+      "bytes": 227884,
+      "sha256": "5bcd5d0e6e6b39abf3018c0c613689e44357ae67b308d939d09af761a0982456"
+    },
+    {
+      "locale": "ja-JP",
+      "category": "夜间·ja-JP",
+      "text": "おやすみ。今夜はぐっすり眠れますように。",
+      "filename": "おやすみ。今夜はぐっすり眠れますように。-恋人不行-紫阳花(开心).wav",
+      "bytes": 215084,
+      "sha256": "c41ec6a6811cd957a0ea36bb7497b34e6f5268dc95140d66c1a794247e0eb9f5"
+    },
+    {
+      "locale": "ja-JP",
+      "category": "夜间·ja-JP",
+      "text": "今日もお疲れさま。自分のために、少し静かな時間を残してあげてね。",
+      "filename": "今日もお疲れさま。自分のために、少し静かな時間を残してあげてね。-恋人不行-紫阳花(开心).wav",
+      "bytes": 357164,
+      "sha256": "33afecb40e7283628c9983587e572b0076f622613a8a36bc8ea7d6e30caa8356"
+    },
+    {
+      "locale": "ja-JP",
+      "category": "闲置陪伴·ja-JP",
+      "text": "こうして静かに過ごすのもいいね。",
+      "filename": "こうして静かに過ごすのもいいね。-恋人不行-紫阳花(开心).wav",
+      "bytes": 152364,
+      "sha256": "c0d1f2170c9a0bbc6ed76e2a608d3eba418c3b4a1c2bbf645eb284c34c06ec48"
+    },
+    {
+      "locale": "ja-JP",
+      "category": "闲置陪伴·ja-JP",
+      "text": "すぐに返事をしなくても大丈夫。ここにいるよ。",
+      "filename": "すぐに返事をしなくても大丈夫。ここにいるよ。-恋人不行-紫阳花(开心).wav",
+      "bytes": 235564,
+      "sha256": "e397bbf4b9ebb80aa89ffedde4959d268a8b7414b7c2706b8dbf379cbbae35de"
+    },
+    {
+      "locale": "ja-JP",
+      "category": "闲置陪伴·ja-JP",
+      "text": "デスクトップを整理して、気持ちよく始めてみない？",
+      "filename": "デスクトップを整理して、気持ちよく始めてみない？-恋人不行-紫阳花(开心).wav",
+      "bytes": 253484,
+      "sha256": "871dc42a353d85c13c5681536886f907c59f8f61348bbec6c7e6fdcf7ee34a20"
+    },
+    {
+      "locale": "ja-JP",
+      "category": "闲置陪伴·ja-JP",
+      "text": "音楽を聴きながら、ゆっくりやっていこう。",
+      "filename": "音楽を聴きながら、ゆっくりやっていこう。-恋人不行-紫阳花(开心).wav",
+      "bytes": 194604,
+      "sha256": "84bfacd1c40e9ce67c18cd68a771dc68f922cd0b8d9e130a15b94cbf845148ca"
+    },
+    {
+      "locale": "ja-JP",
+      "category": "闲置陪伴·ja-JP",
+      "text": "たまにはぼんやりするのも、心の充電になるよ。",
+      "filename": "たまにはぼんやりするのも、心の充電になるよ。-恋人不行-紫阳花(开心).wav",
+      "bytes": 250924,
+      "sha256": "fc51e7321e9539b9590d829b3566849824701981d7627afced60d3ad627ef380"
+    },
+    {
+      "locale": "ja-JP",
+      "category": "闲置陪伴·ja-JP",
+      "text": "準備ができたら、また一緒に続きをしよう。",
+      "filename": "準備ができたら、また一緒に続きをしよう。-恋人不行-紫阳花(开心).wav",
+      "bytes": 217644,
+      "sha256": "ab723e80ae0c09a51454e075ee2df2d448830e588433896fd5091669c1ee27b9"
+    }
+  ],
+  "missing": []
+}
