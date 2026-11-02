@@ -11,6 +11,35 @@ import wave
 from pathlib import Path
 
 
+def check_companion_distribution(root, checks):
+    """Verify the shipped pack resources and roundtrip using disposable data only."""
+    from datetime import datetime
+    from .core import Store, RuleEngine, candidates
+    from .pack_builtins import validate_builtin_catalog, prepare_builtin
+    from .packs import install_and_use, plan_export, write_export, PackPreview
+    root=Path(root)
+    entries=validate_builtin_catalog()
+    checks['included_catalog_has_two_languages']={e['language'] for e in entries}=={'zh-CN','ja-JP'}
+    for entry in entries:
+        locale=entry['language']
+        with prepare_builtin(entry['id'],root/'preview') as preview:
+            pack=preview.pack
+            checks['included_complete_'+locale]=pack.complete and pack.recordings==38 and len([f for f in pack.manifest['files'] if f['path'].startswith('operation-voice/')])==52
+            store=Store(root/locale/'config.json')
+            identifier,_=install_and_use(store,pack)
+            profile=store.profile(identifier)
+            key=next(r for r in profile['rules'] if r['event']=='key')
+            checks['pack_standalone_'+locale]=store.config['run_mode']=='standalone' and not profile['wallpaper'] and not profile['dialogue_file'] and not profile['use_bundled_demo']
+            checks['pack_key_'+locale]=RuleEngine().choose(profile,'key',now=100,clock=datetime(2026,11,2,12),hotkey=key['id']) is not None
+            checks['pack_evening_'+locale]=RuleEngine().choose(profile,'scheduled',now=100,clock=datetime(2026,11,2,22,30)) is not None
+            archive=write_export(plan_export(profile,entry),root/(locale+'.wcpak'))
+            with PackPreview(archive,root/'roundtrip-preview') as imported:
+                other=Store(root/('roundtrip-'+locale)/'config.json')
+                second,_=install_and_use(other,imported.pack)
+                selected=other.profile(second)
+                checks['pack_export_import_'+locale]=imported.pack.complete and len(candidates(selected,selected['rules'][0]))>0
+
+
 def run(destination):
     from PySide6.QtCore import QTimer
     from PySide6.QtMultimedia import QMediaPlayer
@@ -92,13 +121,15 @@ def run(destination):
             checks["distributed_operation_voice_actions_covered"] = require_pack(ROOT / "examples/audio/operation-voice")["ready"]
             from .bundled_audio import validate_starter_pack, validate_bundled_manifest
             checks["distributed_starter_voice_pack_verified"] = bool(validate_starter_pack()["files"])
-            checks["distributed_default_audio_hashes_verified"] = bool(validate_bundled_manifest()["files"])
+            checks["distributed_default_audio_hashes_verified"] = len(validate_bundled_manifest()["files"]) == 180
+            check_companion_distribution(root / "pack-distribution", checks)
+            checks["pack_ui_and_language_controls_present"] = callable(window.open_companion_packs) and window.provider_widgets["text_lang"].isEditable()
         store.config["operation_voice_enabled"] = False  # Keep the remaining diagnostics' audio deterministic.
         from .sovits_config import model_key
         checks["model_config_dependency_available"] = model_key({}) is None
         window.audio.message.connect(lambda s: report["media_errors"].append(s) if "失败" in s else None)
         checks["manual_and_examples_present"] = all((ROOT / name).exists() for name in
-                                                   ["USER_GUIDE.md", "USER_GUIDE.en.md", "USAGE.md", "USAGE.en.md", "README.md", "examples/interaction-preset.json", "readme-assets/home.png",
+                                                   ["USER_GUIDE.md", "USER_GUIDE.en.md", "USAGE.md", "USAGE.en.md", "COMPANION_PACKS.md", "COMPANION_PACKS.en.md", "examples/packs/catalog.json", "README.md", "examples/interaction-preset.json", "readme-assets/home.png",
                                                     "readme-assets/dialogues.png", "readme-assets/rules.png", "examples/dialogues/heartfelt-zh-CN.json"])
         checks["internal_manual_opens"] = window.open_document("USER_GUIDE.md") and "功能和输入框使用手册" in window.document_viewer.browser.toPlainText()
         from PySide6.QtCore import QUrl

@@ -181,3 +181,8 @@ cd wallpaper-companion
 [下载体验](https://github.com/Abs0lutely/wallpaper-companion/releases/latest) · [报告问题 / 提出想法](https://github.com/Abs0lutely/wallpaper-companion/issues)
 
 </div>
+
+
+### v0.11：选择一个包，就能开始陪伴
+
+主页 **选择陪伴包 → 试听 → 使用此包**，无需 Wallpaper Engine、模型或 API。中文、日语各有 38 条陪伴录音及 52 条可选操作回应。支持离线 `.wcpak` 导入、保留原方案、导出分享；高级用户仍可管理台词、分类和生成服务。详见 [陪伴包使用与分享](COMPANION_PACKS.md)。

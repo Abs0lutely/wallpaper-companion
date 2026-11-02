@@ -69,3 +69,8 @@ python scripts/update_portable.py --target <个人免安装目录> --plan <上�
 ### 陪伴包目录（本地开发中）
 
 未来构建在冻结前调用 `companion.pack_builtins.validate_builtin_catalog()`，核对两包各 38 + 52 条现有获准录音。随整个 `examples/` 携带 `examples/packs/catalog.json`，无需在仓库重复保存音频 ZIP。随附 `COMPANION_PACKS.md` / `.en.md`。本轮未执行构建、安装或发行包验收；版本不升级。
+
+
+### v0.11.0 正式分发验收
+
+实际 EXE 自检还验证中日两包（各 38 陪伴 + 52 操作）、180 条资源 SHA256、无需 WE 的独立方案、F8/定时调度和导出再导入另一份隔离配置。此检查在云端对便携版及安装版各执行一次，不调用真实 TTS。用户个人数据及现有服务不参与验收。

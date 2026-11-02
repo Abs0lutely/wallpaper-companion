@@ -183,3 +183,8 @@ Use `WALLPAPER_COMPANION_DATA` to isolate test data and shared resources. `scrip
 [Try it](https://github.com/Abs0lutely/wallpaper-companion/releases/latest) · [Report a problem or share an idea](https://github.com/Abs0lutely/wallpaper-companion/issues)
 
 </div>
+
+
+### v0.11: choose a pack and start companionship
+
+Choose a companion pack, preview it, and use it without Wallpaper Engine, models or APIs. Included Chinese/Japanese packs each have 38 companion recordings and 52 optional app responses. Import/export offline `.wcpak` files while retaining existing profiles, or use the advanced dialogue and generation tools. See [Using companion packs](COMPANION_PACKS.en.md).
