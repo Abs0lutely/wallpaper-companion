@@ -39,6 +39,7 @@ class PackBrowser(QDialog):
         layout.addLayout(top)
         self.status=QLabel(p('scanning'));self.status.setWordWrap(True);layout.addWidget(self.status)
         self.progress=QProgressBar();self.progress.setRange(0,0);self.progress.hide();layout.addWidget(self.progress)
+        self.audio.message.connect(self.status.setText)
         self.scroll=QScrollArea();self.scroll.setWidgetResizable(True);self.content=QWidget();self.cards=QVBoxLayout(self.content);self.cards.addStretch();self.scroll.setWidget(self.content);layout.addWidget(self.scroll)
         close=QDialogButtonBox(QDialogButtonBox.StandardButton.Close);close.rejected.connect(self.reject);layout.addWidget(close)
         self.finished.connect(self.cleanup)
@@ -109,7 +110,8 @@ class PackBrowser(QDialog):
         elif action=='rules':info_dialog(self,p('rules'),pack_info(pack))
         else:
             dialog=QDialog(self);dialog.setWindowTitle(p('confirm'));layout=QVBoxLayout(dialog)
-            text=QLabel(pack_info(pack)+'\n\n'+p('note'));text.setTextFormat(Qt.TextFormat.PlainText);text.setWordWrap(True);layout.addWidget(text)
+            dialog.resize(650,480)
+            text=QPlainTextEdit(pack_info(pack)+'\n\n'+p('note'));text.setReadOnly(True);layout.addWidget(text)
             operation=QCheckBox(p('operation'));operation.setChecked(False);operation.setEnabled(bool(pack.operation));layout.addWidget(operation)
             buttons=QDialogButtonBox(QDialogButtonBox.StandardButton.Ok|QDialogButtonBox.StandardButton.Cancel);buttons.accepted.connect(dialog.accept);buttons.rejected.connect(dialog.reject);layout.addWidget(buttons)
             if dialog.exec()!=QDialog.DialogCode.Accepted:return

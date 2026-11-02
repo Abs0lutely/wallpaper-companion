@@ -50,6 +50,29 @@ with tempfile.TemporaryDirectory(dir=ROOT/'output') as tmp,patch('companion.mana
         browser.return_previous();report['return_keeps_new_pack']=w.active_id==profile['id'] and store.profile(new_id) is not None
         browser.start_companion();report['explicit_start']=not w.paused
         browser.resize(640,480);app.processEvents();browser.grab().save(str(ROOT/f'output/packs-{locale}.png'))
+        from companion.pack_export_ui import PackExportDialog
+        export=PackExportDialog(w,store.profile(profile['id']));export.show()
+        try:
+            report['export_optional_resources_off']=not export.bgm.isChecked() and not export.operation.isChecked() and not export.rights.isChecked()
+            export.preview_resources();wait(lambda:not export.busy)
+            report['export_sources_reviewed']=export.files.rowCount()==1 and export.plan is not None and str(clip) in export.files.item(0,1).text()
+            export.select_all(False);report['export_deselect_supported']=not export.selected()
+            export.select_all(True);export.rights.setChecked(True)
+            shared=root/'share.wcpak'
+            with patch('companion.pack_export_ui.FileDialogs.getSaveFileName',return_value=(str(shared),'')):
+                export.export_file();wait(lambda:not export.busy)
+            report['export_written']=shared.exists() and export.open_button.isEnabled()
+            from companion.packs import install_and_use
+            second_store=Store(root/'second/config.json')
+            with PackPreview(shared,root/'second/temp') as imported:
+                identifier,_=install_and_use(second_store,imported.pack)
+                from companion.core import candidates
+                second=second_store.profile(identifier)
+                report['export_to_fresh_store']=second_store.config['run_mode']=='standalone' and len(candidates(second,second['rules'][0]))==1
+            export.fields['name'].setText('Changed name')
+            report['export_metadata_change_requires_preview']=export.plan is None
+            export.resize(680,520);app.processEvents();export.grab().save(str(ROOT/f'output/pack-export-{locale}.png'))
+        finally:export.reject();shiboken6.delete(export)
         report['no_errors']=not errors
         api.start.assert_not_called();api.ensure.assert_not_called()
     finally:
