@@ -39,4 +39,5 @@ class BindingTests(unittest.TestCase):
             self.assertEqual(initial_path("ref.wav",root,base=folder),str(file))
             self.assertEqual(initial_path(str(folder/"missing/sub"),root),str(folder))
             self.assertEqual(initial_path("",folder),str(folder))
+            self.assertEqual(initial_path("",root,base=folder),str(folder))
             self.assertEqual(initial_path("new.json",folder,save=True),str(folder/"new.json"))

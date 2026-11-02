@@ -5,9 +5,10 @@ from PySide6.QtWidgets import QFileDialog as NativeFileDialog
 
 def initial_path(value="",fallback=None,base=None,directory=False,save=False):
     from .core import DATA
-    fallback=Path(fallback or DATA).expanduser()
-    path=Path(str(value)).expanduser() if str(value).strip() else fallback
-    if not path.is_absolute():path=Path(base or fallback)/path
+    fallback=Path(fallback or DATA).expanduser().resolve()
+    base=Path(base).expanduser().resolve() if base else fallback
+    path=Path(str(value)).expanduser() if str(value).strip() else base
+    if not path.is_absolute():path=base/path
     path=path.resolve()
     if path.exists():return str(path.parent if directory and path.is_file() else path)
     name=path.name
@@ -33,6 +34,14 @@ def context(parent):
     return fallback,base
 
 
+def anchored_options(args,kwargs,index):
+    args=list(args);kwargs=dict(kwargs)
+    flag=NativeFileDialog.Option.DontUseNativeDialog
+    if len(args)>index:args[index]=args[index]|flag
+    else:kwargs["options"]=kwargs.get("options",NativeFileDialog.Option(0))|flag
+    return args,kwargs
+
+
 class FileDialogs:
     @staticmethod
     def _path(parent,value,directory=False,save=False):
@@ -40,13 +49,17 @@ class FileDialogs:
         return initial_path(value,fallback,base,directory,save)
     @staticmethod
     def getExistingDirectory(parent=None,caption="",directory="",*args,**kwargs):
+        args,kwargs=anchored_options(args,kwargs,0)
         return NativeFileDialog.getExistingDirectory(parent,caption,FileDialogs._path(parent,directory,True),*args,**kwargs)
     @staticmethod
     def getOpenFileName(parent=None,caption="",directory="",*args,**kwargs):
+        args,kwargs=anchored_options(args,kwargs,2)
         return NativeFileDialog.getOpenFileName(parent,caption,FileDialogs._path(parent,directory),*args,**kwargs)
     @staticmethod
     def getOpenFileNames(parent=None,caption="",directory="",*args,**kwargs):
+        args,kwargs=anchored_options(args,kwargs,2)
         return NativeFileDialog.getOpenFileNames(parent,caption,FileDialogs._path(parent,directory),*args,**kwargs)
     @staticmethod
     def getSaveFileName(parent=None,caption="",directory="",*args,**kwargs):
+        args,kwargs=anchored_options(args,kwargs,2)
         return NativeFileDialog.getSaveFileName(parent,caption,FileDialogs._path(parent,directory,save=True),*args,**kwargs)

@@ -1100,7 +1100,10 @@ EN = {
     "binding.json_required": "Dialogue library must be a JSON file",
     "binding.too_large": "Dialogue JSON exceeds 2 MiB",
     "binding.changed": "Dialogue file changed after preview",
-    "voices.rules_language": "Category language for new rules"
+    "voices.rules_language": "Category language for new rules",
+    "mode.help": "Choose WE following or standalone sound companion without WE. Saves immediately with undo; does not start a speech API.",
+    "voices.demo_help": "Selects bundled samples only when the personal voice folder is empty. Personal files take priority; operation language is set by its own rules.",
+    "binding.help": "Edit, browse or detach shared dialogue binding. Preview before switching; existing files are not overwritten. Later shared edits affect other referencing profiles."
 }
 SOURCES = {
     "documents.overview": "使用说明",
@@ -2177,5 +2180,8 @@ SOURCES = {
     "binding.json_required": "台词库必须为 JSON 文件。",
     "binding.too_large": "台词 JSON 超过 2 MiB。",
     "binding.changed": "预览后台词文件已改变，请重新选择并核对。",
-    "voices.rules_language": "新规则分类语言"
+    "voices.rules_language": "新规则分类语言",
+    "mode.help": "选择跟随 WE 或无需 WE 的独立声音伴随，立即保存并可撤销；不启动语音 API。",
+    "voices.demo_help": "仅切换个人语音目录为空时的随附示例；个人音频优先，操作回应语言由其独立规则选择。",
+    "binding.help": "可编辑、浏览和解除共用台词关联；切换先预览，已有文件不覆盖，后续共享编辑影响其他引用配置。"
 }

@@ -13,6 +13,7 @@ class LanguageCheckTests(unittest.TestCase):
         self.assertEqual(inspect_text("bonjour","fr"),"unknown")
         self.assertIsNone(inspect_text("123!?","en"))
         self.assertIsNone(inspect_text("你好 hello","auto"))
+        self.assertEqual(inspect_text("你好 hello","zh"),"uncertain")
     def test_target_and_reference_are_independent(self):
         settings=dict(text_lang="en",prompt_lang="ja",prompt="こんにちは、今日もよろしくね。")
         self.assertEqual(language_issues(["Good morning!"],settings,"gpt_sovits"),[])

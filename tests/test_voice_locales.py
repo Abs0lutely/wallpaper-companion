@@ -38,11 +38,13 @@ class VoiceLocalesTests(unittest.TestCase):
     def test_japanese_pack_is_complete_and_operation_rules_discover_it(self):
         from companion.bundled_audio import validate_bundled_manifest,bundled_root,validate_starter_pack
         from companion.operation_voices import scan_clips
-        manifest=validate_bundled_manifest()
+        from companion.core import ROOT
+        audio_root=ROOT/"examples/audio"
+        manifest=validate_bundled_manifest(audio_root)
         self.assertEqual(len(manifest["files"]),180)
         self.assertEqual(sum(e.get("locale")=="ja-JP" for e in manifest["files"]),90)
-        self.assertEqual(len(validate_starter_pack(bundled_root()/"starter-voice-ja-JP")["files"]),38)
+        self.assertEqual(len(validate_starter_pack(audio_root/"starter-voice-ja-JP")["files"]),38)
         rules,_=switch_operation_categories(default_rules(),"ja-JP")
-        clips=scan_clips([bundled_root()/"operation-voice-ja-JP"],rules)
+        clips=scan_clips([audio_root/"operation-voice-ja-JP"],rules)
         self.assertEqual(len(clips),26)
         self.assertTrue(all(len(files)==2 for files in clips.values()))

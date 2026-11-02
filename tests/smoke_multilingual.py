@@ -5,12 +5,15 @@ from unittest.mock import patch
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]))
 from PySide6.QtCore import QTimer
 from PySide6.QtWidgets import QApplication,QPushButton,QMessageBox
+from companion.i18n import set_language,install_qt_translation
+locale=globals().get("TEST_LANGUAGE","zh-CN")
+set_language(locale)
 from companion.core import ROOT,Store,new_profile
 from companion.ui import Window
 from companion.operation_rules_ui import OperationRulesDialog
 from companion.i18n import tr
 import shiboken6
-app=QApplication([]);app.setQuitOnLastWindowClosed(False)
+app=QApplication([]);app.setQuitOnLastWindowClosed(False);install_qt_translation(app)
 report={};errors=[]
 with tempfile.TemporaryDirectory(dir=ROOT/"output") as tmp,patch("companion.managed_api.api") as api,patch("companion.secrets.read_secret",return_value=""),patch("companion.secrets.write_secret"):
     root=Path(tmp);store=Store(root/"data/config.json")
@@ -20,7 +23,7 @@ with tempfile.TemporaryDirectory(dir=ROOT/"output") as tmp,patch("companion.mana
     w=Window(store,hooks=False);w.report_error=errors.append;w.show()
     try:
         w.poll.stop();w.tick.stop()
-        report["single_library_generation_action"]=not any(b.text()=="按分类生成勾选台词" for b in w.findChildren(QPushButton))
+        report["single_library_generation_action"]=not any(b.text()==tr("ui.b8cb3627c40d","按分类生成勾选台词") for b in w.findChildren(QPushButton))
         combo=w.provider_widgets["text_lang"];combo.setText("ja")
         w.provider_widgets["prompt_lang"].setText("en")
         report["language_codes_saved"]=w.save_tts() and Store(store.path).config["tts"]["text_lang"]=="ja"
@@ -93,7 +96,7 @@ with tempfile.TemporaryDirectory(dir=ROOT/"output") as tmp,patch("companion.mana
             for event,key in [("mouse_left",""),("key","fixture-id"),("scheduled","")]:w.input_event(event,key)
             report["standalone_mouse_key_time_pipeline"]=choose.call_count==3 and play.call_count==3
         w.tabs.setCurrentIndex(0)
-        w.grab().save(str(ROOT/"output/standalone-home.png"))
+        w.grab().save(str(ROOT/("output/standalone-home-"+locale+".png")))
         w.run_mode.setCurrentIndex(w.run_mode.findData("wallpaper_engine"))
         report["return_to_we_preserves_profile_choice"]=not w.is_standalone() and store.config["manual_profile"]==original_manual and store.config["standalone_profile"]==second["id"]
         report["mode_change_undo"]=w.autosave.undo() and w.is_standalone() and not w.poll.isActive()
@@ -105,8 +108,24 @@ with tempfile.TemporaryDirectory(dir=ROOT/"output") as tmp,patch("companion.mana
             report["fresh_standalone_creates_sound_profile"]=fresh.is_standalone() and len(fresh_store.config["profiles"])==1 and fresh.active_id==fresh_store.config["standalone_profile"] and not fresh.poll.isActive()
             report["standalone_persists_without_we_installation"]=Store(fresh_store.path).config["run_mode"]=="standalone" and not fresh_store.config["profiles"][0]["wallpaper"]
         finally:fresh.cleanup();shiboken6.delete(fresh)
+        visits=[];selected_files=[]
+        def close_picker():
+            picker=app.activeModalWidget()
+            visits.append(picker.directory().absolutePath());selected_files.append(picker.selectedFiles());picker.reject()
+        for name in ("first-picker","second-picker"):
+            folder=root/name;folder.mkdir()
+            QTimer.singleShot(70,close_picker)
+            FileDialogs.getExistingDirectory(w.voice_dir,"Isolated picker",str(folder))
+        report["real_picker_ignores_previous_location"]=visits==[str((root/name).resolve()).replace("\\","/") for name in ("first-picker","second-picker")]
+        QTimer.singleShot(70,close_picker)
+        FileDialogs.getOpenFileName(w.voice_dir,"Isolated open",str(clip),"Audio (*.wav)")
+        report["real_open_picker_selects_current_file"]=visits[-1]==str(root).replace("\\","/") and selected_files[-1]==[str(clip).replace("\\","/")]
+        output_file=root/"second-picker/new.json"
+        QTimer.singleShot(70,close_picker)
+        FileDialogs.getSaveFileName(w.voice_dir,"Isolated save",str(output_file),"JSON (*.json)")
+        report["real_save_picker_uses_current_parent"]=visits[-1]==str(output_file.parent).replace("\\","/") and selected_files[-1]==[str(output_file).replace("\\","/")] and not output_file.exists()
         report["no_errors"]=not errors
         api.ensure.assert_not_called();api.start.assert_not_called()
     finally:w.cleanup();shiboken6.delete(w)
-(ROOT/"output/smoke-multilingual.json").write_text(json.dumps(report,ensure_ascii=False,indent=2),encoding="utf-8")
+(ROOT/("output/smoke-multilingual-"+locale+".json")).write_text(json.dumps(report,ensure_ascii=False,indent=2),encoding="utf-8")
 print(json.dumps(report));assert all(report.values()),report

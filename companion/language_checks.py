@@ -42,6 +42,7 @@ def inspect_text(text,code):
     if base=="ja" and not counts["ja"]:
         return "uncertain" if counts["han"] or total<4 else "mismatch"
     if base=="ko" and not counts["ko"]:return "uncertain" if total<4 else "mismatch"
+    if counts["latin"]>=3 and counts["han"]+counts["ja"]+counts["ko"]>=2:return "uncertain"
     if total<4:return "uncertain"
     return None
 
