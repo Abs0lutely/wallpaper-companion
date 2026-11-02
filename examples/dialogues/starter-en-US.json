@@ -1,229 +1,229 @@
 [
   {
     "id": "starter_en-US_0",
-    "category": "点击回应",
+    "category": "点击回应·en-US",
     "text": "Hmm? I'm right here.",
     "enabled": true
   },
   {
     "id": "starter_en-US_1",
-    "category": "点击回应",
+    "category": "点击回应·en-US",
     "text": "Found something new?",
     "enabled": true
   },
   {
     "id": "starter_en-US_2",
-    "category": "点击回应",
+    "category": "点击回应·en-US",
     "text": "Got it. I'll keep you company.",
     "enabled": true
   },
   {
     "id": "starter_en-US_3",
-    "category": "点击回应",
+    "category": "点击回应·en-US",
     "text": "There's no rush. Let's take our time.",
     "enabled": true
   },
   {
     "id": "starter_en-US_4",
-    "category": "点击回应",
+    "category": "点击回应·en-US",
     "text": "Let's do our best together today.",
     "enabled": true
   },
   {
     "id": "starter_en-US_5",
-    "category": "点击回应",
+    "category": "点击回应·en-US",
     "text": "It's okay to take a break before carrying on.",
     "enabled": true
   },
   {
     "id": "starter_en-US_6",
-    "category": "点击回应",
+    "category": "点击回应·en-US",
     "text": "Just call, and I'll be here.",
     "enabled": true
   },
   {
     "id": "starter_en-US_7",
-    "category": "点击回应",
+    "category": "点击回应·en-US",
     "text": "Want to change the mood with a song?",
     "enabled": true
   },
   {
     "id": "starter_en-US_8",
-    "category": "返回桌面",
+    "category": "返回桌面·en-US",
     "text": "Welcome back. You've worked hard today.",
     "enabled": true
   },
   {
     "id": "starter_en-US_9",
-    "category": "返回桌面",
+    "category": "返回桌面·en-US",
     "text": "You're back! This is a good time for a little rest.",
     "enabled": true
   },
   {
     "id": "starter_en-US_10",
-    "category": "返回桌面",
+    "category": "返回桌面·en-US",
     "text": "Did everything go smoothly?",
     "enabled": true
   },
   {
     "id": "starter_en-US_11",
-    "category": "返回桌面",
+    "category": "返回桌面·en-US",
     "text": "Your desktop is ready. What shall we do next?",
     "enabled": true
   },
   {
     "id": "starter_en-US_12",
-    "category": "返回桌面",
+    "category": "返回桌面·en-US",
     "text": "Here we are again. Let's get back to it together.",
     "enabled": true
   },
   {
     "id": "starter_en-US_13",
-    "category": "返回桌面",
+    "category": "返回桌面·en-US",
     "text": "Welcome back. How about a good stretch first?",
     "enabled": true
   },
   {
     "id": "starter_en-US_14",
-    "category": "早晨",
+    "category": "早晨·en-US",
     "text": "Good morning! A new day is here.",
     "enabled": true
   },
   {
     "id": "starter_en-US_15",
-    "category": "早晨",
+    "category": "早晨·en-US",
     "text": "Good morning. Give yourself a moment to get ready.",
     "enabled": true
   },
   {
     "id": "starter_en-US_16",
-    "category": "早晨",
+    "category": "早晨·en-US",
     "text": "Good morning. One step at a time today, too.",
     "enabled": true
   },
   {
     "id": "starter_en-US_17",
-    "category": "早晨",
+    "category": "早晨·en-US",
     "text": "Good morning. Don't forget breakfast.",
     "enabled": true
   },
   {
     "id": "starter_en-US_18",
-    "category": "早晨",
+    "category": "早晨·en-US",
     "text": "Good morning. I hope something small makes you smile today.",
     "enabled": true
   },
   {
     "id": "starter_en-US_19",
-    "category": "早晨",
+    "category": "早晨·en-US",
     "text": "Good morning. Let's start with one little thing.",
     "enabled": true
   },
   {
     "id": "starter_en-US_20",
-    "category": "白天",
+    "category": "白天·en-US",
     "text": "Good afternoon. Remember to have some water.",
     "enabled": true
   },
   {
     "id": "starter_en-US_21",
-    "category": "白天",
+    "category": "白天·en-US",
     "text": "You've been busy for a while. Give your eyes a little rest.",
     "enabled": true
   },
   {
     "id": "starter_en-US_22",
-    "category": "白天",
+    "category": "白天·en-US",
     "text": "You don't have to do everything at once. Just focus on this one thing.",
     "enabled": true
   },
   {
     "id": "starter_en-US_23",
-    "category": "白天",
+    "category": "白天·en-US",
     "text": "You've already made some progress today. Keep going at your own pace.",
     "enabled": true
   },
   {
     "id": "starter_en-US_24",
-    "category": "白天",
+    "category": "白天·en-US",
     "text": "If you're getting tired, try shifting into a more comfortable position.",
     "enabled": true
   },
   {
     "id": "starter_en-US_25",
-    "category": "白天",
+    "category": "白天·en-US",
     "text": "The light outside looks lovely. Look into the distance when you have a moment.",
     "enabled": true
   },
   {
     "id": "starter_en-US_26",
-    "category": "夜间",
+    "category": "夜间·en-US",
     "text": "Good night. Try not to stay up too late.",
     "enabled": true
   },
   {
     "id": "starter_en-US_27",
-    "category": "夜间",
+    "category": "夜间·en-US",
     "text": "It's getting late. Let's call it a day.",
     "enabled": true
   },
   {
     "id": "starter_en-US_28",
-    "category": "夜间",
+    "category": "夜间·en-US",
     "text": "Good night. We can take care of the rest tomorrow.",
     "enabled": true
   },
   {
     "id": "starter_en-US_29",
-    "category": "夜间",
+    "category": "夜间·en-US",
     "text": "Finish this little bit, then get ready to rest.",
     "enabled": true
   },
   {
     "id": "starter_en-US_30",
-    "category": "夜间",
+    "category": "夜间·en-US",
     "text": "Good night. I hope you sleep well tonight.",
     "enabled": true
   },
   {
     "id": "starter_en-US_31",
-    "category": "夜间",
+    "category": "夜间·en-US",
     "text": "You've worked hard today. Leave yourself a little quiet time.",
     "enabled": true
   },
   {
     "id": "starter_en-US_32",
-    "category": "闲置陪伴",
+    "category": "闲置陪伴·en-US",
     "text": "It's nice to sit quietly for a while, too.",
     "enabled": true
   },
   {
     "id": "starter_en-US_33",
-    "category": "闲置陪伴",
+    "category": "闲置陪伴·en-US",
     "text": "No need to reply right away. I'll be here.",
     "enabled": true
   },
   {
     "id": "starter_en-US_34",
-    "category": "闲置陪伴",
+    "category": "闲置陪伴·en-US",
     "text": "How about tidying your desktop for a fresh, easy start?",
     "enabled": true
   },
   {
     "id": "starter_en-US_35",
-    "category": "闲置陪伴",
+    "category": "闲置陪伴·en-US",
     "text": "Listen to the music and take your time.",
     "enabled": true
   },
   {
     "id": "starter_en-US_36",
-    "category": "闲置陪伴",
+    "category": "闲置陪伴·en-US",
     "text": "Letting your mind wander for a moment can help you recharge, too.",
     "enabled": true
   },
   {
     "id": "starter_en-US_37",
-    "category": "闲置陪伴",
+    "category": "闲置陪伴·en-US",
     "text": "We'll carry on when you're ready.",
     "enabled": true
   }

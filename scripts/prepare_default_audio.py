@@ -43,7 +43,10 @@ def main():
                 raise ValueError("分发目录已有不同内容，请先人工审阅："+str(relative))
     if not any(e["pack"]=="starter-voice" for e in found):
         raise ValueError("没有匹配的默认陪伴台词音频")
-    manifest=dict(format="wallpaper-companion-bundled-audio",version=1,origin="用户提供并授权随程序分发的默认台词合成音频",files=found,missing=missing)
+    previous=target/"manifest.json"
+    extra=[]
+    if previous.exists():extra=[e for e in json.loads(previous.read_text(encoding="utf-8"))["files"] if e["pack"] not in {"starter-voice","operation-voice"}]
+    manifest=dict(format="wallpaper-companion-bundled-audio",version=1,origin="用户提供并授权随程序分发的默认台词合成音频",files=found+extra,missing=missing)
     if args.apply:
         for e in found:
             relative=Path(e["category"])/e["filename"]

@@ -1,6 +1,7 @@
 """Immediate action acknowledgement; completion/errors remain operation-specific."""
 from .i18n import tr
 import weakref
+import shiboken6
 from PySide6.QtCore import QObject, QEvent, QPoint, Qt, QTimer
 from PySide6.QtWidgets import QApplication, QAbstractButton, QLabel, QSizePolicy
 
@@ -38,7 +39,7 @@ class ActionFeedback(QObject):
         reference = weakref.ref(button)
         def pressed():
             item = reference()
-            if item is not None:
+            if item is not None and shiboken6.isValid(item):
                 title = item.text().replace("&", "").strip() or item.accessibleName() or item.toolTip() or tr('ui.0e9879fd8345', '控件')
                 self.show_message(tr('ui.50fd2336f6aa', '已按下：') + title, item)
         button.pressed.connect(pressed)

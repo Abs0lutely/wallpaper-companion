@@ -35,6 +35,8 @@ SMOKES = (
     "smoke_output_device.py",
     "smoke_i18n.py",
     "smoke_i18n_zh.py",
+    "smoke_multilingual.py",
+    "smoke_multilingual_en.py",
 )
 
 

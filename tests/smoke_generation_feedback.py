@@ -46,7 +46,7 @@ with patch("companion.managed_api.api") as api, patch("companion.secrets.read_se
         report["dialog_button_has_feedback"]=bool(title) and title in w.action_feedback.label.toolTip()
         if not report["dialog_button_has_feedback"]: print("Dialog feedback:",title,w.action_feedback.label.toolTip(),flush=True)
         dialog.close(); shiboken6.delete(dialog)
-        w.tts_output.setText(str(root/"success")); w.lines.setPlainText("第一条\n第二条"); w.generate_audio()
+        w.tts_output.setText(str(root/"success")); w.lines.setPlainText("第一条测试\n第二条测试"); w.generate_audio()
         report["progress_starts_at_zero_with_activity"]=w.tts_progress.value()==0 and not w.tts_activity.isHidden()
         wait(lambda:not w.tts_busy)
         report["success_progress_reflects_saved_items"]=w.tts_progress.value()==2 and w.tts_progress.maximum()==2 and w.tts_activity.isHidden()

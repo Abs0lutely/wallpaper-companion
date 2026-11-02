@@ -6,6 +6,7 @@ from pathlib import Path
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (QAbstractItemView, QComboBox, QFileDialog, QHeaderView,
     QLabel, QLineEdit, QMessageBox, QTableWidget, QTableWidgetItem, QVBoxLayout, QWidget)
+from .file_dialogs import FileDialogs as QFileDialog
 
 from .assets import shared_root
 from .audio_library import copy_audio, destination, inventory, locations, recycle_audio

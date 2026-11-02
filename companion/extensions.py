@@ -15,7 +15,7 @@ API_VERSION = 1
 class Field:
     key: str
     label: str
-    kind: str = "text"  # text/password/file/directory/multiline/float/bool; builtin gpt_model/sovits_model
+    kind: str = "text"  # text/password/file/directory/multiline/float/bool/language; builtin gpt_model/sovits_model
     default: Any = ""
     help: str = ""
 

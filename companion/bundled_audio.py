@@ -26,7 +26,9 @@ def validate_starter_pack(root=None):
         raise ValueError(tr('ui.746601ae0ed7', '随附示例语音清单无效'))
     from .core import filename_for
     from .dialogues import starter_dialogues
-    known = {(e["category"],e["text"]) for e in starter_dialogues()}
+    from .voice_locales import translated_lines
+    entries = translated_lines("starter", "ja-JP") if manifest.get("locale")=="ja-JP" else starter_dialogues()
+    known = {(e["category"],e["text"]) for e in entries}
     seen=set()
     for entry in manifest["files"]:
         key = entry["category"],entry["text"]
@@ -51,6 +53,9 @@ def validate_bundled_manifest(root=None):
         raise ValueError(tr('ui.302efe9880df', '分发音频总清单无效'))
     known={(pack,e["category"],e["text"]):Path(pack)/e["category"]/filename_for(e["text"])
            for pack,entries in [("starter-voice",starter_dialogues()),("operation-voice",operation_dialogues())] for e in entries}
+    from .voice_locales import translated_lines
+    for pack,kind in [("starter-voice-ja-JP","starter"),("operation-voice-ja-JP","operation")]:
+        known.update({(pack,e["category"],e["text"]):Path(pack)/e["category"]/filename_for(e["text"]) for e in translated_lines(kind,"ja-JP")})
     seen=set()
     for entry in manifest.get("files",[]):
         key=entry["pack"],entry["category"],entry["text"]

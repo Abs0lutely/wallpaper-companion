@@ -64,23 +64,32 @@ def candidates(profile: dict, rule: dict) -> list[Path]:
     source = rule.get("source", "").strip() or profile.get("voice_dir", "")
     if source and not Path(source).is_absolute():
         base = profile.get("voice_dir", "")
-        if not base:
+        if not base and not profile.get("use_bundled_demo",False):
             return []
-        source = str(Path(base) / source)
+        source = str(Path(base) / source) if base else ""
     if source and Path(source).is_file():
         files = [Path(source)] if Path(source).suffix.lower() in AUDIO_EXTENSIONS else []
     else:
         files = audio_files(source)
     if not rule.get("source", "").strip():
         from .action_lines import EVENT_LINES
-        operation_categories = {category for category, _ in EVENT_LINES.values()}
+        from .voice_locales import category_for, LOCALES
+        operation_categories = {category_for(category,locale) for category, _ in EVENT_LINES.values() for locale in LOCALES}
         root = Path(source).expanduser() if source else None
         files = [p for p in files if root is None or not p.relative_to(root).parts or p.relative_to(root).parts[0] not in operation_categories]
+    if not files and rule.get("source", ""):
+        from .voice_locales import legacy_candidates
+        files=legacy_candidates(profile.get("voice_dir", ""), rule["source"])
     if not files and profile.get("use_bundled_demo", False) and not audio_files(profile.get("voice_dir", "")):
         from .bundled_audio import bundled_root
         relative = rule.get("source", "").strip()
         if not relative or not Path(relative).is_absolute() and ".." not in Path(relative).parts and ":" not in relative:
-            fallback = bundled_root()/"starter-voice"/relative
+            locale=profile.get("demo_language", "zh-CN")
+            if relative.endswith("·ja-JP"):locale="ja-JP"
+            if locale=="ja-JP":
+                from .dialogues import CATEGORIES
+                if relative in CATEGORIES:relative += "·ja-JP"
+            fallback = bundled_root()/("starter-voice-ja-JP" if locale=="ja-JP" else "starter-voice")/relative
             files = [fallback] if fallback.is_file() and fallback.suffix.lower() in AUDIO_EXTENSIONS else audio_files(str(fallback))
     keyword = rule.get("keyword", "").strip().casefold()
     return [p for p in files if not keyword or keyword in p.stem.casefold()]
@@ -99,7 +108,7 @@ def new_profile(name=None, wallpaper="") -> dict:
         name = tr('ui.49a7b7657842', '新的壁纸配置')
     from .dialogues import starter_dialogues
     return dict(id=uuid.uuid4().hex, name=name, wallpaper=wallpaper, voice_dir="", bgm_dir="",
-                asset_dir="", private_asset_dir="", dialogue_file="", original_audio_policy="safe", original_audio_override="auto", bgm_paused=False, use_bundled_demo=True,
+                asset_dir="", private_asset_dir="", dialogue_file="", original_audio_policy="safe", original_audio_override="auto", bgm_paused=False, use_bundled_demo=True, demo_language="zh-CN",
                 enabled=True, desktop_only=True, fullscreen_mute=True, bgm_enabled=True,
                 bgm_shuffle=True, voice_volume=80, bgm_volume=25, duck_percent=25,
                 global_cooldown=8, dialogues=starter_dialogues(), rules=[new_rule(), new_rule("random", tr('ui.cdd7f524c681', '随机陪伴 · 每 5–10 分钟'))])
@@ -108,7 +117,7 @@ def new_profile(name=None, wallpaper="") -> dict:
 def defaults() -> dict:
     from .operation_rules import default_rules
     we_dir, workshop_dir = discover_wallpaper_engine()
-    return dict(version=4, ui_language="zh-CN", we_dir=we_dir, workshop_dir=workshop_dir, library_roots=[], library_backend="wallpaper_engine", ffprobe="",
+    return dict(version=4, run_mode="wallpaper_engine", standalone_profile="", ui_language="zh-CN", we_dir=we_dir, workshop_dir=workshop_dir, library_roots=[], library_backend="wallpaper_engine", ffprobe="",
                 monitor=0, poll_seconds=4, manual_profile="", profiles=[], hover_help=True, shared_asset_dir="",
                 operation_voice_enabled=True, operation_voice_dir="",
                 operation_voice_rules=default_rules(), operation_voice_min_interval=1.2, tts_filename_model="",
@@ -129,6 +138,8 @@ class Store:
                 if not isinstance(saved, dict) or not isinstance(saved.get("profiles", []), list):
                     raise ValueError(tr('ui.f84bdfec490a', '配置结构错误'))
                 self.config.update(saved)
+                if not isinstance(self.config.get("run_mode"),str) or self.config.get("run_mode") not in {"wallpaper_engine","standalone"}:self.config["run_mode"]="wallpaper_engine"
+                if not isinstance(self.config.get("standalone_profile"),str):self.config["standalone_profile"]=""
                 from .i18n import normalize_language
                 self.config["ui_language"] = normalize_language(self.config.get("ui_language"))
                 if not isinstance(self.config["operation_voice_enabled"], bool) or not isinstance(self.config["operation_voice_dir"], str):
@@ -148,6 +159,7 @@ class Store:
                 from .dialogues import starter_dialogues
                 for profile in self.config["profiles"]:
                     profile.setdefault("dialogues", starter_dialogues())
+                    if not isinstance(profile.get("demo_language"),str) or profile.get("demo_language") not in {"zh-CN", "ja-JP"}:profile["demo_language"]="zh-CN"
                     for key, value in dict(asset_dir="", private_asset_dir="", dialogue_file="", original_audio_policy="safe", original_audio_override="auto", bgm_paused=False, use_bundled_demo=False).items():
                         profile.setdefault(key, value)
                     if not isinstance(profile["use_bundled_demo"],bool):

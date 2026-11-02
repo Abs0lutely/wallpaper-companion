@@ -9,12 +9,14 @@ from PySide6.QtWidgets import (QApplication, QWidget, QToolTip, QPushButton, QLi
 import shiboken6
 
 CONTROL_HELP = {
+    "run_mode": tr("mode.help", "选择跟随 WE 或无需 WE 的独立声音伴随，立即保存并可撤销；不启动语音 API。"),
+    "demo_language": tr("voices.demo_help", "仅切换个人语音目录为空时的随附示例；个人音频优先，操作回应语言由其独立规则选择。"),
     "profile_name": tr('ui.d45a67a22380', '给当前壁纸配置起名字，不会重命名原壁纸文件。'),
     "wallpaper_path": tr('ui.9d95fe570fb0', '当前配置绑定的壁纸入口，只读；用重新绑定按钮更换。'),
     "voice_dir": tr('ui.1aef618cb110', '播放语音的总目录，包含子目录；支持手动放入下载音频。'),
     "bgm_dir": tr('ui.1f45899a2f43', '伴随 BGM 的音乐目录，包含子目录；留空则没有伴随音乐。'),
     "asset_dir": tr('ui.c71d4becc1c5', '新共享资源默认在程序安装目录 shared，无需填写；旧路径保持原样，也可分别选择共享或专用目录。'),
-    "dialogue_file": tr('ui.210e2b52e6d5', '共享台词 JSON 文件；保存台词会影响引用同一文件的其他配置。'),
+    "dialogue_file": tr('binding.help', '可编辑、浏览和解除共用台词关联；切换先预览，已有文件不覆盖，后续共享编辑影响其他引用配置。'),
     "profile_enabled": tr('ui.64a33e878c26', '关闭后此配置的自动语音和伴随 BGM 都停止。'),
     "bgm_enabled": tr('ui.aa989aa7851b', '仅控制此配置是否播放伴随 BGM，互动语音仍可使用。'),
     "desktop_only": tr('ui.82176444201d', '开启后，鼠标和键盘只在桌面前台时触发，其他软件内不响应。'),
@@ -135,7 +137,6 @@ BUTTON_HELP = {
     tr('ui.ac45d38300d9', '补充默认台词'): tr('ui.131ba211ac53', '补充未出现的默认原创台词，不覆盖现有自定义文字。'),
     tr('ui.30898e1ec4d0', '保存台词库'): tr('ui.9d7b26d66707', '保存台词；若使用共享 JSON，也会影响引用同文件的配置。'),
     tr('ui.3b8118a7c3de', '将勾选台词送到生成页'): tr('ui.f1b3be1816a4', '把已勾选的文字填入普通生成框，仍可继续修改。'),
-    tr('ui.b8cb3627c40d', '按分类生成勾选台词'): tr('ui.601af5daaf6d', '按分类子目录合成勾选台词，可跳过已有同名音频。'),
     tr('ui.7d9ab8f2b401', '应用分类触发规则'): tr('ui.1d71efecd09a', '确认后替换编辑中的规则为默认分类触发，保存配置后生效。'),
     tr('ui.5dad01da2d96', '导入台词 JSON / TXT'): tr('ui.4c537a64367f', '导入分类 JSON 或每行一条的 UTF-8 文本，去重后需保存。'),
     tr('ui.01d53f80e251', '导出台词 JSON'): tr('ui.d17fd17342e8', '把当前台词库导出为可再次导入的 JSON 文件。'),

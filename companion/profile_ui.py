@@ -106,6 +106,9 @@ def build_profile(window):
     for control in [w.profile_enabled, w.bgm_enabled, w.desktop_only, w.fullscreen_mute, w.shuffle, w.bundled_demo_enabled]:
         play.addWidget(control)
     play.addStretch()
+    w.demo_language=QComboBox()
+    w.demo_language.addItem("中文", "zh-CN");w.demo_language.addItem("日本語", "ja-JP")
+    play.addWidget(QLabel(tr("voices.demo_language", "随附示例配音语言")));play.addWidget(w.demo_language)
     cards.addWidget(play_card, 1)
     sounds.addStretch()
     sound_scroll = QScrollArea()
@@ -119,12 +122,14 @@ def build_profile(window):
     resource_layout.setContentsMargins(0, 0, 0, 0)
     resource_layout.setSpacing(14)
     identity_card, identity_layout = section(tr('ui.180dafedd38c', '壁纸与配置'))
+    w.profile_identity_title=identity_layout.itemAt(0).widget()
     w.profile_name = QLineEdit()
     w.wallpaper_path = QLineEdit()
     w.wallpaper_path.setReadOnly(True)
     identity_form = form_layout()
     identity_form.addRow(tr('ui.9919db867bd4', '配置名称'), w.profile_name)
     identity_form.addRow(tr('ui.78c7a0e5c724', '绑定壁纸'), w.wallpaper_path)
+    w.wallpaper_field_label=identity_form.labelForField(w.wallpaper_path)
     identity_form.addRow("", button(tr('ui.bea66aeb786b', '将此配置绑定到当前壁纸'), w.rebind_current))
     identity_layout.addLayout(identity_form)
     resource_layout.addWidget(identity_card)
@@ -135,10 +140,11 @@ def build_profile(window):
     w.asset_dir = QLineEdit()
     w.asset_dir.setPlaceholderText(tr('ui.3d2cf188132d', '默认使用数据目录；需要自定义时再修改'))
     w.dialogue_file = QLineEdit()
-    w.dialogue_file.setReadOnly(True)
+    w.dialogue_file.editingFinished.connect(w.change_dialogue_file)
+    dialogue_controls=row(w.dialogue_file,button(tr("ui.0617557e7bbc","浏览…"),w.browse_dialogue_file),button(tr("binding.detach","解除关联"),w.detach_dialogue_file))
     resources_form = form_layout()
     for name, control in [(tr('ui.06b2791d8cb3', '语音文件夹'), path_field(w.voice_dir)), (tr('ui.75611dc750be', 'BGM 文件夹'), path_field(w.bgm_dir)),
-                          (tr('ui.5379ebef8363', '资源根目录（可共享）'), path_field(w.asset_dir)), (tr('ui.7a1cde72ea70', '共用台词文件'), w.dialogue_file)]:
+                          (tr('ui.5379ebef8363', '资源根目录（可共享）'), path_field(w.asset_dir)), (tr('ui.7a1cde72ea70', '共用台词文件'), dialogue_controls)]:
         resources_form.addRow(name, control)
     resource_content.addLayout(resources_form)
     resource_content.addWidget(button(tr('ui.6134673974b4', '按此根目录绑定音频、BGM 和台词库'), w.use_asset_directory))
@@ -150,6 +156,7 @@ def build_profile(window):
     resource_layout.addWidget(resource_card)
 
     policy_card, policy = section(tr('ui.8d4d07151dba', '原壁纸声音与防冲突'))
+    w.original_audio_card=policy_card
     w.original_audio_policy = QComboBox()
     for label, value in [(tr('ui.3c7fc3b8a438', '有声音证据或无法确认时暂停 BGM'), "safe"), (tr('ui.14ccc93f4fc7', '仅发现声音证据时暂停 BGM'), "detected"), (tr('ui.d5aa65c34e76', '允许伴随 BGM 播放'), "allow")]:
         w.original_audio_policy.addItem(label, value)

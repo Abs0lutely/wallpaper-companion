@@ -91,6 +91,8 @@ class Autosave(QObject):
         if self.busy or self.closed or self.w.quitting:
             return True
         w = self.w
+        if w.dialogue_file.text().strip()!=getattr(w,"accepted_dialogue_file",""):
+            if not w.change_dialogue_file():return False
         self.busy = True
         before = copy.deepcopy(w.store.config)
         baseline = copy.deepcopy(self.baseline)

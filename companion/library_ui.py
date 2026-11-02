@@ -9,6 +9,7 @@ from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (QAbstractItemView, QCheckBox, QComboBox, QDialog, QDialogButtonBox,
     QFileDialog, QFormLayout, QHeaderView, QLabel, QLineEdit, QMessageBox, QPlainTextEdit,
     QTableWidget, QTableWidgetItem, QVBoxLayout, QWidget)
+from .file_dialogs import FileDialogs as QFileDialog
 
 from .core import identity, writable_path
 from .dialogues import CATEGORIES, dialogue_rules, normalize_dialogues, starter_dialogues
@@ -171,6 +172,7 @@ class LibraryMixin:
             return False
 
     def scan_library(self):
+        if self.is_standalone():return
         if self.library_busy:
             return
         self.library_busy = True
@@ -304,12 +306,14 @@ class DialogueMixin:
         self.skip_existing_dialogue_audio.toggled.connect(self.skip_existing_tts_audio.setChecked)
         self.skip_existing_tts_audio.toggled.connect(self.skip_existing_dialogue_audio.setChecked)
         layout.addWidget(self.skip_existing_dialogue_audio)
-        layout.addWidget(row(button(tr('ui.3b8118a7c3de', '将勾选台词送到生成页'), self.send_dialogues_to_tts),
-                             button(tr('ui.b8cb3627c40d', '按分类生成勾选台词'), self.generate_dialogue_library, True)))
+        layout.addWidget(row(button(tr('ui.3b8118a7c3de', '将勾选台词送到生成页'), self.send_dialogues_to_tts, True)))
+        self.rules_locale=QComboBox()
+        for label,code in [("中文","zh-CN"),("日本語","ja-JP"),("English","en-US")]:self.rules_locale.addItem(label,code)
+        layout.addWidget(row(QLabel(tr("voices.rules_language","新规则分类语言")),self.rules_locale))
         layout.addWidget(row(button(tr('ui.7d9ab8f2b401', '应用分类触发规则'), self.install_dialogue_rules),
                              button(tr('ui.5dad01da2d96', '导入台词 JSON / TXT'), self.import_dialogues), button(tr('ui.01d53f80e251', '导出台词 JSON'), self.export_dialogues)))
-        layout.addWidget(button(tr('ui.6e2442e35392', '导入默认操作台词'), self.add_operation_dialogues))
-        layout.addWidget(hint(tr('ui.b8eadc7d4a1c', '按分类生成会保存到语音目录/早晨、语音目录/点击回应等子目录；生成前可在“生成语音”页选择服务。\n应用分类规则会替换当前编辑中的规则，保存后生效。原始下载音频无需台词库，也能直接播放。')))
+        layout.addWidget(row(button(tr('ui.6e2442e35392', '导入默认操作台词'), self.add_operation_dialogues), button(tr("voices.migrate", "更新旧译文分类…"), self.migrate_dialogue_categories)))
+        layout.addWidget(hint(tr("voices.transfer_help", "勾选后送到生成页，将按原分类保存音频；修改转入的文本后改为普通逐行生成。分类规则会替换当前规则。")))
         self.dialogue_tab_index = self.tabs.addTab(page, tr('ui.40949e0e28ee', '台词库'))
 
     def load_shared_dialogue_library(self):
@@ -447,9 +451,24 @@ class DialogueMixin:
         self.tabs.setCurrentIndex(self.dialogue_tab_index)
         self.log(tr('ui.eafaa6af8f2a', '已补充 {value0} 条操作台词，未自动勾选。可按分类生成到共享语音目录，操作语音会自动发现它们。', value0=len(added)))
 
+    def migrate_dialogue_categories(self):
+        from .voice_locales import migrate_categories
+        entries,changes=migrate_categories(self.collect_dialogues())
+        if not changes:
+            self.log(tr("voices.no_migration", "没有需要更新的旧译文分类。"));return
+        details="\n".join(a+" → "+b+" : "+text for a,b,text in changes)
+        dialog=QMessageBox(QMessageBox.Icon.Question,tr("voices.migrate", "更新旧译文分类…"),tr("voices.migration_preview", "识别到 {count} 条默认译文。只更新分类，不移动音频；自定义条目保留。确认后仍需保存。",count=len(changes)),QMessageBox.StandardButton.Yes|QMessageBox.StandardButton.No,self)
+        dialog.setDetailedText(details);dialog.setDefaultButton(QMessageBox.StandardButton.No)
+        if dialog.exec()==QMessageBox.StandardButton.Yes:
+            self.edit_dialogues=entries;self.render_dialogues()
+
     def selected_dialogues(self):
         return [{**entry, "enabled": True} for i, entry in enumerate(normalize_dialogues(self.collect_dialogues()))
                 if self.dialogue_table.item(i, 0).checkState() == Qt.CheckState.Checked]
+
+    def transferred_text_changed(self):
+        if self.transferred_dialogues and self.lines.toPlainText() != self.transferred_lines:
+            self.tts_status.setText(tr("voices.transfer_edited", "文本已修改：将按普通逐行模式保存到输出目录，不再使用原分类。"))
 
     def send_dialogues_to_tts(self):
         lines = self.selected_dialogues()
@@ -473,6 +492,8 @@ class DialogueMixin:
             return
         if QMessageBox.question(self, tr('ui.7d9ab8f2b401', '应用分类触发规则'), tr('ui.7f73e3204a4a', '将当前编辑的规则替换为 F8/中键回应、壁纸切入问候、早晨/白天/夜间随机语音？保存配置后生效。')) == QMessageBox.StandardButton.Yes:
             self.edit_rules = dialogue_rules()
+            from .voice_locales import category_for
+            for rule in self.edit_rules:rule["source"]=category_for(rule["source"],self.rules_locale.currentData())
             self.render_rules()
             self.log(tr('ui.78d42d11f62d', '已填入分类规则，点击保存配置后生效。'))
 

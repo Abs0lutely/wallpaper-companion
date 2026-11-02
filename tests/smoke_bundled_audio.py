@@ -36,11 +36,16 @@ with tempfile.TemporaryDirectory(dir=out) as tmp, patch("companion.bundled_audio
             time.sleep(.002)  # Yield the GIL so filesystem worker callbacks can finish.
     try:
         manifest=validate_bundled_manifest()
-        report["all_90_assets_match_checksums"] = len(manifest["files"])==90 and len(validate_starter_pack()["files"])==38 and not any(manifest["missing"].values())
+        report["all_180_assets_match_checksums"] = len(manifest["files"])==180 and len(validate_starter_pack()["files"])==38 and not any(manifest["missing"].values())
         operation=require_pack(ROOT/"examples/audio/operation-voice")
         report["all_52_operation_variants_complete"] = operation["complete"] and len(operation["found"])==52 and not operation["missing"]
         files=candidates(p,dict(source="",keyword=""))
         report["new_profile_uses_factory_samples_without_copying_user_data"] = len(files)==38 and not list(empty.iterdir())
+        p["demo_language"]="ja-JP"
+        japanese=candidates(p,{"source":""})
+        report["japanese_demo_selectable_without_mixing_languages"]=len(japanese)==38 and all("starter-voice-ja-JP" in str(f) for f in japanese)
+        p["demo_language"]="zh-CN"
+
         w.input_event("key",p["rules"][0]["id"])
         wait(lambda:w.audio.voice.playbackState()==QMediaPlayer.PlaybackState.PlayingState)
         report["wallpaper_rule_actually_plays_bundled_sample"] = "starter-voice" in w.audio.voice.source().toLocalFile()
@@ -67,7 +72,7 @@ with tempfile.TemporaryDirectory(dir=out) as tmp, patch("companion.bundled_audio
         w.audio.voice.stop(); w.audio.voice.setSource(QUrl()); store.config["operation_voice_enabled"]=False
         w.tabs.setCurrentIndex(6); wait(lambda:not w.audio_library_busy)
         w.audio_scope.setCurrentIndex(w.audio_scope.findData("bundled:voice")); wait(lambda:not w.audio_library_busy)
-        report["factory_inventory_is_read_only_and_not_a_copy_target"] = len(w.audio_records)==90 and all(r["read_only"] for r in w.audio_records) and w.audio_target.findData("bundled:voice")==-1
+        report["factory_inventory_is_read_only_and_not_a_copy_target"] = len(w.audio_records)==180 and all(r["read_only"] for r in w.audio_records) and w.audio_target.findData("bundled:voice")==-1
         w.audio_table.selectRow(0); w.recycle_library_audio()
         report["factory_delete_is_rejected"] = len(errors)==1 and "只读" in errors.pop()
         try:
