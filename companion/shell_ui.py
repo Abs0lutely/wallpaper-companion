@@ -9,6 +9,7 @@ from PySide6.QtWidgets import (
     QHBoxLayout, QLabel, QListWidget, QPushButton, QScrollArea, QSizePolicy, QMenu,
     QSlider, QTabWidget, QVBoxLayout, QWidget,
 )
+from .file_dialogs import FileDialogs as QFileDialog
 
 from .appearance import PINK, background_path, normalize_appearance, prepare_background, save_appearance
 from .theme_ui import stylesheet

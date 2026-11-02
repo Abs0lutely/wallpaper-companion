@@ -9,6 +9,7 @@ from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (QAbstractItemView, QCheckBox, QComboBox, QDialog, QDialogButtonBox,
     QFileDialog, QFormLayout, QHeaderView, QLabel, QLineEdit, QMessageBox, QPlainTextEdit,
     QTableWidget, QTableWidgetItem, QVBoxLayout, QWidget)
+from .file_dialogs import FileDialogs as QFileDialog
 
 from .core import identity, writable_path
 from .dialogues import CATEGORIES, dialogue_rules, normalize_dialogues, starter_dialogues

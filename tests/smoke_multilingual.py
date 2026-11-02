@@ -45,6 +45,22 @@ with tempfile.TemporaryDirectory(dir=ROOT/"output") as tmp,patch("companion.mana
         report["transfer_keeps_categories"]=len(w.transferred_dialogues)==38 and w.tts_output.text()==str(voice)
         w.lines.setPlainText("Modified text")
         report["transfer_edit_notice"]=tr("voices.transfer_edited","文本已修改：将按普通逐行模式保存到输出目录，不再使用原分类。")==w.tts_status.text()
+        target=root/"other-dialogues.json"
+        target.write_text('[ {"id":"external","text":"External line","category":"External","enabled":true} ]',encoding="utf-8")
+        original=target.read_bytes()
+        with patch.object(QMessageBox,"exec",return_value=QMessageBox.StandardButton.Yes):
+            w.dialogue_file.setText(str(target))
+            report["binding_existing_preview_load"]=w.change_dialogue_file() and w.edit_dialogues[0]["text"]=="External line" and target.read_bytes()==original
+            w.dialogue_file.setText("")
+            report["binding_detach_keeps_content"]=w.change_dialogue_file() and not store.profile(profile["id"])["dialogue_file"] and w.edit_dialogues[0]["text"]=="External line" and target.read_bytes()==original
+        with patch.object(QMessageBox,"exec",return_value=QMessageBox.StandardButton.No):
+            w.dialogue_file.setText(str(target))
+            report["binding_cancel_keeps_old"]=not w.change_dialogue_file() and not w.accepted_dialogue_file
+        from companion.file_dialogs import NativeFileDialog
+        with patch.object(NativeFileDialog,"getExistingDirectory",return_value="") as pick:
+            from companion.file_dialogs import FileDialogs
+            FileDialogs.getExistingDirectory(w.voice_dir,"Pick",str(voice))
+            report["picker_starts_in_current_directory"]=pick.call_args.args[2]==str(voice)
         report["no_errors"]=not errors
         api.ensure.assert_not_called();api.start.assert_not_called()
     finally:w.cleanup();shiboken6.delete(w)

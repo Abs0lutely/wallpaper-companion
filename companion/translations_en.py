@@ -1078,7 +1078,14 @@ EN = {
     "tts.reason_unknown": "Custom code; cannot check",
     "tts.continue": "Generate anyway",
     "tts.back": "Return to edit",
-    "tts.cancel_language": "Returned to editing; no speech service called."
+    "tts.cancel_language": "Returned to editing; no speech service called.",
+    "binding.browse": "Choose shared dialogue JSON",
+    "binding.select": "Select a profile first.",
+    "binding.preview": "Switch dialogue binding to {path}, with {count} lines. Existing files are read, never overwritten; new files use current dialogues. Cancel keeps the old binding.",
+    "binding.embedded": "Dialogues embedded in this profile",
+    "binding.confirm": "Confirm dialogue file switch",
+    "binding.saved": "Dialogue binding updated without overwriting the destination. You can undo this.",
+    "binding.detach": "Detach"
 }
 SOURCES = {
     "documents.overview": "使用说明",
@@ -2133,5 +2140,12 @@ SOURCES = {
     "tts.reason_unknown": "自填代码，无法校验",
     "tts.continue": "仍然生成",
     "tts.back": "返回修改",
-    "tts.cancel_language": "已返回修改，未调用语音服务。"
+    "tts.cancel_language": "已返回修改，未调用语音服务。",
+    "binding.browse": "选择共用台词 JSON",
+    "binding.select": "请先选择配置。",
+    "binding.preview": "将切换台词关联至 {path}，共 {count} 条。已有文件只读取，不覆盖；新文件使用当前台词。取消将保留原关联。",
+    "binding.embedded": "本配置内嵌台词",
+    "binding.confirm": "确认切换台词文件",
+    "binding.saved": "台词关联已更新；未覆盖目标文件，可撤销。",
+    "binding.detach": "解除关联"
 }

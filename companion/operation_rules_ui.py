@@ -5,6 +5,7 @@ from pathlib import Path
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (QCheckBox, QComboBox, QDialog, QDialogButtonBox, QDoubleSpinBox,
     QFileDialog, QHeaderView, QLabel, QMessageBox, QTableWidget, QTableWidgetItem, QVBoxLayout)
+from .file_dialogs import FileDialogs as QFileDialog
 from .action_lines import EVENT_LINES
 from .core import writable_path
 from .operation_rules import FORMAT, config_payload, default_rules, normalize_payload

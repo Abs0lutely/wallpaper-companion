@@ -3,6 +3,7 @@ from .i18n import tr
 from pathlib import Path
 from PySide6.QtCore import QTimer, Qt
 from PySide6.QtWidgets import (QComboBox, QFileDialog, QInputDialog, QLabel, QMessageBox, QVBoxLayout, QWidget)
+from .file_dialogs import FileDialogs as QFileDialog
 
 from .characters import CHARACTER_FIELDS, delete_character, project_file, reference_transcript, save_character, scan_models
 
@@ -45,7 +46,8 @@ class CharacterMixin:
     def model_path_field(self, combo):
         from .ui import button, row
         def choose():
-            value, _ = QFileDialog.getOpenFileName(self, tr('ui.ec9dc7848ed8', '选择本地模型权重'), combo.currentText(), tr('ui.5ebb5a47f18b', '模型 (*.ckpt *.pth)'))
+            combo.setProperty("projectRelative",True)
+            value, _ = QFileDialog.getOpenFileName(combo, tr('ui.ec9dc7848ed8', '选择本地模型权重'), combo.currentText(), tr('ui.5ebb5a47f18b', '模型 (*.ckpt *.pth)'))
             if value:
                 combo.setCurrentText(value)
         return row(combo, button(tr('ui.0617557e7bbc', '浏览…'), choose))

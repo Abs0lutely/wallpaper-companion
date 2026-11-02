@@ -5,6 +5,7 @@ import copy
 from PySide6.QtCore import QEvent, Qt, QTime
 from PySide6.QtWidgets import (QApplication, QCheckBox, QComboBox, QDialog, QDialogButtonBox,
     QFileDialog, QFormLayout, QGroupBox, QLabel, QLineEdit, QMessageBox, QVBoxLayout)
+from .file_dialogs import FileDialogs as QFileDialog
 
 from .core import new_rule
 from .rules import display_hotkey, qt_hotkey, validate_rule
@@ -82,6 +83,7 @@ class RuleDialog(QDialog):
             categories.append(r["source"])  # Preserve a legacy category whose library is not loaded.
         self.source_category.addItems(categories)
         self.source = QLineEdit(r["source"])
+        self.source.setProperty("pathBase",voice_root.text() if voice_root else "")
         self.custom_source = row(path_field(self.source), button(tr('ui.8584c5d58c44', '选音频文件…'), self.choose_file))
         self.keyword = QLineEdit(r["keyword"])
         self.keyword.setPlaceholderText(tr('ui.ca7ab2d49019', '可选：只播放文件名含这些文字的音频'))
@@ -175,7 +177,8 @@ class RuleDialog(QDialog):
             self.cancel_recording()
 
     def choose_file(self):
-        path, _ = QFileDialog.getOpenFileName(self, tr('ui.3976a6c9627d', '选择语音文件'), self.source.text(), tr('ui.07a665b9617c', '音频 (*.wav *.mp3 *.ogg *.flac *.m4a *.aac *.wma *.opus);;所有文件 (*)'))
+        self.source.setProperty("pathBase", self.parentWidget().voice_dir.text() if self.parentWidget() else "")
+        path, _ = QFileDialog.getOpenFileName(self.source, tr('ui.3976a6c9627d', '选择语音文件'), self.source.text(), tr('ui.07a665b9617c', '音频 (*.wav *.mp3 *.ogg *.flac *.m4a *.aac *.wma *.opus);;所有文件 (*)'))
         if path:
             self.source.setText(path)
 

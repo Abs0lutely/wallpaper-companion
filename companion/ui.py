@@ -19,6 +19,7 @@ from PySide6.QtWidgets import (
     QSpinBox, QSplitter, QStyle, QSystemTrayIcon, QTabWidget, QTableWidget,
     QTableWidgetItem, QTimeEdit, QVBoxLayout, QWidget, QHeaderView, QAbstractItemView,
 )
+from .file_dialogs import FileDialogs as QFileDialog
 
 from .i18n import tr, language
 from .core import DATA, ROOT, PLUGIN_DIR, Store, RuleEngine, audio_files, candidates, identity, new_profile, new_rule, writable_path
@@ -30,6 +31,7 @@ from .audio_library_ui import AudioLibraryMixin
 from .characters_ui import CharacterMixin
 from .speech_ui import SpeechFeedbackMixin
 from .generation_ui import GenerationReviewMixin
+from .binding_ui import DialogueBindingMixin
 
 EVENTS = {
     "key": tr('ui.ee2638183d3e', '快捷键'), "mouse_left": tr('ui.2c3c432593de', '鼠标左键'), "mouse_right": tr('ui.12b284d44fff', '鼠标右键'), "mouse_middle": tr('ui.43645a86c3b9', '鼠标中键'),
@@ -98,7 +100,7 @@ def app_icon():
 from .rules_ui import RuleDialog
 
 
-class Window(LibraryMixin, DialogueMixin, AudioLibraryMixin, CharacterMixin, SpeechFeedbackMixin, GenerationReviewMixin, CompanionShellMixin, QMainWindow):
+class Window(DialogueBindingMixin, LibraryMixin, DialogueMixin, AudioLibraryMixin, CharacterMixin, SpeechFeedbackMixin, GenerationReviewMixin, CompanionShellMixin, QMainWindow):
     job_done = Signal(object, object, object)
     hook_event = Signal(str, str)
     progress = Signal(str)
@@ -311,6 +313,7 @@ class Window(LibraryMixin, DialogueMixin, AudioLibraryMixin, CharacterMixin, Spe
             widget.setToolTip(field.help or PROVIDER_HELP.get(field.key, tr('ui.8ffcd6932fc7', '填写“') + field.label + tr('ui.e14b972b721c', '”，参数由此语音扩展定义。')))
             if isinstance(widget, QLineEdit):
                 widget.setPlaceholderText(field.help)
+            if field.key in {"reference","python"}:widget.setProperty("projectRelative",True)
             self.provider_widgets[field.key] = widget
             display = path_field(widget, field.kind == "directory") if field.kind in {"file", "directory"} else widget
             if field.kind in {"gpt_model", "sovits_model"}:
@@ -507,6 +510,7 @@ class Window(LibraryMixin, DialogueMixin, AudioLibraryMixin, CharacterMixin, Spe
             self.voice_dir.clear()
             self.bgm_dir.clear()
             self.asset_dir.clear()
+            self.accepted_dialogue_file=""
             self.dialogue_file.clear()
             self.load_shared_dialogue_library()
             return
@@ -521,7 +525,8 @@ class Window(LibraryMixin, DialogueMixin, AudioLibraryMixin, CharacterMixin, Spe
         for widget, key in [(self.profile_name, "name"), (self.wallpaper_path, "wallpaper"), (self.voice_dir, "voice_dir"), (self.bgm_dir, "bgm_dir")]:
             widget.setText(p[key])
         self.asset_dir.setText(p.get("asset_dir", ""))
-        self.dialogue_file.setText(p.get("dialogue_file", ""))
+        self.accepted_dialogue_file=p.get("dialogue_file", "")
+        self.dialogue_file.setText(self.accepted_dialogue_file)
         self.original_audio_policy.setCurrentIndex(max(0, self.original_audio_policy.findData(p.get("original_audio_policy", "safe"))))
         self.original_audio_override.setCurrentIndex(max(0, self.original_audio_override.findData(p.get("original_audio_override", "auto"))))
         for widget, key in [(self.profile_enabled, "enabled"), (self.desktop_only, "desktop_only"),
@@ -550,7 +555,7 @@ class Window(LibraryMixin, DialogueMixin, AudioLibraryMixin, CharacterMixin, Spe
             raise ValueError(tr('ui.d74d6dbb1912', '请先绑定当前壁纸或新建配置'))
         p.update(name=self.profile_name.text().strip() or tr('ui.0d0bbabe5350', '壁纸配置'), wallpaper=self.wallpaper_path.text(),
                  voice_dir=self.voice_dir.text().strip(), bgm_dir=self.bgm_dir.text().strip(),
-                 asset_dir=self.asset_dir.text().strip(), private_asset_dir=self.edit_private_root, dialogue_file=self.dialogue_file.text().strip(),
+                 asset_dir=self.asset_dir.text().strip(), private_asset_dir=self.edit_private_root, dialogue_file=getattr(self,"accepted_dialogue_file",self.dialogue_file.text().strip()),
                  original_audio_policy=self.original_audio_policy.currentData(), original_audio_override=self.original_audio_override.currentData(),
                  enabled=self.profile_enabled.isChecked(), desktop_only=self.desktop_only.isChecked(),
                  fullscreen_mute=self.fullscreen_mute.isChecked(), bgm_enabled=self.bgm_enabled.isChecked(),
@@ -561,6 +566,8 @@ class Window(LibraryMixin, DialogueMixin, AudioLibraryMixin, CharacterMixin, Spe
         return p
 
     def save_profile(self):
+        if self.dialogue_file.text().strip()!=getattr(self,"accepted_dialogue_file",""):
+            return self.change_dialogue_file()
         before = copy.deepcopy(self.store.config)
         files = {}
         try:
@@ -727,6 +734,7 @@ class Window(LibraryMixin, DialogueMixin, AudioLibraryMixin, CharacterMixin, Spe
         self.edit_private_root = attached.get("private_asset_dir", "")
         for widget, key in [(self.asset_dir, "asset_dir"), (self.voice_dir, "voice_dir"), (self.bgm_dir, "bgm_dir"), (self.dialogue_file, "dialogue_file")]:
             widget.setText(attached[key])
+        self.accepted_dialogue_file=self.dialogue_file.text()
         self.edit_dialogues = attached["dialogues"]
         self.render_dialogues()
         if self.save_profile():

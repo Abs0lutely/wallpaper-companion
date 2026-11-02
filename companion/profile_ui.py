@@ -138,10 +138,11 @@ def build_profile(window):
     w.asset_dir = QLineEdit()
     w.asset_dir.setPlaceholderText(tr('ui.3d2cf188132d', '默认使用数据目录；需要自定义时再修改'))
     w.dialogue_file = QLineEdit()
-    w.dialogue_file.setReadOnly(True)
+    w.dialogue_file.editingFinished.connect(w.change_dialogue_file)
+    dialogue_controls=row(w.dialogue_file,button(tr("ui.0617557e7bbc","浏览…"),w.browse_dialogue_file),button(tr("binding.detach","解除关联"),w.detach_dialogue_file))
     resources_form = form_layout()
     for name, control in [(tr('ui.06b2791d8cb3', '语音文件夹'), path_field(w.voice_dir)), (tr('ui.75611dc750be', 'BGM 文件夹'), path_field(w.bgm_dir)),
-                          (tr('ui.5379ebef8363', '资源根目录（可共享）'), path_field(w.asset_dir)), (tr('ui.7a1cde72ea70', '共用台词文件'), w.dialogue_file)]:
+                          (tr('ui.5379ebef8363', '资源根目录（可共享）'), path_field(w.asset_dir)), (tr('ui.7a1cde72ea70', '共用台词文件'), dialogue_controls)]:
         resources_form.addRow(name, control)
     resource_content.addLayout(resources_form)
     resource_content.addWidget(button(tr('ui.6134673974b4', '按此根目录绑定音频、BGM 和台词库'), w.use_asset_directory))
