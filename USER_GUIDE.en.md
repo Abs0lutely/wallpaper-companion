@@ -1,5 +1,25 @@
 # Wallpaper Companion: Features and fields user guide
 
+## Multilingual voices and standalone use
+
+Choose **Mode → Standalone sound companion** from home or Settings. With no profiles, a **My sound space** profile is created. No Wallpaper Engine is required for mouse, hotkey, timed voice or BGM. Desktop-only input remains the default and can be changed. This mode stops WE polling and wallpaper-audio detection, keeps bindings and remembers its own profile choice. Returning to WE preserves its previous manual choice; mode switching supports undo. It does not set the Windows desktop wallpaper.
+
+The dialogue library now has one generation route: **Send checked lines to generation**. It retains categories, output and duplicate settings. Generate there to save into category subfolders. Editing transferred text visibly switches to ordinary lines without the original categories.
+
+All default English/Japanese categories use **·en-US / ·ja-JP** suffixes. **Update legacy translation categories…** previews known legacy entries before confirmation and saving, preferring stable IDs plus exact text and allowing old imported IDs. Custom categories/text remain unchanged. Existing recordings are not moved or renamed; known legacy translations have restricted old-folder lookup.
+
+Choose a language beside **Apply category trigger rules** to create matching categories; confirmation still replaces the draft rules. Examples: examples/presets/interaction-ja-JP.json and interaction-en-US.json.
+
+In **Settings → Operation voice rules…**, choose Chinese, Japanese or English and click **Switch categories**. It changes known default actions together, preserving custom categories, toggles and cooldowns. Save to apply. English actions without recordings stay silent until you generate them.
+
+There are **180 bundled recordings: 90 Chinese and 90 Japanese**, each with 38 companion and 52 operation clips. **Bundled demo voice language** selects samples when the personal voice folder is empty. Personal audio takes priority; operation language is controlled separately by its rules. UI language never changes speech automatically. English dialogue and the 72-line Gentle Replies pack remain text.
+
+**Shared dialogue file** is editable with Browse and Detach. Existing JSON is previewed and loaded without overwriting it; a new path creates a file only after confirmation. Old drafts save before switching. Cancel, invalid JSON or failed saves retain the previous binding. Detach keeps embedded text. Later edits to a shared file still affect its other users.
+
+Pickers start from the current value or nearest existing parent. Relative model/reference paths use the GPT-SoVITS project; empty values use related resource/data directories.
+
+Target/reference languages are editable dropdowns: Chinese, English, Japanese, Korean, Cantonese, and common automatic/all-language codes. Custom codes are saved unchanged; actual support depends on the API/model. Offline script checks separately inspect generated text and reference transcript before generation. Possible mismatches and uncertain short/mixed text allow returning or proceeding. This does not identify model training language or guarantee compatibility; cross-language synthesis is allowed. No API starts before confirmation.
+
 For a shorter first-use walkthrough, see [Getting started](USAGE.en.md).
 
 ## Interface language
@@ -27,7 +47,7 @@ The app runs independently without changing WE or downloaded wallpapers. Neither
 1. Play a wallpaper in WE and check **Current wallpaper**. Correct the installation path / monitor in settings if needed.
 2. Click **Bind current wallpaper**, or scan and batch bind. For testing without detection, create **New profile** and enable manual use.
 3. Choose voice / BGM folders in **Resources and bindings**. New profiles can use bundled voices while their own voice directory has no audio.
-4. Click **Preview random voice**. There are 90 bundled Chinese clips: 38 companion and 52 operation responses.
+4. Click **Preview random voice**. There are 180 bundled Chinese/Japanese clips: 90 per language, each with 38 companion and 52 operation responses.
 5. Add rules or apply category rules from the dialogue library, then return to the desktop to try F8 / middle-click.
 
 Text and audio are separate. Downloaded recordings play directly from folders; text needs synthesis or recording first.
@@ -71,7 +91,7 @@ On by default, these play prepared responses to saves, edits, navigation and oth
 | Restore default rules | Restores operation defaults inside that dialog. |
 | Restore default settings… | Confirms resetting runtime preferences, language, appearance, operation settings and active editing profile playback / rules. Keeps bindings, paths, dialogues, audio, characters and API settings. Does not change startup. Can be undone. |
 
-Chinese default categories are resource folder names, so remain Chinese in English UI. All 90 default recordings are bundled. New profiles enable demo fallback; legacy profiles missing that field default to off. Personal audio takes priority. Ordinary root-random rules exclude operation categories unless explicitly targeted.
+Chinese default categories are resource folder names, so remain Chinese in English UI. All 180 Chinese/Japanese default recordings are bundled. New profiles enable demo fallback; legacy profiles missing that field default to off. Personal audio takes priority. Ordinary root-random rules exclude operation categories unless explicitly targeted.
 
 ## Sound and resource fields
 
@@ -132,7 +152,7 @@ Shared and wallpaper directories are deduplicated by actual path. Browsing / sea
 | Delete | Confirm, then move selected audio to the system Recycle Bin. Shared users may be affected. Bindings stay; failures never become permanent deletion. |
 | Shared root | application/shared by default. Empty restores default. Affects new / later explicitly shared choices, never existing paths. |
 | Shared voice / BGM scopes | Include current roots and legacy data/audio/shared when present; tooltip lists actual paths. Nothing is moved. |
-| Bundled default voices | Preview / copy 90 clips; cannot delete, overwrite or import into their directory. |
+| Bundled default voices | Preview / copy 180 clips; cannot delete, overwrite or import into their directory. |
 
 Wait for generation / scanning / copying before file management. Renaming may affect dialogue matching, filters and duplicate skipping; review rules afterward.
 
@@ -214,18 +234,17 @@ Without a selected profile, this edits shared text; fresh installs show 38 compa
 | Save dialogue library | Shared JSON edits affect all profiles referencing it. |
 | Skip existing matching audio | Avoid repeated category synthesis. Both generation paths review duplicates first. |
 | Send checked lines to generation | Preserves categories / skip setting; editing transferred text switches to ordinary line mode rather than guessing categories. |
-| Generate checked lines by category | Selected provider, saving under voice/category. |
 | Apply category trigger rules | Confirms replacing draft rules with F8 / middle-click, wallpaper greeting and morning / daytime / night rules. Save to apply. |
 | Import JSON / TXT | JSON retains categories; UTF-8 TXT is one line per row in the default click category. Deduplicates; save afterward. |
 | Export JSON | Complete library for backup / reimport. |
 
-English and Japanese packs each have 38 companion and 52 operation lines. Some categories stay Chinese for compatibility; language-specific operation rules are included. These are text, not extra recordings. See examples/dialogues/TRANSLATIONS.md. The separate heartfelt-zh-CN.json contains 72 Chinese Gentle Replies, also requiring synthesis / recording.
+English and Japanese packs each have 38 companion and 52 operation lines. Some categories stay Chinese for compatibility; language-specific operation rules are included. The JSON packs are text; Japanese default recordings are also bundled with the app. English recordings are not bundled. See examples/dialogues/TRANSLATIONS.md. The separate heartfelt-zh-CN.json contains 72 Chinese Gentle Replies, also requiring synthesis / recording.
 
 Editing text does not rename or regenerate old audio. Duplicate outputs receive numbers rather than replacing originals.
 
 ## Generate voice: shared controls
 
-Brief button feedback only acknowledges the click. Read final status / errors for success. Button animation does not change hit regions; native file dialogs retain Windows styling.
+Brief button feedback only acknowledges the click. Read final status / errors for success. Button animation does not change hit regions; file pickers use the app dialog so the current directory and interface language are consistent.
 
 Progress counts clips actually saved or skipped. Stages show API checks, owned-service setup, model loading, synthesis, WAV validation and writing. Internal model percentages are not invented. Failure preserves partial audio and completed counts.
 

@@ -1,62 +1,47 @@
-# 默认台词：日语 / English
+# 默认台词：日本語 / English
 
-将项目原有的 **38 条陪伴台词 + 52 条操作回应**分别翻译为日语与英语，每种语言共 90 条，保留温柔、自然的日常语气。均为项目原创文本的翻译，可按 MIT 许可使用、修改与分享；不含游戏原台词、参考音频或新生成的配音。
+每种语言有 38 条陪伴台词和 52 条操作回应，共 90 条。JSON / TXT 是原创文本的翻译；当前源码另随附 90 条日语配音，英语配音需自行生成。72 条《温柔回信》为另一个中文文字包。
 
-| 用途 / Purpose | 日本語 | English |
-| --- | --- | --- |
-| 陪伴台词：38 条 / Companion lines: 38 | [starter-ja-JP.json](starter-ja-JP.json) · [TXT](starter-ja-JP.txt) | [starter-en-US.json](starter-en-US.json) · [TXT](starter-en-US.txt) |
-| 操作回应：52 条 / Operation responses: 52 | [operation-ja-JP.json](operation-ja-JP.json) · [TXT](operation-ja-JP.txt) | [operation-en-US.json](operation-en-US.json) · [TXT](operation-en-US.txt) |
-| 对应操作规则：26 类 / Matching operation rules: 26 events | [日语规则](../presets/operation-voice-rules-ja-JP.json) | [English rules](../presets/operation-voice-rules-en-US.json) |
+## 文件
 
-## 导入与生成
+- 日语：[陪伴 JSON](starter-ja-JP.json) / [TXT](starter-ja-JP.txt)、[操作 JSON](operation-ja-JP.json) / [TXT](operation-ja-JP.txt)。
+- 英语：[陪伴 JSON](starter-en-US.json) / [TXT](starter-en-US.txt)、[操作 JSON](operation-en-US.json) / [TXT](operation-en-US.txt)。
+- 操作规则：[日语](../presets/operation-voice-rules-ja-JP.json)、[英语](../presets/operation-voice-rules-en-US.json)。
+- 陪伴互动示例：[日语](../presets/interaction-ja-JP.json)、[英语](../presets/interaction-en-US.json)。
 
-1. 在“台词库 → 导入台词 JSON / TXT”选择需要的 **JSON**。导入会追加并按分类与文本去重，不会替换已有中文内容；生成勾选仍由用户选择。
-2. 选择要生成的台词，点击“将勾选台词送到生成页”。JSON 保留分类；TXT 适合查看和复制，直接导入 TXT 会统一归到“点击回应”，丢失原有分类。
-3. 选择支持目标语言的模型或第三方音色，设置目标语言。GPT-SoVITS 通常使用 `ja`（日语）或 `en`（英语），请以实际 API 支持的语言代码为准；Azure 选择对应 `ja-JP` / `en-US` 音色与区域。**参考语言及逐字原文仍按实际参考音频填写，不要随目标语言盲目更改。**
-4. 选择独立的语言输出根目录，例如 `<共享语音目录>/ja-JP` 或 `<共享语音目录>/en-US`，生成时按分类保存。输出仍采用“台词-模型名称.wav”；对效果逐条试听，跨语言效果取决于模型。
+## 导入、生成与播放
 
-这些文件不会自动生成音频、启动 API、改动模型或切换软件语言。现有安装版即可导入，无需为下载台词重新安装软件。
+1. 从台词库导入需要的 JSON，手动勾选条目，再点击“将勾选台词送到生成页”。JSON 保留分类；TXT 导入会丢失分类，适合阅读、复制。
+2. 选择支持目标语言的模型或服务。在可编辑语言下拉框选择 `ja` / `en` 等实际支持代码；参考语言和原文仍按参考录音填写，不要随目标语言盲目更改。
+3. 确认生成。原分类会形成子目录，文件仍按“台词-模型名称.wav”命名。若编辑转入文本，将提示改为普通逐行保存，不再套用原分类。
+4. 全部日语分类带 `·ja-JP`、英语分类带 `·en-US`，例如 `早晨·ja-JP`、`操作·保存·en-US`。可放在同一根目录，也可按语言分根目录；随机播放根目录时应注意混合语言。
+5. 陪伴规则可在台词库选择“新规则分类语言”，再应用分类规则；会确认替换编辑中的规则。也可导入对应语言的互动示例。
+6. 操作回应在“设置 → 操作回应规则…”选择语言，点击“快速切换分类”并保存；默认动作一次切换，自定义分类、开关和冷却保留。也可导入规则 JSON。个人音频目录应指向包含分类子目录的根目录。
 
-## 陪伴分类与播放
+## 旧分类兼容
 
-陪伴台词保留中文分类名，以兼容现有“应用分类触发规则”。将壁纸语音目录设为上一步语言根目录，已有规则即可寻找对应子目录。若把不同语言生成到同一目录，随机播放可能混用语言，因此推荐分开存放。
+旧版陪伴译文没有语言后缀。在台词库使用“更新旧译文分类…”预览后确认并保存。只更新能按稳定来源 ID / 精确原文及原分类识别的默认译文，自定义内容保持原样。原音频不移动或改名；查找已知默认译文时兼容旧子目录，并限定为该语言的默认文本，避免混播中文。
 
-| 保留的目录名 | English meaning | 日本語 |
-| --- | --- | --- |
-| 点击回应 | Click response | クリックへの返事 |
-| 返回桌面 | Welcome back | おかえりの挨拶 |
-| 早晨 | Morning | 朝 |
-| 白天 | Daytime | 昼間 |
-| 夜间 | Night | 夜 |
-| 闲置陪伴 | Quiet company | 静かなひととき |
+新生成文件使用带后缀的新目录。不要为了升级手动删除旧音频；确认效果后可通过音频库自行整理。
 
-## 操作回应如何使用
+## 默认配音
 
-操作台词分类使用 `操作·保存·ja-JP` / `操作·保存·en-US` 等带语言后缀的目录名，避免被程序内置的中文台词文件名筛选忽略。
+程序保留中文 90 条，并新增日语 90 条（均为 38 陪伴 + 52 操作），合计 180 条。声音设置里的“随附示例配音语言”控制空个人语音目录的示例；操作回应语言由独立规则决定。中文、英文界面不会自动改变配音语言。已有个人音频优先，缺少英语配音的分类保持静音。
 
-生成完成后，在“设置 → 操作回应规则…”导入对应语言规则并保存；将“操作回应语音目录”选择为**包含这些分类子目录的语言根目录**。规则文件不含本机路径或密钥，可先导出现有规则留作备份。要恢复中文，可在操作规则中恢复默认规则，再选择原语音目录。
+## English
 
-这份规则只调整操作回应分类，不替换壁纸互动规则；仍有 26 类动作、每类两句，冷却和默认总开关与原规则一致。
+Each language has 38 companion and 52 operation lines. JSON retains categories; TXT does not. Import JSON, check lines and use **Send checked lines to generation**. Select a supported target language while keeping reference language/transcript matched to the recording. Editing transferred text switches to ordinary lines without original categories.
 
-## English quick start
+Every default category now ends in **·ja-JP / ·en-US**. Use the category-language selector when applying companion rules, or import the matching interaction preset. In **Operation voice rules**, choose a language, click **Switch categories**, then Save. Custom categories and cooldowns are kept.
 
-These are translations of the app's **38 default companion lines and 52 operation responses**, not the separate 72-line Gentle Replies pack. They are text resources, not synthesized recordings. The interface remains primarily Chinese.
+For old unsuffixed companion translations, preview **Update legacy translation categories…**. Original audio is not moved; restricted compatibility lookup only matches that language's known default text. New generation uses suffixed directories.
 
-1. Import a **JSON** file through **台词库 → 导入台词 JSON / TXT**. Imports append and deduplicate; existing Chinese entries are kept. TXT is convenient for reading, but importing TXT loses the original categories.
-2. Select the imported lines and choose **将勾选台词送到生成页**. Select a model/voice that supports the target language, then set the target-language field. The reference transcript and reference language must still match the actual reference recording.
-3. Generate to a separate language root, such as `<shared voice folder>/en-US`, keeping category subfolders. For wallpaper interactions, point the profile's voice folder to that root. Companion category names intentionally remain in Chinese to work with existing category-based rules; see the table above.
-4. For operation responses, also import `operation-voice-rules-en-US.json` in **设置 → 操作回应规则…**, save it, and set **操作回应语音目录** to the language root containing the generated operation-category subfolders. Japanese works the same way with the `ja-JP` files. Export your existing operation rules first if you want a backup.
+The app includes 90 Chinese and 90 Japanese recordings. English and Gentle Replies remain text requiring your own synthesis/recording. UI language never changes speech language. Personal audio takes priority. Imported text does not start APIs or switch models.
 
-The packs contain no credentials or absolute paths. Importing does not start a speech API, switch models, or change the UI language. Use separate language folders to avoid mixed-language random playback. Preview generated results; cross-language quality depends on the model.
+## 日本語
 
-## 日本語の使い方
+各言語は付き添い台詞 38 件と操作応答 52 件です。JSON を読み込み、必要な行を選んで生成ページに送ります。対象言語は `ja`、参照言語と原文は実際の録音に合わせてください。転送後に文章を編集すると、元の分類を使わない通常生成に切り替わります。
 
-この台詞集は、標準の付き添い台詞 38 件と操作への返事 52 件を翻訳したものです。音声ファイルは含まれていません。別配布の中国語台詞集「温柔回信」72 件とは異なります。
+日本語の分類名はすべて `·ja-JP`、英語は `·en-US` で終わります。付き添い規則には言語選択または同梱の設定 JSON を使用します。操作応答は設定の操作規則で日本語を選び、一括切替して保存します。
 
-「台词库 → 导入台词 JSON / TXT」で日本語の JSON を読み込み、生成したい台詞を選んで「将勾选台词送到生成页」を押してください。日本語に対応したモデル・音声を選び、生成対象の言語を設定します。参照音声の言語と原文は、その音声に正確に合わせてください。
-
-出力先は日本語専用の親フォルダーにすると便利です。通常の付き添い台詞は、既存の規則と互換性を保つため、分類フォルダー名を中国語のままにしています。壁紙の語音フォルダーを、この親フォルダーに指定してください。
-
-操作への返事を使う場合は、「设置 → 操作回应规则…」で日本語用の規則 JSON も読み込んで保存し、「操作回应语音目录」に分類フォルダーが入っている親フォルダーを指定します。必要に応じて、変更前の規則を書き出して保管してください。
-
-読み込むだけでは音声生成やモデルの切り替えは行われません。画面の表示言語も変わりません。生成後は実際に試聴して、発音や声の雰囲気を確認してください。
+旧分類は「更新旧译文分类…」で確認してから変更できます。元の音声は移動・改名されず、既知の標準台詞に限って旧フォルダーを参照します。現在のソースには日本語音声 90 件も含まれます。表示言語と音声言語は別々で、個人の音声を優先します。

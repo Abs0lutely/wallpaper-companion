@@ -24,6 +24,11 @@ A standalone Windows app for interactive voice clips, scheduled greetings, and f
 
 </div>
 
+## Multilingual voices and standalone use
+
+Choose **Mode → Standalone sound companion** from home or Settings. With no profiles, a **My sound space** profile is created. No Wallpaper Engine is required for mouse, hotkey, timed voice or BGM. Desktop-only input remains the default and can be changed. This mode stops WE polling and wallpaper-audio detection, keeps bindings and remembers its own profile choice. Returning to WE preserves its previous manual choice; mode switching supports undo. It does not set the Windows desktop wallpaper.
+
+
 ## Your wallpaper, your kind of company
 
 Bind voice clips and music to the wallpaper you are using, then play them through mouse, keyboard, or time-based rules. Share resources across wallpapers or give each one its own collection. Wallpaper authors do not need to build in interactivity.
@@ -32,7 +37,7 @@ Bind voice clips and music to the wallpaper you are using, then play them throug
 
 | 🗨️ A little interaction | 🎵 Your own atmosphere | 🌸 Ready to try |
 | :--- | :--- | :--- |
-| Clicks, scrolling, recorded hotkeys, and scheduled greetings, with cooldowns and active hours. | Folder-based BGM, pause/skip/volume, cover artwork, and music ducking while a voice plays. | **90 bundled Chinese voice clips:** 38 companion lines and 52 operation responses. Try them first, then add your own. |
+| Clicks, scrolling, recorded hotkeys, and scheduled greetings, with cooldowns and active hours. | Folder-based BGM, pause/skip/volume, cover artwork, and music ducking while a voice plays. | **180 Chinese/Japanese voice clips:** 90 per language, each with 38 companion lines and 52 operation responses. Try them first, then add your own. |
 
 ## Get started in three steps
 
@@ -72,9 +77,9 @@ The separate **Gentle Replies** pack contains **72 original Chinese dialogue lin
 
 [Download dialogue JSON](https://github.com/Abs0lutely/wallpaper-companion/releases/latest/download/heartfelt-zh-CN.json) · [Browse the pack (中文)](examples/dialogues/README.md) · [52 operation-response lines (中文)](examples/dialogues/operation-zh-CN.json)
 
-Want English or Japanese speech? **[Translated default dialogue packs](examples/dialogues/TRANSLATIONS.md)** provide 38 companion lines and 52 operation responses per language, with importable JSON, TXT, matching operation rules, and instructions. Import them and generate audio using a compatible voice; recordings are not included.
+Want English or Japanese speech? **[Translated default dialogue packs](examples/dialogues/TRANSLATIONS.md)** provide 38 companion lines and 52 operation responses per language, with importable JSON, TXT, matching operation rules, and instructions. Import them and generate audio using a compatible voice; English recordings are not bundled; Japanese default recordings are included in the app.
 
-**Dialogue text and voice recordings are separate resources.** The 90 bundled clips are playable immediately. Additional imported or custom lines need matching recordings or TTS generation. The 72-line Gentle Replies pack contains text; it is not another 72 bundled recordings.
+**Dialogue text and voice recordings are separate resources.** The 180 bundled clips are playable immediately. Additional imported or custom lines need matching recordings or TTS generation. The 72-line Gentle Replies pack contains text; it is not another 72 bundled recordings.
 
 ### Everyday details that make a difference
 

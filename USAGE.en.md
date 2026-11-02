@@ -1,12 +1,17 @@
 # Wallpaper Companion: Getting started
 
-This is the in-app quick start. For every button and field, open the [full user guide](USER_GUIDE.en.md).
+## Multilingual voices and standalone use
+
+Choose **Mode → Standalone sound companion** on home or in Settings. No WE is needed for sound profiles, input / timed voice and BGM. Existing WE bindings and its profile choice are kept.
+
+There are 180 bundled clips: 90 Chinese and 90 Japanese. Select bundled sample language in Sound settings; operation language is selected through **Operation voice rules → Switch categories**, then Save. Use **Send checked lines to generation** to preserve categories. See the [full guide](USER_GUIDE.en.md) for legacy migration, language warnings and safely switching shared JSON.
+
 
 ## Hear your first response
 
 1. Play a wallpaper in Wallpaper Engine, then open Wallpaper Companion.
 2. Click **Bind current wallpaper**. If detection is unavailable, create a **New profile** and enable **Use selected profile manually** instead.
-3. New profiles can use the bundled demo when their voice directory has no audio. Click **Preview random voice**. The app includes **90 Chinese recordings**: 38 companion lines and 52 operation responses. No AI server is needed to try them.
+3. New profiles can use the bundled demo when their voice directory has no audio. Click **Preview random voice**. The app includes **180 Chinese/Japanese recordings**: 90 per language, each with 38 companion lines and 52 operation responses. No AI server is needed to try them.
 4. In **Dialogue library**, click **Apply category trigger rules**. Confirming replaces the rules being edited. Leave the page to autosave, or click **Save profile**.
 5. Return to the desktop and try **F8** or the **middle mouse button**. Desktop-only input, cooldowns and existing playback can prevent a response.
 
