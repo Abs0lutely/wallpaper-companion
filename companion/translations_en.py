@@ -1085,7 +1085,18 @@ EN = {
     "binding.embedded": "Dialogues embedded in this profile",
     "binding.confirm": "Confirm dialogue file switch",
     "binding.saved": "Dialogue binding updated without overwriting the destination. You can undo this.",
-    "binding.detach": "Detach"
+    "binding.detach": "Detach",
+    "mode.default_profile": "My sound space",
+    "mode.saved": "Mode changed. Wallpaper bindings and resources are kept; you can undo this.",
+    "mode.standalone_help": "Standalone sound companion: no Wallpaper Engine required. Select a sound profile to begin.",
+    "mode.we_help": "Follow WE wallpapers, or choose standalone sound companion without WE.",
+    "mode.standalone": "Standalone sound companion",
+    "mode.we": "Follow Wallpaper Engine",
+    "mode.label": "Mode",
+    "mode.no_detection": "Standalone mode does not inspect wallpaper audio.",
+    "mode.profiles": "Sound profiles · multi-select",
+    "mode.sound_profile": "Sound profile",
+    "mode.recommend": "No WE installation found. Standalone sound companion is recommended; no WE installation is needed."
 }
 SOURCES = {
     "documents.overview": "使用说明",
@@ -2147,5 +2158,16 @@ SOURCES = {
     "binding.embedded": "本配置内嵌台词",
     "binding.confirm": "确认切换台词文件",
     "binding.saved": "台词关联已更新；未覆盖目标文件，可撤销。",
-    "binding.detach": "解除关联"
+    "binding.detach": "解除关联",
+    "mode.default_profile": "我的声音空间",
+    "mode.saved": "运行模式已切换；原有壁纸绑定和资源保留，可撤销。",
+    "mode.standalone_help": "独立声音伴随：无需 Wallpaper Engine，选择声音配置即可使用。",
+    "mode.we_help": "跟随 WE 壁纸；未安装 WE 时可选择独立声音伴随。",
+    "mode.standalone": "独立声音伴随",
+    "mode.we": "跟随 Wallpaper Engine",
+    "mode.label": "运行模式",
+    "mode.no_detection": "独立模式不检测原壁纸声音。",
+    "mode.profiles": "声音配置 · 可多选管理",
+    "mode.sound_profile": "声音配置",
+    "mode.recommend": "未发现 WE 安装目录，推荐选择独立声音伴随；不需要安装 WE。"
 }

@@ -32,6 +32,7 @@ from .characters_ui import CharacterMixin
 from .speech_ui import SpeechFeedbackMixin
 from .generation_ui import GenerationReviewMixin
 from .binding_ui import DialogueBindingMixin
+from .mode_ui import ModeMixin
 
 EVENTS = {
     "key": tr('ui.ee2638183d3e', '快捷键'), "mouse_left": tr('ui.2c3c432593de', '鼠标左键'), "mouse_right": tr('ui.12b284d44fff', '鼠标右键'), "mouse_middle": tr('ui.43645a86c3b9', '鼠标中键'),
@@ -50,6 +51,7 @@ def button(text, fn, primary=False):
     b = QPushButton(text)
     if primary:
         b.setObjectName("primary")
+    if getattr(fn,"__name__","") in {"bind_current","bind_profile"}:b.setProperty("requiresWE",True)
     b.clicked.connect(fn)
     return b
 
@@ -100,7 +102,7 @@ def app_icon():
 from .rules_ui import RuleDialog
 
 
-class Window(DialogueBindingMixin, LibraryMixin, DialogueMixin, AudioLibraryMixin, CharacterMixin, SpeechFeedbackMixin, GenerationReviewMixin, CompanionShellMixin, QMainWindow):
+class Window(ModeMixin, DialogueBindingMixin, LibraryMixin, DialogueMixin, AudioLibraryMixin, CharacterMixin, SpeechFeedbackMixin, GenerationReviewMixin, CompanionShellMixin, QMainWindow):
     job_done = Signal(object, object, object)
     hook_event = Signal(str, str)
     progress = Signal(str)
@@ -120,6 +122,7 @@ class Window(DialogueBindingMixin, LibraryMixin, DialogueMixin, AudioLibraryMixi
         self.progress.connect(self.log)
         self.generation_state.connect(self.generation_update)
         self.api_stage.connect(self.api_message)
+        self.mode_epoch=0
         self.query_busy = False
         self.tts_busy = False
         self.api_busy = False
@@ -179,10 +182,12 @@ class Window(DialogueBindingMixin, LibraryMixin, DialogueMixin, AudioLibraryMixi
                 self.log(tr('ui.44c1f4a1c87e', '输入监听未启动：') + str(exc))
         self.poll = QTimer(self)
         self.poll.timeout.connect(self.detect)
-        self.poll.start(self.store.config.get("poll_seconds", 4) * 1000)
+        if not self.is_standalone():self.poll.start(self.store.config.get("poll_seconds", 4) * 1000)
         self.tick = QTimer(self)
         self.tick.timeout.connect(self.on_tick)
         self.tick.start(1000)
+        self.apply_run_mode()
+        if self.is_standalone():self.activate_profile(force=True)
         QTimer.singleShot(200, self.detect)
         QTimer.singleShot(500, self.scan_library)
 
@@ -330,6 +335,12 @@ class Window(DialogueBindingMixin, LibraryMixin, DialogueMixin, AudioLibraryMixi
         page = QWidget()
         layout = QVBoxLayout(page)
         form = QFormLayout()
+        self.run_mode=QComboBox()
+        self.run_mode.addItem(tr("mode.we","跟随 Wallpaper Engine"),"wallpaper_engine")
+        self.run_mode.addItem(tr("mode.standalone","独立声音伴随"),"standalone")
+        form.addRow(tr("mode.label","运行模式"),self.run_mode)
+        self.run_mode.currentIndexChanged.connect(self.change_run_mode)
+        self.mode_notice=hint("");form.addRow(self.mode_notice)
         self.ui_language = QComboBox()
         self.ui_language.addItem("简体中文", "zh-CN")
         self.ui_language.addItem("English", "en-US")
@@ -452,12 +463,12 @@ class Window(DialogueBindingMixin, LibraryMixin, DialogueMixin, AudioLibraryMixi
         QMessageBox.warning(self, tr('ui.79be13bdf0c5', '操作未完成'), str(error))
 
     def refresh_profiles(self, selected=None):
-        selected = selected or self.editing_id
+        selected = selected or (self.store.config.get("standalone_profile") if self.is_standalone() else self.editing_id)
         self.profiles.blockSignals(True)
         self.profiles.clear()
         target = -1
         for i, p in enumerate(self.store.config["profiles"]):
-            self.profiles.addItem(p["name"] + (tr('ui.2cdc4d329d40', '  · 已绑定') if p["wallpaper"] else tr('ui.8cd409330491', '  · 未绑定')))
+            self.profiles.addItem(p["name"] + ("" if self.is_standalone() else (tr('ui.2cdc4d329d40', '  · 已绑定') if p["wallpaper"] else tr('ui.8cd409330491', '  · 未绑定'))))
             self.profiles.item(i).setData(Qt.ItemDataRole.UserRole, p["id"])
             if p["id"] == selected:
                 target = i
@@ -546,7 +557,9 @@ class Window(DialogueBindingMixin, LibraryMixin, DialogueMixin, AudioLibraryMixi
         self.render_rules()
         if not self.tts_output.text() or self.tts_output.text() == old_voice_dir:
             self.tts_output.setText(p["voice_dir"])
-        if self.manual.isChecked() and self.store.config["manual_profile"] != p["id"]:
+        if self.is_standalone():
+            self.select_standalone_profile(p["id"])
+        elif self.manual.isChecked() and self.store.config["manual_profile"] != p["id"]:
             self.set_manual(True)
 
     def draft_profile(self):
@@ -771,6 +784,9 @@ class Window(DialogueBindingMixin, LibraryMixin, DialogueMixin, AudioLibraryMixi
     def probe_original_audio(self):
         self.original_audio_request += 1
         token = self.original_audio_request
+        if self.is_standalone():
+            self.original_audio=dict(state="no",detail=tr("mode.no_detection","独立模式不检测原壁纸声音。"))
+            self.apply_original_audio_policy();return
         profile = self.store.profile(self.active_id)
         self.original_audio = dict(state="unknown", detail=tr('ui.e8b970bc3e05', '正在检测…') if profile else tr('ui.c4fecacc70a6', '当前无播放配置'))
         self.apply_original_audio_policy()
@@ -789,7 +805,7 @@ class Window(DialogueBindingMixin, LibraryMixin, DialogueMixin, AudioLibraryMixi
     def apply_original_audio_policy(self):
         from .original_audio import should_block_bgm
         profile = self.store.profile(self.active_id)
-        blocked = bool(profile and should_block_bgm(profile, self.original_audio))
+        blocked = bool(not self.is_standalone() and profile and should_block_bgm(profile, self.original_audio))
         if hasattr(self.audio, "set_bgm_blocked"):
             self.audio.set_bgm_blocked(blocked)
         self.original_audio_label.setText(self.original_audio["detail"] + (tr('ui.7373ed1d1ab4', '；防冲突暂停伴随 BGM') if blocked else ""))
@@ -951,11 +967,13 @@ class Window(DialogueBindingMixin, LibraryMixin, DialogueMixin, AudioLibraryMixi
         self.audio.play_voice(random.choice(files))
 
     def set_manual(self, enabled):
+        if self.is_standalone():return
         self.store.config["manual_profile"] = (self.editing_id or "") if enabled else ""
         self.store.save()
         self.activate_profile(force=True)
 
     def detect(self, command=False):
+        if self.is_standalone():return
         if self.query_busy:
             return
         self.query_busy = True
@@ -964,17 +982,22 @@ class Window(DialogueBindingMixin, LibraryMixin, DialogueMixin, AudioLibraryMixi
         config = copy.deepcopy(self.store.config)
         if backend == "wallpaper_engine":
             config["_wallpaper_command_query"] = bool(command)
-        self.submit(lambda: query(config), self.detected, self.detect_error)
+        epoch=self.mode_epoch
+        self.submit(lambda: query(config), lambda result:self.detected(result) if epoch==self.mode_epoch else None,lambda error:self.detect_error(error) if epoch==self.mode_epoch else None)
 
-    def detected(self, result):
+    def detected(self, result, epoch=None):
+        if self.is_standalone() or epoch is not None and epoch!=self.mode_epoch:return
         self.query_busy = False
         self.current = result
         self.current_display_text = tr('ui.8fb967b32937', '当前壁纸  ·  ') + result["title"] + (tr('ui.2b57d457af7e', '\n识别来源：') + result["source"] if result.get("source", "") != tr('ui.0cb15544cc0d', '官方查询') and result.get("source") else "")
+        if not self.store.config.get("we_dir") and not result.get("running"):
+            self.current_display_text=tr("mode.recommend","未发现 WE 安装目录，推荐选择独立声音伴随；不需要安装 WE。")
         self.current_display_tooltip = result["path"]
         self.render_current_wallpaper()
         self.activate_profile()
 
-    def detect_error(self, error):
+    def detect_error(self, error, epoch=None):
+        if self.is_standalone() or epoch is not None and epoch!=self.mode_epoch:return
         self.query_busy = False
         self.current = dict(path="", title=tr('ui.78fc411a3ba9', '检测失败'), running=False)
         self.current_display_text = tr('ui.65bceeb27a23', '检测失败  ·  ') + str(error)
@@ -986,7 +1009,7 @@ class Window(DialogueBindingMixin, LibraryMixin, DialogueMixin, AudioLibraryMixi
         self.activate_profile()
 
     def activate_profile(self, force=False):
-        manual = self.store.config["manual_profile"]
+        manual = self.store.config.get("standalone_profile","") if self.is_standalone() else self.store.config["manual_profile"]
         p = self.store.profile(manual) if manual else self.store.bound_profile(self.current["path"])
         next_id = p["id"] if p else None
         if force or next_id != self.active_id:
@@ -1019,7 +1042,7 @@ class Window(DialogueBindingMixin, LibraryMixin, DialogueMixin, AudioLibraryMixi
         elif not p.get("enabled", True):
             text = tr('ui.c8359eede454', '当前配置已停用：') + p["name"]
         else:
-            text = (tr('ui.0b19f458b183', '手动模式') if self.store.config["manual_profile"] else tr('ui.7019c7b4387d', '自动跟随')) + "  ·  " + p["name"]
+            text = (tr("mode.standalone","独立声音伴随") if self.is_standalone() else tr('ui.0b19f458b183', '手动模式') if self.store.config["manual_profile"] else tr('ui.7019c7b4387d', '自动跟随')) + "  ·  " + p["name"]
             if self.audio.last_bgm:
                 text += "  ·  BGM：" + self.audio.last_bgm.name
             if getattr(self.audio, "bgm_paused", False):
@@ -1097,6 +1120,8 @@ class Window(DialogueBindingMixin, LibraryMixin, DialogueMixin, AudioLibraryMixi
 
     def load_settings(self):
         c = self.store.config
+        self.run_mode.blockSignals(True);self.run_mode.setCurrentIndex(max(0,self.run_mode.findData(c.get("run_mode","wallpaper_engine"))));self.run_mode.blockSignals(False)
+        self.apply_run_mode()
         self.ui_language.setCurrentIndex(max(0, self.ui_language.findData(c.get("ui_language", "zh-CN"))))
         self.refresh_language_notice()
         self.we_dir.setText(c["we_dir"])

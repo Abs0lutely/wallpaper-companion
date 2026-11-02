@@ -155,6 +155,7 @@ def remove_profiles(store, profile_ids):
     count = len(previous["profiles"]) - len(updated["profiles"])
     if updated.get("manual_profile") in ids:
         updated["manual_profile"] = ""
+    if updated.get("standalone_profile") in ids:updated["standalone_profile"]=""
     store.config = updated
     try:
         store.save()

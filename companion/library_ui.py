@@ -172,6 +172,7 @@ class LibraryMixin:
             return False
 
     def scan_library(self):
+        if self.is_standalone():return
         if self.library_busy:
             return
         self.library_busy = True

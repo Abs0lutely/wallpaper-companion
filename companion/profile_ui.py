@@ -122,12 +122,14 @@ def build_profile(window):
     resource_layout.setContentsMargins(0, 0, 0, 0)
     resource_layout.setSpacing(14)
     identity_card, identity_layout = section(tr('ui.180dafedd38c', '壁纸与配置'))
+    w.profile_identity_title=identity_layout.itemAt(0).widget()
     w.profile_name = QLineEdit()
     w.wallpaper_path = QLineEdit()
     w.wallpaper_path.setReadOnly(True)
     identity_form = form_layout()
     identity_form.addRow(tr('ui.9919db867bd4', '配置名称'), w.profile_name)
     identity_form.addRow(tr('ui.78c7a0e5c724', '绑定壁纸'), w.wallpaper_path)
+    w.wallpaper_field_label=identity_form.labelForField(w.wallpaper_path)
     identity_form.addRow("", button(tr('ui.bea66aeb786b', '将此配置绑定到当前壁纸'), w.rebind_current))
     identity_layout.addLayout(identity_form)
     resource_layout.addWidget(identity_card)
@@ -154,6 +156,7 @@ def build_profile(window):
     resource_layout.addWidget(resource_card)
 
     policy_card, policy = section(tr('ui.8d4d07151dba', '原壁纸声音与防冲突'))
+    w.original_audio_card=policy_card
     w.original_audio_policy = QComboBox()
     for label, value in [(tr('ui.3c7fc3b8a438', '有声音证据或无法确认时暂停 BGM'), "safe"), (tr('ui.14ccc93f4fc7', '仅发现声音证据时暂停 BGM'), "detected"), (tr('ui.d5aa65c34e76', '允许伴随 BGM 播放'), "allow")]:
         w.original_audio_policy.addItem(label, value)

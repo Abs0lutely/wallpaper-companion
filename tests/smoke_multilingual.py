@@ -61,6 +61,33 @@ with tempfile.TemporaryDirectory(dir=ROOT/"output") as tmp,patch("companion.mana
             from companion.file_dialogs import FileDialogs
             FileDialogs.getExistingDirectory(w.voice_dir,"Pick",str(voice))
             report["picker_starts_in_current_directory"]=pick.call_args.args[2]==str(voice)
+        from unittest.mock import Mock
+        from PySide6.QtTest import QTest
+        original_manual=store.config["manual_profile"]
+        old_epoch=w.mode_epoch
+        w.run_mode.setCurrentIndex(w.run_mode.findData("standalone"))
+        query=Mock(return_value=dict(path="",title="No wallpaper",running=False));detector=Mock(return_value=dict(state="no",detail="Mock silent"));scan=Mock(return_value=dict(records=[],warnings=[]))
+        w.registry.wallpapers["wallpaper_engine"]=("Mock WE",query)
+        w.registry.audio_detectors["builtin"]=("Mock detector",detector)
+        w.registry.libraries["wallpaper_engine"]=("Mock scan",scan)
+        w.detect(command=True);w.scan_library();w.probe_original_audio();QTest.qWait(650)
+        report["standalone_has_no_we_calls"]=not query.called and not detector.called and not scan.called and not w.poll.isActive()
+        report["standalone_profile_active"]=w.is_standalone() and w.active_id==profile["id"] and not w.audio.bgm_blocked
+        report["standalone_preserves_we_manual_choice"]=store.config["manual_profile"]==original_manual
+        report["standalone_hides_binding_controls"]=not w.detect_button.isVisible() and not w.wallpaper_path.isVisible() and not w.navigation[4].isVisible()
+        w.detected(dict(path="STALE",title="Stale",running=True),old_epoch)
+        report["stale_we_callback_ignored"]=w.current_display_text==tr("mode.standalone","独立声音伴随")
+        second=new_profile("Second sound profile");store.config["profiles"].append(second);w.refresh_profiles(second["id"])
+        report["standalone_selection_independent"]=w.active_id==second["id"] and store.config["standalone_profile"]==second["id"] and store.config["manual_profile"]==original_manual
+        from test_core import wav_bytes
+        clip=root/"standalone.wav";clip.write_bytes(wav_bytes())
+        with patch("companion.ui.foreground_state",return_value=dict(own=False,desktop=True,fullscreen=False)),patch.object(w.engine,"choose",return_value=(dict(name="Fixture"),clip)) as choose,patch.object(w.audio,"play_voice") as play:
+            for event,key in [("mouse_left",""),("key","fixture-id"),("scheduled","")]:w.input_event(event,key)
+            report["standalone_mouse_key_time_pipeline"]=choose.call_count==3 and play.call_count==3
+        w.grab().save(str(ROOT/"output/standalone-home.png"))
+        w.run_mode.setCurrentIndex(w.run_mode.findData("wallpaper_engine"))
+        report["return_to_we_preserves_profile_choice"]=not w.is_standalone() and store.config["manual_profile"]==original_manual and store.config["standalone_profile"]==second["id"]
+        report["mode_change_undo"]=w.autosave.undo() and w.is_standalone() and not w.poll.isActive()
         report["no_errors"]=not errors
         api.ensure.assert_not_called();api.start.assert_not_called()
     finally:w.cleanup();shiboken6.delete(w)
