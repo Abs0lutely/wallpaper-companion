@@ -4,7 +4,7 @@
 
 ## 一键陪伴包（2026-11-02，独立 worktree，本地未发布）
 
-基线 `2a37169a19e3232b76809d3089106a82c1ef470f`，独立 worktree `wallpaper-companion-packs`，唯一分支 `feature/companion-packs`。原功能目录仍在 `feature/multilingual-standalone`；另一个聊天后来修改了其 `AGENTS.md`，本任务只读核对并保留，没有纳入本分支。本轮不合并 main、不推送、不升级版本、不制作二进制发行包、不替换已安装程序；版本仍为 0.10.0。
+基线 `2a37169a19e3232b76809d3089106a82c1ef470f`，独立 worktree `wallpaper-companion-packs`，唯一分支 `feature/companion-packs`。原功能目录仍在 `feature/multilingual-standalone`；另一个聊天后来修改了其 `AGENTS.md`；用户随后明确授权纳入，本分支已同步其中按影响范围验证、避免重复测试和验证后提交的规范，同时保留陪伴包规则，原目录保持原样。本轮不合并 main、不推送、不升级版本、不制作二进制发行包、不替换已安装程序；版本仍为 0.10.0。
 
 ### 实现与文件
 
