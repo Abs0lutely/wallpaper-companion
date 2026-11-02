@@ -121,6 +121,8 @@ class CompanionShellMixin:
         menu.addAction(tr('ui.bd5f7c8d592f', '删除选中配置…'), self.delete_profile)
         menu.addSeparator()
         self.scan_bind_action = menu.addAction(tr('ui.602e8ee41e62', '扫描 / 批量绑定壁纸…'), lambda: self.tabs.setCurrentIndex(self.library_tab_index))
+        from .pack_text import p
+        menu.addAction(p("export"), self.export_companion_pack)
         manage.setMenu(menu)
         side.addWidget(manage)
         side.addStretch()
@@ -156,7 +158,8 @@ class CompanionShellMixin:
         hero_layout.setContentsMargins(24, 19, 24, 20)
         caption = QLabel("YOUR EVERYDAY COMPANION")
         caption.setObjectName("heroCaption")
-        hero_layout.addWidget(caption)
+        from .pack_text import p
+        hero_top=QHBoxLayout();hero_top.addWidget(caption);hero_top.addStretch();hero_top.addWidget(button(p("title"),self.open_companion_packs));hero_layout.addLayout(hero_top)
         hero_layout.addStretch()
         self.current_label = QLabel(tr('ui.e8b970bc3e05', '正在检测…'))
         self.current_label.setObjectName("current")

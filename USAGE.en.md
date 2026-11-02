@@ -64,3 +64,8 @@ This free, open-source app runs independently and plays prepared audio by rules.
 [GitHub project](https://github.com/Abs0lutely/wallpaper-companion)
 
 [Download releases](https://github.com/Abs0lutely/wallpaper-companion/releases/latest)
+
+
+## Companion packs
+
+Use **Choose a companion pack** in the home banner to preview and apply included Chinese/Japanese recordings without WE or AI. Export a profile from Profile management. Global operation responses remain opt-in. See [Using and sharing companion packs](COMPANION_PACKS.en.md).

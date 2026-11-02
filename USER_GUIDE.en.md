@@ -351,3 +351,8 @@ Logs show activation, triggers, tracks, generation, scans and errors, never type
 [Build instructions (Chinese)](BUILDING.md)
 
 [Extension API (Chinese)](EXTENSIONS.md)
+
+
+## Companion packs
+
+Use **Choose a companion pack** in the home banner to preview and apply included Chinese/Japanese recordings without WE or AI. Export a profile from Profile management. Global operation responses remain opt-in. See [Using and sharing companion packs](COMPANION_PACKS.en.md).

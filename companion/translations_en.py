@@ -2185,3 +2185,8 @@ SOURCES = {
     "voices.demo_help": "仅切换个人语音目录为空时的随附示例；个人音频优先，操作回应语言由其独立规则选择。",
     "binding.help": "可编辑、浏览和解除共用台词关联；切换先预览，已有文件不覆盖，后续共享编辑影响其他引用配置。"
 }
+
+# Companion packs use a compact bilingual caption catalog.
+from .pack_text import TEXT as _PACK_TEXT
+EN.update({'packs.' + key: value[1] for key, value in _PACK_TEXT.items()})
+SOURCES.update({'packs.' + key: value[0] for key, value in _PACK_TEXT.items()})

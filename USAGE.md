@@ -64,3 +64,8 @@
 [GitHub 项目](https://github.com/Abs0lutely/wallpaper-companion)
 
 [下载发行版](https://github.com/Abs0lutely/wallpaper-companion/releases/latest)
+
+
+## 一键陪伴包
+
+主页横幅的“选择陪伴包”支持无需 WE / AI 的中文、日语试听与独立使用；配置管理可以导出分享。操作回应默认不随包启用。详见 [陪伴包使用与分享](COMPANION_PACKS.md)。

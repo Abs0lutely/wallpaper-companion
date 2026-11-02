@@ -33,6 +33,7 @@ from .speech_ui import SpeechFeedbackMixin
 from .generation_ui import GenerationReviewMixin
 from .binding_ui import DialogueBindingMixin
 from .mode_ui import ModeMixin
+from .packs_ui import PackMixin
 
 EVENTS = {
     "key": tr('ui.ee2638183d3e', '快捷键'), "mouse_left": tr('ui.2c3c432593de', '鼠标左键'), "mouse_right": tr('ui.12b284d44fff', '鼠标右键'), "mouse_middle": tr('ui.43645a86c3b9', '鼠标中键'),
@@ -102,7 +103,7 @@ def app_icon():
 from .rules_ui import RuleDialog
 
 
-class Window(ModeMixin, DialogueBindingMixin, LibraryMixin, DialogueMixin, AudioLibraryMixin, CharacterMixin, SpeechFeedbackMixin, GenerationReviewMixin, CompanionShellMixin, QMainWindow):
+class Window(PackMixin, ModeMixin, DialogueBindingMixin, LibraryMixin, DialogueMixin, AudioLibraryMixin, CharacterMixin, SpeechFeedbackMixin, GenerationReviewMixin, CompanionShellMixin, QMainWindow):
     job_done = Signal(object, object, object)
     hook_event = Signal(str, str)
     progress = Signal(str)
@@ -1177,7 +1178,7 @@ class Window(ModeMixin, DialogueBindingMixin, LibraryMixin, DialogueMixin, Audio
         try:
             from .core import defaults
             c = defaults()
-            for key in ("ui_language", "monitor", "poll_seconds", "hover_help", "appearance", "operation_voice_enabled", "operation_voice_rules", "operation_voice_min_interval", "enabled_plugins", *self.backend_combos):
+            for key in ("ui_language", "monitor", "poll_seconds", "hover_help", "appearance", "operation_voice_enabled", "operation_voice_pack_only", "operation_voice_rules", "operation_voice_min_interval", "enabled_plugins", *self.backend_combos):
                 self.store.config[key] = copy.deepcopy(c[key])
             p = self.store.profile(self.editing_id)
             if p:

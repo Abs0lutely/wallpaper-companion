@@ -34,26 +34,7 @@ def classify_button(button):
     return "click"
 
 
-def scan_clips(roots, rules=None):
-    from .operation_rules import default_rules
-    result = {event: [] for event in EVENT_LINES}
-    category_lines = {category: lines for category, lines in EVENT_LINES.values()}
-    from .audio_names import matches_any_model
-    for rule in rules if rules is not None else default_rules():
-        event, category = rule["event"], rule["category"]
-        lines = category_lines.get(category)
-        for root in roots:
-            folder = Path(root) / category
-            if not folder.is_dir():
-                continue
-            try:
-                paths = [str(p) for p in folder.iterdir() if p.is_file() and p.suffix.casefold() in AUDIO_EXTENSIONS and (lines is None or any(matches_any_model(p.stem,line) for line in lines))]
-            except OSError:
-                paths = []
-            if paths:
-                result[event] = paths
-                break
-    return result
+from .operation_audio import scan_clips
 
 
 class OperationVoices(QObject):
@@ -136,6 +117,8 @@ class OperationVoices(QObject):
         self.rules = {rule["event"]: rule for rule in rules}
         roots = [self.w.store.config.get("operation_voice_dir", ""), self.w.voice_dir.text().strip(),
                  shared_root(self.w.store) / "voice", bundled_root() / "operation-voice", bundled_root() / "operation-voice-ja-JP"]
+        if self.w.store.config.get("operation_voice_pack_only", False):
+            roots = [self.w.store.config.get("operation_voice_dir", "")]
         roots = [str(r) for r in roots if str(r).strip()]
         self.scanning = True; self.last_scan = time.monotonic()
         def ready(clips):
