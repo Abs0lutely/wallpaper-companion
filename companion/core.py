@@ -73,14 +73,23 @@ def candidates(profile: dict, rule: dict) -> list[Path]:
         files = audio_files(source)
     if not rule.get("source", "").strip():
         from .action_lines import EVENT_LINES
-        operation_categories = {category for category, _ in EVENT_LINES.values()}
+        from .voice_locales import category_for, LOCALES
+        operation_categories = {category_for(category,locale) for category, _ in EVENT_LINES.values() for locale in LOCALES}
         root = Path(source).expanduser() if source else None
         files = [p for p in files if root is None or not p.relative_to(root).parts or p.relative_to(root).parts[0] not in operation_categories]
+    if not files and rule.get("source", ""):
+        from .voice_locales import legacy_candidates
+        files=legacy_candidates(profile.get("voice_dir", ""), rule["source"])
     if not files and profile.get("use_bundled_demo", False) and not audio_files(profile.get("voice_dir", "")):
         from .bundled_audio import bundled_root
         relative = rule.get("source", "").strip()
         if not relative or not Path(relative).is_absolute() and ".." not in Path(relative).parts and ":" not in relative:
-            fallback = bundled_root()/"starter-voice"/relative
+            locale=profile.get("demo_language", "zh-CN")
+            if relative.endswith("·ja-JP"):locale="ja-JP"
+            if locale=="ja-JP":
+                from .dialogues import CATEGORIES
+                if relative in CATEGORIES:relative += "·ja-JP"
+            fallback = bundled_root()/("starter-voice-ja-JP" if locale=="ja-JP" else "starter-voice")/relative
             files = [fallback] if fallback.is_file() and fallback.suffix.lower() in AUDIO_EXTENSIONS else audio_files(str(fallback))
     keyword = rule.get("keyword", "").strip().casefold()
     return [p for p in files if not keyword or keyword in p.stem.casefold()]

@@ -243,6 +243,7 @@ class Window(LibraryMixin, DialogueMixin, AudioLibraryMixin, CharacterMixin, Spe
         self.generate_button = button(tr('ui.45295cc8574e', '生成并保存语音'), self.generate_audio, True)
         layout.addWidget(row(self.generate_button, button(tr('ui.de285e9d2d36', '打开保存目录'), lambda: self.open_folder(self.tts_output.text()))))
         self.build_speech_status(layout)
+        self.lines.textChanged.connect(self.transferred_text_changed)
         self.tabs.addTab(page, tr('ui.4c403b5c0b50', '生成语音'))
         self.provider_choice.currentIndexChanged.connect(self.switch_provider)
 

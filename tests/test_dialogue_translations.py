@@ -31,7 +31,7 @@ class TranslatedDialogueTests(unittest.TestCase):
                     for original, entry in zip(source, translated, strict=True):
                         self.assertEqual(entry["id"].replace(f"_{locale}_", "_"), original["id"])
                         self.assertNotEqual(entry["text"], original["text"])
-                        self.assertEqual(entry["category"], original["category"] + (f"·{locale}" if pack == "operation" else ""))
+                        self.assertEqual(entry["category"], original["category"] + f"·{locale}")
                         if locale == "en-US":
                             self.assertTrue(entry["text"].isascii())
                         else:

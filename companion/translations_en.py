@@ -1,5 +1,4 @@
-"""English UI catalog. Preserve keys and named parameters; user content is excluded."""
-
+"""Builtin UI translations; preserve keys and named parameters."""
 EN = {
     "documents.overview": "Getting started",
     "ui.f06ae05900e7": "Unknown resource directory mode",
@@ -1057,9 +1056,15 @@ EN = {
     "operation.complete": "Complete",
     "ui.f1e7bec171ae": "Unknown version",
     "ui.661499ed97e8": "Automatic colors",
-    "ui.abeb3dd78a77": "Cherry pink"
+    "ui.abeb3dd78a77": "Cherry pink",
+    "voices.migrate": "Update legacy translation categories…",
+    "voices.no_migration": "No legacy translation categories to update.",
+    "voices.migration_preview": "Found {count} default translations. Update categories only; audio and custom entries stay. Save after confirming.",
+    "voices.transfer_edited": "Text changed: ordinary lines will be saved to the output directory without their original categories.",
+    "voices.switch": "Switch categories",
+    "voices.switched": "Updated {count} default categories. Custom categories, toggles and cooldowns kept; save to apply.",
+    "voices.transfer_help": "Send checked lines to generation to preserve category folders. Editing the transferred text switches to ordinary line generation. Applying category rules replaces current rules."
 }
-
 SOURCES = {
     "documents.overview": "使用说明",
     "ui.f06ae05900e7": "未知资源目录模式",
@@ -2091,5 +2096,12 @@ SOURCES = {
     "settings.language_next_start": "界面语言将在下次启动时生效。",
     "ui.f1e7bec171ae": "未知版本",
     "ui.661499ed97e8": "自动配色",
-    "ui.abeb3dd78a77": "固定樱粉"
+    "ui.abeb3dd78a77": "固定樱粉",
+    "voices.migrate": "更新旧译文分类…",
+    "voices.no_migration": "没有需要更新的旧译文分类。",
+    "voices.migration_preview": "识别到 {count} 条默认译文。只更新分类，不移动音频；自定义条目保留。确认后仍需保存。",
+    "voices.transfer_edited": "文本已修改：将按普通逐行模式保存到输出目录，不再使用原分类。",
+    "voices.switch": "快速切换分类",
+    "voices.switched": "已更新 {count} 项默认分类；自定义分类、开关和冷却保留，保存后生效。",
+    "voices.transfer_help": "勾选后送到生成页，将按原分类保存音频；修改转入的文本后改为普通逐行生成。分类规则会替换当前规则。"
 }

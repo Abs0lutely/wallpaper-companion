@@ -24,6 +24,10 @@ class OperationRulesDialog(QDialog):
         self.enabled = QCheckBox(tr('ui.e240e062890d', '启用操作回应语音（默认开启）'))
         self.gap = QDoubleSpinBox(); self.gap.setRange(.25,60); self.gap.setSuffix(tr('ui.00fe8dda1fd7', ' 秒'))
         layout.addWidget(row(self.enabled,QLabel(tr('ui.c1fa24ed3d47', '全局最短间隔')),self.gap))
+        self.locale_choice=QComboBox()
+        for label,code in [("中文","zh-CN"),("日本語","ja-JP"),("English","en-US")]:self.locale_choice.addItem(label,code)
+        layout.addWidget(row(self.locale_choice,button(tr("voices.switch", "快速切换分类"),self.switch_categories)))
+        self.switch_status=QLabel();self.switch_status.setWordWrap(True);layout.addWidget(self.switch_status)
         self.table = QTableWidget(0,4)
         self.table.setHorizontalHeaderLabels([tr('ui.f4f0ead1116b', '启用'),tr('ui.f101493303aa', '软件操作'),tr('ui.a3e907e85b05', '播放分类'),tr('ui.e9c46f8ea152', '该动作冷却')])
         self.table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
@@ -33,11 +37,19 @@ class OperationRulesDialog(QDialog):
         controls.accepted.connect(self.accept); controls.rejected.connect(self.reject); layout.addWidget(controls)
         self.load(config_payload(window.store.config))
 
+    def switch_categories(self):
+        from .voice_locales import switch_operation_categories
+        payload=self.values()
+        payload["rules"],count=switch_operation_categories(payload["rules"],self.locale_choice.currentData())
+        self.load(payload)
+        self.switch_status.setText(tr("voices.switched", "已更新 {count} 项默认分类；自定义分类、开关和冷却保留，保存后生效。",count=count))
+
     def load(self,payload):
         self.payload = normalize_payload(payload)
         self.enabled.setChecked(self.payload["enabled"]); self.gap.setValue(self.payload["min_interval"])
         self.table.setRowCount(len(self.payload["rules"]))
-        categories = list(dict.fromkeys([*(v[0] for v in EVENT_LINES.values()),*(e["category"] for e in self.w.edit_dialogues),*(r["category"] for r in self.payload["rules"])]))
+        from .voice_locales import category_for, LOCALES
+        categories = list(dict.fromkeys([*(category_for(v[0],locale) for v in EVENT_LINES.values() for locale in LOCALES),*(v[0] for v in EVENT_LINES.values()),*(e["category"] for e in self.w.edit_dialogues),*(r["category"] for r in self.payload["rules"])]))
         for i,rule in enumerate(self.payload["rules"]):
             check=QTableWidgetItem(); check.setFlags(Qt.ItemFlag.ItemIsEnabled | Qt.ItemFlag.ItemIsUserCheckable)
             check.setCheckState(Qt.CheckState.Checked if rule["enabled"] else Qt.CheckState.Unchecked)
