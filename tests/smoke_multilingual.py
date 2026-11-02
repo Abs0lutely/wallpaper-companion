@@ -79,8 +79,10 @@ with tempfile.TemporaryDirectory(dir=ROOT/"output") as tmp,patch("companion.mana
         report["stale_we_callback_ignored"]=w.current_display_text==tr("mode.standalone","独立声音伴随")
         second=new_profile("Second sound profile");store.config["profiles"].append(second);w.refresh_profiles(second["id"])
         report["standalone_selection_independent"]=w.active_id==second["id"] and store.config["standalone_profile"]==second["id"] and store.config["manual_profile"]==original_manual
-        from test_core import wav_bytes
-        clip=root/"standalone.wav";clip.write_bytes(wav_bytes())
+        import wave
+        clip=root/"standalone.wav"
+        with wave.open(str(clip),"wb") as audio:
+            audio.setparams((1,2,16000,0,"NONE","not compressed"));audio.writeframes(b"\0\0"*1600)
         with patch("companion.ui.foreground_state",return_value=dict(own=False,desktop=True,fullscreen=False)),patch.object(w.engine,"choose",return_value=(dict(name="Fixture"),clip)) as choose,patch.object(w.audio,"play_voice") as play:
             for event,key in [("mouse_left",""),("key","fixture-id"),("scheduled","")]:w.input_event(event,key)
             report["standalone_mouse_key_time_pipeline"]=choose.call_count==3 and play.call_count==3
