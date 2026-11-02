@@ -34,3 +34,15 @@ class VoiceLocalesTests(unittest.TestCase):
             p=new_profile();p["voice_dir"]=tmp
             r=new_rule();r["source"]=entry["category"]
             self.assertEqual(candidates(p,r),[ja])
+
+    def test_japanese_pack_is_complete_and_operation_rules_discover_it(self):
+        from companion.bundled_audio import validate_bundled_manifest,bundled_root,validate_starter_pack
+        from companion.operation_voices import scan_clips
+        manifest=validate_bundled_manifest()
+        self.assertEqual(len(manifest["files"]),180)
+        self.assertEqual(sum(e.get("locale")=="ja-JP" for e in manifest["files"]),90)
+        self.assertEqual(len(validate_starter_pack(bundled_root()/"starter-voice-ja-JP")["files"]),38)
+        rules,_=switch_operation_categories(default_rules(),"ja-JP")
+        clips=scan_clips([bundled_root()/"operation-voice-ja-JP"],rules)
+        self.assertEqual(len(clips),26)
+        self.assertTrue(all(len(files)==2 for files in clips.values()))

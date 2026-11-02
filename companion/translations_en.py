@@ -1080,7 +1080,7 @@ EN = {
     "tts.back": "Return to edit",
     "tts.cancel_language": "Returned to editing; no speech service called.",
     "binding.browse": "Choose shared dialogue JSON",
-    "binding.select": "Select a profile first.",
+    "binding.select": "No profile selected",
     "binding.preview": "Switch dialogue binding to {path}, with {count} lines. Existing files are read, never overwritten; new files use current dialogues. Cancel keeps the old binding.",
     "binding.embedded": "Dialogues embedded in this profile",
     "binding.confirm": "Confirm dialogue file switch",
@@ -1096,7 +1096,11 @@ EN = {
     "mode.no_detection": "Standalone mode does not inspect wallpaper audio.",
     "mode.profiles": "Sound profiles · multi-select",
     "mode.sound_profile": "Sound profile",
-    "mode.recommend": "No WE installation found. Standalone sound companion is recommended; no WE installation is needed."
+    "mode.recommend": "No WE installation found. Standalone sound companion is recommended; no WE installation is needed.",
+    "binding.json_required": "Dialogue library must be a JSON file",
+    "binding.too_large": "Dialogue JSON exceeds 2 MiB",
+    "binding.changed": "Dialogue file changed after preview",
+    "voices.rules_language": "Category language for new rules"
 }
 SOURCES = {
     "documents.overview": "使用说明",
@@ -2169,5 +2173,9 @@ SOURCES = {
     "mode.no_detection": "独立模式不检测原壁纸声音。",
     "mode.profiles": "声音配置 · 可多选管理",
     "mode.sound_profile": "声音配置",
-    "mode.recommend": "未发现 WE 安装目录，推荐选择独立声音伴随；不需要安装 WE。"
+    "mode.recommend": "未发现 WE 安装目录，推荐选择独立声音伴随；不需要安装 WE。",
+    "binding.json_required": "台词库必须为 JSON 文件。",
+    "binding.too_large": "台词 JSON 超过 2 MiB。",
+    "binding.changed": "预览后台词文件已改变，请重新选择并核对。",
+    "voices.rules_language": "新规则分类语言"
 }

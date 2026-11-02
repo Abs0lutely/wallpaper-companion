@@ -45,6 +45,12 @@ with tempfile.TemporaryDirectory(dir=ROOT/"output") as tmp,patch("companion.mana
         report["transfer_keeps_categories"]=len(w.transferred_dialogues)==38 and w.tts_output.text()==str(voice)
         w.lines.setPlainText("Modified text")
         report["transfer_edit_notice"]=tr("voices.transfer_edited","文本已修改：将按普通逐行模式保存到输出目录，不再使用原分类。")==w.tts_status.text()
+        from companion.voice_locales import translated_lines
+        legacy=dict(translated_lines("starter","ja-JP")[0]);legacy["id"]="old-import-id";legacy["category"]=legacy["category"].rsplit("·",1)[0]
+        custom={**legacy,"id":"custom","category":"Custom category"}
+        w.edit_dialogues=[legacy,custom];w.render_dialogues()
+        with patch.object(QMessageBox,"exec",return_value=QMessageBox.StandardButton.Yes):w.migrate_dialogue_categories()
+        report["legacy_category_preview_migrates_without_touching_custom"]=w.edit_dialogues[0]["category"].endswith("·ja-JP") and w.edit_dialogues[1]==custom and store.profile(profile["id"])["dialogues"]!=w.edit_dialogues
         target=root/"other-dialogues.json"
         target.write_text('[ {"id":"external","text":"External line","category":"External","enabled":true} ]',encoding="utf-8")
         original=target.read_bytes()
@@ -86,10 +92,19 @@ with tempfile.TemporaryDirectory(dir=ROOT/"output") as tmp,patch("companion.mana
         with patch("companion.ui.foreground_state",return_value=dict(own=False,desktop=True,fullscreen=False)),patch.object(w.engine,"choose",return_value=(dict(name="Fixture"),clip)) as choose,patch.object(w.audio,"play_voice") as play:
             for event,key in [("mouse_left",""),("key","fixture-id"),("scheduled","")]:w.input_event(event,key)
             report["standalone_mouse_key_time_pipeline"]=choose.call_count==3 and play.call_count==3
+        w.tabs.setCurrentIndex(0)
         w.grab().save(str(ROOT/"output/standalone-home.png"))
         w.run_mode.setCurrentIndex(w.run_mode.findData("wallpaper_engine"))
         report["return_to_we_preserves_profile_choice"]=not w.is_standalone() and store.config["manual_profile"]==original_manual and store.config["standalone_profile"]==second["id"]
         report["mode_change_undo"]=w.autosave.undo() and w.is_standalone() and not w.poll.isActive()
+        fresh_store=Store(root/"fresh/config.json")
+        fresh=Window(fresh_store,hooks=False)
+        try:
+            report["fresh_no_we_recommends_standalone"]=tr("mode.recommend","未发现 WE 安装目录，推荐选择独立声音伴随；不需要安装 WE。") in fresh.mode_notice.text()
+            fresh.run_mode.setCurrentIndex(fresh.run_mode.findData("standalone"))
+            report["fresh_standalone_creates_sound_profile"]=fresh.is_standalone() and len(fresh_store.config["profiles"])==1 and fresh.active_id==fresh_store.config["standalone_profile"] and not fresh.poll.isActive()
+            report["standalone_persists_without_we_installation"]=Store(fresh_store.path).config["run_mode"]=="standalone" and not fresh_store.config["profiles"][0]["wallpaper"]
+        finally:fresh.cleanup();shiboken6.delete(fresh)
         report["no_errors"]=not errors
         api.ensure.assert_not_called();api.start.assert_not_called()
     finally:w.cleanup();shiboken6.delete(w)

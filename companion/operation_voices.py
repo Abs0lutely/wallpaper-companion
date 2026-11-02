@@ -3,6 +3,7 @@ from .i18n import tr
 import random
 import time
 import weakref
+import shiboken6
 from pathlib import Path
 
 from PySide6.QtCore import QObject, QEvent, QTimer
@@ -94,7 +95,7 @@ class OperationVoices(QObject):
         widget.destroyed.connect(lambda *_: self.widgets.pop(key, None))
         ref = weakref.ref(widget)
         if isinstance(widget, QAbstractButton):
-            widget.pressed.connect(lambda: self.request(classify_button(ref())) if ref() is not None else None)
+            widget.pressed.connect(lambda: self.request(classify_button(ref())) if ref() is not None and shiboken6.isValid(ref()) else None)
         elif isinstance(widget, QComboBox):
             widget.activated.connect(lambda _: self.request("select", delayed=True))
         elif isinstance(widget, QAbstractSlider):
@@ -110,7 +111,7 @@ class OperationVoices(QObject):
             widget.itemSelectionChanged.connect(lambda: self.request("select", delayed=True) if widget.hasFocus() else None)
 
     def finish_edit(self, widget):
-        if widget is not None and widget.property("voiceEdited"):
+        if widget is not None and shiboken6.isValid(widget) and widget.property("voiceEdited"):
             widget.setProperty("voiceEdited", False)
             self.request("change", delayed=True)
 

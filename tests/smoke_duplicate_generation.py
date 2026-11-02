@@ -44,7 +44,7 @@ with tempfile.TemporaryDirectory(dir=out) as tmp, patch("companion.managed_api.a
             QTimer.singleShot(20, click)
         QTimer.singleShot(20, click)
     try:
-        w.edit_dialogues = [dict(id="a",category="早晨",text="已有音频",enabled=True),dict(id="b",category="夜间",text="新音频",enabled=True)]
+        w.edit_dialogues = [dict(id="a",category="早晨",text="已有音频",enabled=True),dict(id="b",category="夜间",text="新的音频",enabled=True)]
         w.render_dialogues(); w.select_dialogues("all")
         root = shared_root(store)/"voice"; existing = root/"早晨"/filename_for("已有音频")
         existing.parent.mkdir(parents=True); existing.write_bytes(data)
@@ -53,7 +53,7 @@ with tempfile.TemporaryDirectory(dir=out) as tmp, patch("companion.managed_api.a
         choose("取消"); w.generate_audio(); wait(lambda:not w.tts_busy)
         report["cancel_never_synthesizes_or_changes_existing_audio"] = not api.synthesize.called and existing.read_bytes() == data and len(list(root.rglob("*.wav"))) == 1
         choose("跳过重复，生成其余"); w.generate_audio(); wait(lambda:not w.tts_busy)
-        report["skip_generates_only_missing_in_original_category"] = api.synthesize.call_count == 1 and (root/"夜间"/filename_for("新音频","模型A")).is_file() and existing.read_bytes() == data
+        report["skip_generates_only_missing_in_original_category"] = api.synthesize.call_count == 1 and (root/"夜间"/filename_for("新的音频","模型A")).is_file() and existing.read_bytes() == data
         before = api.synthesize.call_count
         choose("跳过重复，生成其余"); w.generate_audio(); wait(lambda:not w.tts_busy)
         report["all_existing_skips_without_api_work"] = api.synthesize.call_count == before and "跳过 2" in w.tts_status.text()

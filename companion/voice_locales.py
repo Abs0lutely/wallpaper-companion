@@ -38,8 +38,11 @@ def switch_operation_categories(rules, locale):
 def migrate_categories(entries):
     result=copy.deepcopy(entries); changes=[]
     known=[e for locale in ("ja-JP","en-US") for pack in ("starter","operation") for e in translated_lines(pack,locale)]
+    by_id={e["id"]:e for e in known}
     for entry in result:
-        match=next((e for e in known if e["text"]==entry["text"] and entry["category"]==e["category"].rsplit("·",1)[0]),None)
+        match=by_id.get(entry.get("id"))
+        if match and (match["text"]!=entry["text"] or entry["category"]!=match["category"].rsplit("·",1)[0]):match=None
+        if not match:match=next((e for e in known if e["text"]==entry["text"] and entry["category"]==e["category"].rsplit("·",1)[0]),None)
         if match:
             changes.append((entry["category"],match["category"],entry["text"]))
             entry["category"]=match["category"]

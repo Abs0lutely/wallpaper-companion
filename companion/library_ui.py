@@ -309,7 +309,7 @@ class DialogueMixin:
         layout.addWidget(row(button(tr('ui.3b8118a7c3de', '将勾选台词送到生成页'), self.send_dialogues_to_tts, True)))
         self.rules_locale=QComboBox()
         for label,code in [("中文","zh-CN"),("日本語","ja-JP"),("English","en-US")]:self.rules_locale.addItem(label,code)
-        layout.addWidget(self.rules_locale)
+        layout.addWidget(row(QLabel(tr("voices.rules_language","新规则分类语言")),self.rules_locale))
         layout.addWidget(row(button(tr('ui.7d9ab8f2b401', '应用分类触发规则'), self.install_dialogue_rules),
                              button(tr('ui.5dad01da2d96', '导入台词 JSON / TXT'), self.import_dialogues), button(tr('ui.01d53f80e251', '导出台词 JSON'), self.export_dialogues)))
         layout.addWidget(row(button(tr('ui.6e2442e35392', '导入默认操作台词'), self.add_operation_dialogues), button(tr("voices.migrate", "更新旧译文分类…"), self.migrate_dialogue_categories)))

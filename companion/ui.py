@@ -645,7 +645,7 @@ class Window(ModeMixin, DialogueBindingMixin, LibraryMixin, DialogueMixin, Audio
             return
         from .assets import attach_resources, shared_root
         try:
-            p = attach_resources(new_profile(), shared_root(self.store), self.store.protected())
+            p = attach_resources(new_profile(tr("mode.sound_profile","声音配置") if self.is_standalone() else None), shared_root(self.store), self.store.protected())
         except Exception as exc:
             self.report_error(str(exc))
             return
@@ -654,6 +654,7 @@ class Window(ModeMixin, DialogueBindingMixin, LibraryMixin, DialogueMixin, Audio
         self.refresh_profiles(p["id"])
 
     def bind_current(self):
+        if self.is_standalone():return
         if hasattr(self, "autosave") and not self.autosave.flush():
             return
         if not self.current["path"]:
