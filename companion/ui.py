@@ -255,6 +255,8 @@ class Window(LibraryMixin, DialogueMixin, AudioLibraryMixin, CharacterMixin, Spe
                     values[key] = widget.toPlainText().strip()
                 elif isinstance(widget, QDoubleSpinBox):
                     values[key] = widget.value()
+                elif hasattr(widget,"code"):
+                    values[key] = widget.code()
                 elif isinstance(widget, QComboBox):
                     values[key] = widget.currentText().strip()
                 elif isinstance(widget, QCheckBox):
@@ -284,6 +286,9 @@ class Window(LibraryMixin, DialogueMixin, AudioLibraryMixin, CharacterMixin, Spe
             elif field.kind == "bool":
                 widget = QCheckBox()
                 widget.setChecked(value is True)
+            elif field.kind == "language":
+                from .language_checks import LanguageCombo
+                widget=LanguageCombo(str(value))
             elif field.kind in {"gpt_model", "sovits_model"}:
                 widget = QComboBox()
                 widget.setEditable(True)

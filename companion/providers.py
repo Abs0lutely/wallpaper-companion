@@ -86,7 +86,7 @@ def builtin_providers():
             Field("gpt_weights", tr('ui.edfdaa8ce998', 'GPT 模型 (.ckpt)'), "gpt_model", help=tr('ui.0fa209226e3e', '与 SoVITS 配套选择；两项同时留空可沿用当前模型')),
             Field("sovits_weights", tr('ui.a0223161ecb1', 'SoVITS 模型 (.pth)'), "sovits_model", help=tr('ui.b1c40b989aa8', '扫描后选择或自行浏览，只有生成时才加载')),
             Field("reference", tr('ui.244b7fda3072', '参考音频'), "file"), Field("prompt", tr('ui.f0e150cc9240', '参考音频原文'), "multiline"),
-            Field("text_lang", tr('ui.9fad67a039dc', '目标语言代码'), default="zh"), Field("prompt_lang", tr('ui.637464035bdb', '参考语言代码'), default="zh"),
+            Field("text_lang", tr('ui.9fad67a039dc', '目标语言代码'), "language", default="zh"), Field("prompt_lang", tr('ui.637464035bdb', '参考语言代码'), "language", default="zh"),
             Field("speed", tr('ui.cd97a36868f3', '语速'), "float", 1.0),
             Field("allow_external_model_switch", tr('ui.12eb30b1fef3', '允许切换外部 API 模型（会影响其他使用者）'), "bool", False)], gpt_sovits, api_status,
             tr('ui.073674cbc018', '扫描/保存不启动 API。生成时自动启动，也可手动启动/关闭自建 API；自建服务使用独立推理配置并随声伴退出。外部服务切换需显式勾选允许。'), start_api),

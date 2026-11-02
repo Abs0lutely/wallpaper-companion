@@ -1064,7 +1064,21 @@ EN = {
     "voices.switch": "Switch categories",
     "voices.switched": "Updated {count} default categories. Custom categories, toggles and cooldowns kept; save to apply.",
     "voices.transfer_help": "Send checked lines to generation to preserve category folders. Editing the transferred text switches to ordinary line generation. Applying category rules replaces current rules.",
-    "voices.demo_language": "Bundled demo voice language"
+    "voices.demo_language": "Bundled demo voice language",
+    "tts.lang_zh": "Chinese",
+    "tts.lang_yue": "Cantonese",
+    "tts.lang_auto": "Automatic",
+    "tts.lang_all": "All text in this language",
+    "tts.language_help": "Choose a common language or enter an API code; actual support depends on the service and model.",
+    "tts.language_check": "Check synthesis language",
+    "tts.language_warning": "Text may not match its selected language, or short/mixed text is uncertain. Check target language and reference transcript. This cannot identify model training language; cross-language synthesis is allowed. Continue?",
+    "tts.reference": "Reference transcript",
+    "tts.reason_mismatch": "Possible mismatch",
+    "tts.reason_uncertain": "Uncertain",
+    "tts.reason_unknown": "Custom code; cannot check",
+    "tts.continue": "Generate anyway",
+    "tts.back": "Return to edit",
+    "tts.cancel_language": "Returned to editing; no speech service called."
 }
 SOURCES = {
     "documents.overview": "使用说明",
@@ -2105,5 +2119,19 @@ SOURCES = {
     "voices.switch": "快速切换分类",
     "voices.switched": "已更新 {count} 项默认分类；自定义分类、开关和冷却保留，保存后生效。",
     "voices.transfer_help": "勾选后送到生成页，将按原分类保存音频；修改转入的文本后改为普通逐行生成。分类规则会替换当前规则。",
-    "voices.demo_language": "随附示例配音语言"
+    "voices.demo_language": "随附示例配音语言",
+    "tts.lang_zh": "中文",
+    "tts.lang_yue": "粤语",
+    "tts.lang_auto": "自动识别",
+    "tts.lang_all": "纯语言",
+    "tts.language_help": "可选择常用语言或自行填写 API 代码；具体支持取决于接口与模型。",
+    "tts.language_check": "生成语言检查",
+    "tts.language_warning": "文本与所选语言可能不一致，或短句/混合文字无法确定。请检查目标语言及参考原文。此检查不能判断模型训练语言；跨语言合成可以正常使用。是否仍要继续？",
+    "tts.reference": "参考原文",
+    "tts.reason_mismatch": "疑似不符",
+    "tts.reason_uncertain": "无法确定",
+    "tts.reason_unknown": "自填代码，无法校验",
+    "tts.continue": "仍然生成",
+    "tts.back": "返回修改",
+    "tts.cancel_language": "已返回修改，未调用语音服务。"
 }

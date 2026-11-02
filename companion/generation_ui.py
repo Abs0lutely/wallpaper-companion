@@ -6,7 +6,22 @@ from .services import generate, generate_dialogue_entries, generation_duplicates
 
 
 class GenerationReviewMixin:
+    def confirm_generation_language(self,lines,settings,provider):
+        from .language_checks import language_issues
+        issues=language_issues(lines,settings,provider.id)
+        if not issues:return True
+        dialog=QMessageBox(self)
+        dialog.setWindowTitle(tr("tts.language_check","生成语言检查"))
+        dialog.setText(tr("tts.language_warning","文本与所选语言可能不一致，或短句/混合文字无法确定。请检查目标语言及参考原文。此检查不能判断模型训练语言；跨语言合成可以正常使用。是否仍要继续？"))
+        dialog.setDetailedText("\n".join((tr("tts.reference","参考原文") if i["field"]=="reference" else str(i["line"]))+" ["+str(i["code"])+"] "+i["text"]+" — "+tr("tts.reason_"+i["reason"],{"mismatch":"疑似不符","uncertain":"无法确定","unknown":"自填代码，无法校验"}[i["reason"]]) for i in issues))
+        proceed=dialog.addButton(tr("tts.continue","仍然生成"),QMessageBox.ButtonRole.AcceptRole)
+        back=dialog.addButton(tr("tts.back","返回修改"),QMessageBox.ButtonRole.RejectRole)
+        dialog.setDefaultButton(back);dialog.setEscapeButton(back);dialog.exec()
+        return dialog.clickedButton() is proceed
+
     def begin_generation_review(self, lines, output, settings, provider, skip, entries=None):
+        if not self.confirm_generation_language(lines,settings,provider):
+            self.tts_status.setText(tr("tts.cancel_language","已返回修改，未调用语音服务。"));return
         snapshot = dict(lines=list(lines), output=output, settings=copy.deepcopy(settings), provider=provider,
                         skip=skip, entries=copy.deepcopy(entries), protected=self.store.protected())
         self.tts_busy = True; self.update_api_controls()
