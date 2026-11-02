@@ -17,12 +17,13 @@ from .core import AUDIO_EXTENSIONS, candidates, new_profile, writable_path, audi
 from .presets import export_payload, validate_payload, FORMAT as PRESET_FORMAT, RULE_FIELDS, NUMERIC, BOOLEAN
 from .operation_rules import normalize_payload as normalize_operation
 from .pack_text import p
+from .rules import BUILTIN_EVENTS
 
 FORMAT = 'wallpaper-companion-pack'
 VERSION = 1
 MIB = 1024 * 1024
 MAX_ARCHIVE, MAX_TOTAL, MAX_FILES, MAX_FILE, MAX_JSON = 512*MIB, 1024*MIB, 5000, 256*MIB, 2*MIB
-RESERVED = {'CON', 'PRN', 'AUX', 'NUL', *(f'COM{i}' for i in range(1,10)), *(f'LPT{i}' for i in range(1,10))}
+RESERVED = {'CON', 'PRN', 'AUX', 'NUL', *(f'COM{i}' for i in range(1,10)), *(f'LPT{i}' for i in range(1,10)), *(f'{prefix}{i}' for prefix in ('COM','LPT') for i in '¹²³')}
 META = {'id', 'name', 'character', 'language', 'author', 'description'}
 
 
@@ -31,7 +32,7 @@ def safe_name(name):
         raise ValueError(p('unsafe'))
     parts=name.split('/')
     if any(not s or s in {'.','..'} or s.rstrip(' .')!=s or any(ord(c)<32 or c in '<>:"|?*' for c in s)
-           or s.split('.')[0].upper() in RESERVED for s in parts):
+           or s.split('.')[0].rstrip(' ').upper() in RESERVED for s in parts):
         raise ValueError(p('unsafe'))
     return name
 
@@ -114,7 +115,14 @@ class CheckedPack:
     @property
     def missing(self):return [d for d in self.profile['dialogues'] if d['enabled'] and not audio_for_line(self.root/'voice',d)]
     @property
-    def complete(self):return not self.missing and self.recordings>0 and all(not r['enabled'] or candidates(dict(voice_dir=str(self.root/'voice'),use_bundled_demo=False),r) for r in self.profile['rules'])
+    def complete(self):
+        if self.missing or not self.recordings or self.manifest['missing_sources']:return False
+        if not all(not r['enabled'] or candidates(dict(voice_dir=str(self.root/'voice'),use_bundled_demo=False),r) for r in self.profile['rules']):return False
+        if self.operation and self.operation['enabled']:
+            from .operation_audio import scan_clips
+            clips=scan_clips([self.root/'operation-voice'],self.operation['rules'])
+            if any(r['enabled'] and not clips[r['event']] for r in self.operation['rules']):return False
+        return True
 
 
 def validate_directory(root):
@@ -161,7 +169,7 @@ def validate_directory(root):
 class PackPreview:
     """Owns only a newly created extraction tree; close never deletes installed data."""
     def __init__(self,archive,temporary):
-        temporary=Path(temporary);temporary.mkdir(parents=True,exist_ok=True)
+        temporary=Path(temporary).resolve();temporary.mkdir(parents=True,exist_ok=True)
         self.temp=tempfile.TemporaryDirectory(prefix='inspect-',dir=temporary)
         try:
             archive=Path(archive)
@@ -176,7 +184,7 @@ class PackPreview:
                     if info.filename.casefold() in seen:raise ValueError(p('unsafe'))
                     seen.add(info.filename.casefold())
                     mode=info.external_attr>>16
-                    if stat.S_IFMT(mode) not in (0,stat.S_IFREG,stat.S_IFDIR) or info.flag_bits&1:raise ValueError(p('unsafe'))
+                    if stat.S_IFMT(mode) not in (0,stat.S_IFREG,stat.S_IFDIR) or info.flag_bits&1 or info.external_attr&0x400:raise ValueError(p('unsafe'))
                     if info.file_size>MAX_FILE or info.filename.lower().endswith('.json') and info.file_size>MAX_JSON:raise ValueError(p('limit'))
                     total+=info.file_size
                     if total>MAX_TOTAL:raise ValueError(p('limit'))
@@ -186,15 +194,18 @@ class PackPreview:
                 (root/'pack.json').write_bytes(zip.read(info))
                 manifest=read_json(root/'pack.json')
                 if not isinstance(manifest,dict) or not isinstance(manifest.get('files'),list):raise ValueError(p('invalid'))
-                listed=set();inventory={}
+                if not 1<=len(manifest['files'])<MAX_FILES:raise ValueError(p('limit'))
+                listed=set();listed_folded=set();inventory={}
                 for entry in manifest['files']:
                     if not isinstance(entry,dict) or set(entry)!={'path','size','sha256'}:raise ValueError(p('invalid'))
                     name=safe_name(entry['path'])
-                    if name in listed or name.casefold() in {n.casefold() for n in listed}:raise ValueError(p('unsafe'))
+                    if name.casefold() in listed_folded:raise ValueError(p('unsafe'))
                     if name not in {'preset.json','operation-rules.json'} and (PurePosixPath(name).parts[0] not in {'voice','bgm','operation-voice'} or PurePosixPath(name).suffix.lower() not in AUDIO_EXTENSIONS):raise ValueError(p('unsafe'))
                     if type(entry['size']) is not int or not 0<entry['size']<=MAX_FILE or not re.fullmatch('[0-9a-f]{64}',str(entry['sha256'])):raise ValueError(p('invalid'))
-                    listed.add(name);inventory[name]=entry
+                    listed.add(name);listed_folded.add(name.casefold());inventory[name]=entry
                 if {i.filename for i in entries if not i.is_dir()}!=listed|{'pack.json'}:raise ValueError(p('invalid'))
+                if any(parent.as_posix().casefold() in listed_folded for name in listed for parent in PurePosixPath(name).parents if parent.as_posix()!='.'):
+                    raise ValueError(p('unsafe'))
                 for info in entries:
                     if info.is_dir() or info.filename=='pack.json':continue
                     safe_name(info.filename)
@@ -209,6 +220,8 @@ class PackPreview:
                             if length>info.file_size or length>MAX_FILE:raise ValueError(p('limit'))
                             dest.write(block)
                 self.pack=validate_directory(root)
+        except (zipfile.BadZipFile,KeyError,TypeError,UnicodeError,EOFError,NotImplementedError,RecursionError) as exc:
+            self.close();raise ValueError(p('invalid')) from exc
         except Exception:
             self.close();raise
     def close(self):self.temp.cleanup()
@@ -216,7 +229,7 @@ class PackPreview:
     def __exit__(self,*args):self.close()
 
 
-def install_and_use(store,pack,include_operation=False):
+def install_and_use(store,pack,include_operation=False,available_events=BUILTIN_EVENTS):
     """Save profile + optional global response settings in one transaction."""
     pack=validate_directory(pack.root)
     base=writable_path(store.path.parent/'packs',store.protected());base.mkdir(parents=True,exist_ok=True)
@@ -235,8 +248,10 @@ def install_and_use(store,pack,include_operation=False):
             shutil.copytree(pack.root,destination,dirs_exist_ok=True)
             validate_directory(destination)
         previous=copy.deepcopy(store.config)
+        imported,_=validate_payload(read_json(pack.root/'preset.json'),available_events)
+        imported=imported[0]
         profile=new_profile(pack.manifest['name'])
-        profile.update(pack.profile['settings'],dialogues=copy.deepcopy(pack.profile['dialogues']),rules=copy.deepcopy(pack.profile['rules']))
+        profile.update(imported['settings'],dialogues=copy.deepcopy(imported['dialogues']),rules=copy.deepcopy(imported['rules']))
         profile.update(wallpaper='',voice_dir=str(destination/'voice'),bgm_dir=str(destination/'bgm'),
             asset_dir='',private_asset_dir='',dialogue_file='',use_bundled_demo=False,pack_install=destination.name)
         # IDs must be fresh even when the same pack is used twice.
@@ -276,18 +291,20 @@ class ExportPlan:
     operation: dict | None
 
 
-def plan_export(profile,metadata,*,include_bgm=False,operation=None,operation_roots=()):
+def plan_export(profile,metadata,*,include_bgm=False,operation=None,operation_roots=(),excluded_sources=()):
     """Collect real engine candidates; snapshot hashes, preserve unresolved rules."""
     from .assets import load_dialogues
     from .operation_audio import scan_clips
     source_profile=copy.deepcopy(profile);source_profile['dialogues']=load_dialogues(profile)
     source_profile['use_bundled_demo']=False
     preset,_=export_payload([source_profile])
-    sources={};missing=[]
+    sources={};missing=[];excluded={Path(path).expanduser().resolve() for path in excluded_sources}
     def add(path,name):
         safe_name(name);path=Path(path)
         if not path.is_file() or path.is_symlink():raise ValueError(p('unsafe'))
         if any(n.casefold()==name.casefold() and str(p)!=str(path) for n,p in sources.items()):raise ValueError(p('unsafe'))
+        if path.resolve() in excluded:
+            missing.append(p('reference_excluded')+' '+name);return
         sources[name]=path.resolve()
     for original,rule in zip(profile.get('rules',[]),preset['profiles'][0]['rules']):
         raw=original.get('source','').strip()
@@ -333,6 +350,20 @@ def plan_export(profile,metadata,*,include_bgm=False,operation=None,operation_ro
     stamps={name:(file.stat().st_size,digest(file)) for name,file in sources.items()}
     validate_preset(preset)
     return ExportPlan(meta,preset,sources,stamps,list(dict.fromkeys(missing)),operation)
+
+
+def reference_sources(config):
+    """Known TTS references are never implicitly collected by a whole-folder rule."""
+    result=[]
+    settings=[config.get('tts',{}),*config.get('tts_providers',{}).values(),*(entry.get('settings',{}) for entry in config.get('tts_characters',[]))]
+    for item in settings:
+        if not isinstance(item,dict) or not item.get('reference'):continue
+        path=Path(item['reference']).expanduser()
+        if not path.is_absolute():
+            if not item.get('project'):continue
+            path=Path(item['project']).expanduser()/path
+        result.append(path.resolve())
+    return result
 
 
 def write_export(plan,target,selected=None,protected=()):

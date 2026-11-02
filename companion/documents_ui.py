@@ -9,6 +9,8 @@ from PySide6.QtWidgets import QDialog, QDialogButtonBox, QMessageBox, QTextBrows
 
 
 LOCALIZED_DOCUMENTS = {
+    "COMPANION_PACKS.md": ("COMPANION_PACKS.md", "COMPANION_PACKS.en.md"),
+    "COMPANION_PACKS.en.md": ("COMPANION_PACKS.md", "COMPANION_PACKS.en.md"),
     "USER_GUIDE.md": ("USER_GUIDE.md", "USER_GUIDE.en.md"),
     "USER_GUIDE.en.md": ("USER_GUIDE.md", "USER_GUIDE.en.md"),
     "USAGE.md": ("USAGE.md", "USAGE.en.md"),

@@ -5,7 +5,7 @@ import shiboken6
 from PySide6.QtCore import Qt,QUrl
 from PySide6.QtGui import QDesktopServices
 from PySide6.QtWidgets import (QDialog,QVBoxLayout,QHBoxLayout,QLabel,QPushButton,QCheckBox,
-    QScrollArea,QWidget,QFrame,QPlainTextEdit,QDialogButtonBox,QMessageBox,QProgressBar)
+    QScrollArea,QWidget,QFrame,QSizePolicy,QPlainTextEdit,QDialogButtonBox,QMessageBox,QProgressBar)
 from .file_dialogs import FileDialogs
 from .pack_text import p
 from .packs import PackPreview,validate_directory,install_and_use,restore_selection
@@ -21,22 +21,23 @@ def info_dialog(parent,title,text):
 def pack_info(pack):
     m=pack.manifest
     return (m['name']+'\n'+m['character']+' · '+m['language']+'\n'+m['description']+'\n'+
-        p('inventory',lines=len(pack.profile['dialogues']),rules=len(pack.profile['rules']),missing=len(pack.missing))+'\n'+
+        p('inventory',lines=len(pack.profile['dialogues']),rules=len(pack.profile['rules']),missing=len(pack.missing))+'\n'+p('unsupported_events')+'\n'+
         '\n'.join(f"{r['name']} · {r['event']} · {r.get('hotkey','')} → {r['source'] or 'voice/'} · {r['start']}–{r['end']}" for r in pack.profile['rules'])+
         ('\n\n'+p('missing_list',items='\n'.join(pack.manifest['missing_sources'])) if pack.manifest['missing_sources'] else ''))
 
 
 class PackBrowser(QDialog):
     def __init__(self,window):
-        super().__init__(window);self.w=window;self.busy=False;self.previews=[];self.setWindowTitle(p('title'));self.resize(760,600)
+        super().__init__(window);self.w=window;self.busy=False;self.previews=[];self.builtin_cache={};self.setWindowTitle(p('title'));self.resize(760,600)
         from .audio import Audio
         self.audio=Audio(self);self.audio.profile={'voice_volume':70,'bgm_enabled':False}
         layout=QVBoxLayout(self)
         top=QHBoxLayout();self.import_button=QPushButton(p('import'));self.import_button.clicked.connect(self.import_file);top.addWidget(self.import_button)
         self.back=QPushButton(p('back'));self.back.setEnabled(hasattr(window,'pack_previous'));self.back.clicked.connect(self.return_previous);top.addWidget(self.back)
-        self.start=QPushButton(p('start'));self.start.setVisible(window.paused);self.start.clicked.connect(self.start_companion);top.addWidget(self.start)
-        self.bind_button=QPushButton(p("bind"));self.bind_button.setEnabled(False);self.bind_button.clicked.connect(self.link_wallpaper);top.addWidget(self.bind_button)
+        self.start=QPushButton(p('start'));self.start.setVisible(window.paused);self.start.clicked.connect(self.start_companion);
+        self.bind_button=QPushButton(p("bind"));self.bind_button.setEnabled(False);self.bind_button.clicked.connect(self.link_wallpaper)
         layout.addLayout(top)
+        second=QHBoxLayout();second.addWidget(self.start);second.addWidget(self.bind_button);layout.addLayout(second)
         self.status=QLabel(p('scanning'));self.status.setWordWrap(True);layout.addWidget(self.status)
         self.progress=QProgressBar();self.progress.setRange(0,0);self.progress.hide();layout.addWidget(self.progress)
         self.audio.message.connect(self.status.setText)
@@ -66,8 +67,11 @@ class PackBrowser(QDialog):
                 self.busy=False;self.progress.hide();self.import_button.setEnabled(True);self.content.setEnabled(True);self.back.setEnabled(hasattr(self.w,'pack_previous'));self.status.setText(p('unavailable',error=error))
         self.w.submit(job,done,failed)
     def discover(self):
-        from .pack_builtins import builtin_catalog
+        from .pack_builtins import builtin_catalog,validate_builtin_catalog
+        try:validate_builtin_catalog();builtin_error=None
+        except Exception as exc:builtin_error=str(exc)
         entries=[('builtin',entry,None) for entry in builtin_catalog()]
+        if builtin_error:entries=[('invalid',entry[1]['name'],builtin_error) for entry in entries]
         base=self.w.store.path.parent/'packs'
         if base.is_dir():
             for root in sorted(base.iterdir()):
@@ -85,11 +89,13 @@ class PackBrowser(QDialog):
         else:
             m=value if kind=='builtin' else value.manifest
             label=QLabel(m['name']+' · '+p('builtin' if kind=='builtin' else 'installed')+'\n'+m['character']+' · '+m['language']+'\n'+m['description'])
-            label.setWordWrap(True);label.setTextFormat(Qt.TextFormat.PlainText);layout.addWidget(label)
+            label.setWordWrap(True);label.setMinimumWidth(0);label.setSizePolicy(QSizePolicy.Policy.Ignored,QSizePolicy.Policy.Preferred);label.setToolTip(label.text());label.setTextFormat(Qt.TextFormat.PlainText);layout.addWidget(label)
             count=m.get('recordings',0) if kind=='builtin' else value.recordings
             size=m.get('bytes',0) if kind=='builtin' else sum(f['size'] for f in m['files'])
             complete=m.get('complete',False) if kind=='builtin' else value.complete
             state=QLabel(p('summary',count=count,size=f'{size/1048576:.1f}',status=p('ready' if complete else 'missing')));state.setWordWrap(True);layout.addWidget(state)
+            op_count=m.get('operation_recordings',0) if kind=='builtin' else len([f for f in m['files'] if f['path'].startswith('operation-voice/')])
+            types=QLabel(p('recording_types',voice=count,operation=op_count,total=count+op_count));types.setWordWrap(True);layout.addWidget(types)
             buttons=QHBoxLayout()
             for action in ('preview','rules','use'):
                 b=QPushButton(p(action));b.setObjectName('pack_'+action);b.clicked.connect(lambda checked=False,k=kind,v=value,a=action:self.resolve(k,v,a));buttons.addWidget(b)
@@ -99,7 +105,9 @@ class PackBrowser(QDialog):
         if self.busy:return
         if kind=='builtin':
             from .pack_builtins import prepare_builtin
-            def loaded(preview):self.previews.append(preview);self.perform(preview.pack,action)
+            if value['id'] in self.builtin_cache:self.perform(self.builtin_cache[value['id']].pack,action);return
+            def loaded(preview):
+                self.previews.append(preview);self.builtin_cache[value['id']]=preview;self.perform(preview.pack,action)
             self.run(lambda:prepare_builtin(value['id'],self.w.store.path.parent/'pack-temp'),loaded)
         else:self.perform(value,action)
     def perform(self,pack,action):
@@ -124,7 +132,7 @@ class PackBrowser(QDialog):
                 self.w.pack_previous=previous;self.w.reload_pack_state(identifier)
                 self.status.setText(p('used'));self.back.setEnabled(True);self.start.setVisible(self.w.paused)
             opt=operation.isChecked()
-            self.run(lambda:install_and_use(self.w.store,pack,opt),used)
+            self.run(lambda:install_and_use(self.w.store,pack,opt,self.w.registry.events),used)
     def import_file(self):
         if not self.w.autosave.flush():return
         value,_=FileDialogs.getOpenFileName(self,p('import'),str(self.w.store.path.parent),'Companion pack (*.wcpak)')

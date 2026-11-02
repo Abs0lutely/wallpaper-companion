@@ -64,3 +64,8 @@ python scripts/update_portable.py --target <个人免安装目录> --plan <上�
 
 
 本地开发新增中日各 90 条默认音频（总计 180），日本语音按白名单复制并保留原件。`validate_bundled_manifest` 检查全部文件与哈希；中日默认文本与资源分类保持对应。新独立声音模式不需要安装 WE。仅在正式发布阶段更新版本并构建，不因日常提交制作发行包。
+
+
+### 陪伴包目录（本地开发中）
+
+未来构建在冻结前调用 `companion.pack_builtins.validate_builtin_catalog()`，核对两包各 38 + 52 条现有获准录音。随整个 `examples/` 携带 `examples/packs/catalog.json`，无需在仓库重复保存音频 ZIP。随附 `COMPANION_PACKS.md` / `.en.md`。本轮未执行构建、安装或发行包验收；版本不升级。

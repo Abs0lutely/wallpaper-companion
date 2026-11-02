@@ -1178,7 +1178,7 @@ class Window(PackMixin, ModeMixin, DialogueBindingMixin, LibraryMixin, DialogueM
         try:
             from .core import defaults
             c = defaults()
-            for key in ("ui_language", "monitor", "poll_seconds", "hover_help", "appearance", "operation_voice_enabled", "operation_voice_rules", "operation_voice_min_interval", "enabled_plugins", *self.backend_combos):
+            for key in ("ui_language", "monitor", "poll_seconds", "hover_help", "appearance", "operation_voice_enabled", "operation_voice_pack_only", "operation_voice_rules", "operation_voice_min_interval", "enabled_plugins", *self.backend_combos):
                 self.store.config[key] = copy.deepcopy(c[key])
             p = self.store.profile(self.editing_id)
             if p:

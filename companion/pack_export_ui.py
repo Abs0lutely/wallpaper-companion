@@ -5,9 +5,9 @@ import shiboken6
 from PySide6.QtCore import Qt,QUrl
 from PySide6.QtGui import QDesktopServices
 from PySide6.QtWidgets import (QDialog,QVBoxLayout,QHBoxLayout,QFormLayout,QLineEdit,QPlainTextEdit,
-    QPushButton,QCheckBox,QTableWidget,QTableWidgetItem,QHeaderView,QAbstractItemView,QLabel,QProgressBar)
+    QPushButton,QCheckBox,QScrollArea,QWidget,QTableWidget,QTableWidgetItem,QHeaderView,QAbstractItemView,QLabel,QProgressBar)
 from .pack_text import p
-from .packs import plan_export,write_export
+from .packs import plan_export,write_export,reference_sources
 from .file_dialogs import FileDialogs
 
 
@@ -15,7 +15,8 @@ class PackExportDialog(QDialog):
     def __init__(self,window,profile):
         super().__init__(window);self.w=window;self.profile=profile;self.plan=None;self.busy=False;self.output=None
         self.setWindowTitle(p('export'));self.resize(800,680)
-        layout=QVBoxLayout(self);self.form=QFormLayout();self.fields={}
+        outer=QVBoxLayout(self);scroll=QScrollArea();scroll.setWidgetResizable(True);content=QWidget();layout=QVBoxLayout(content);scroll.setWidget(content);outer.addWidget(scroll,1)
+        self.form=QFormLayout();self.fields={}
         for key in ('name','character','language','author','description'):
             field=QLineEdit(profile['name'] if key=='name' else 'zh-CN' if key=='language' else '')
             self.fields[key]=field;self.form.addRow(p(key),field)
@@ -24,25 +25,26 @@ class PackExportDialog(QDialog):
         options.addWidget(self.bgm);options.addWidget(self.operation);layout.addLayout(options)
         hint=QLabel(p('export_hint'));hint.setWordWrap(True);layout.addWidget(hint)
         top=QHBoxLayout();self.scan=QPushButton(p('resources'));self.scan.clicked.connect(self.preview_resources);top.addWidget(self.scan)
+        self.content_button=QPushButton(p("content"));self.content_button.setEnabled(False);self.content_button.clicked.connect(self.show_contents);top.addWidget(self.content_button)
         for key,checked in (('all',True),('none',False)):
             button=QPushButton(p(key));button.clicked.connect(lambda _,v=checked:self.select_all(v));top.addWidget(button)
         layout.addLayout(top)
-        self.files=QTableWidget(0,3);self.files.setHorizontalHeaderLabels([p('file'),p('source_header'),p('size')]);self.files.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows);self.files.setSelectionMode(QAbstractItemView.SelectionMode.ExtendedSelection)
+        self.files=QTableWidget(0,3);self.files.setMinimumHeight(170);self.files.setHorizontalHeaderLabels([p('file'),p('source_header'),p('size')]);self.files.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows);self.files.setSelectionMode(QAbstractItemView.SelectionMode.ExtendedSelection)
         self.files.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch);layout.addWidget(self.files,1)
         self.missing=QPlainTextEdit();self.missing.setReadOnly(True);self.missing.setMaximumHeight(100);layout.addWidget(self.missing)
-        self.rights=QCheckBox(p('rights'));layout.addWidget(self.rights)
-        self.status=QLabel();self.status.setWordWrap(True);layout.addWidget(self.status)
-        self.progress=QProgressBar();self.progress.setRange(0,0);self.progress.hide();layout.addWidget(self.progress)
+        self.rights=QCheckBox(p('rights'));outer.addWidget(self.rights)
+        self.status=QLabel();self.status.setWordWrap(True);outer.addWidget(self.status)
+        self.progress=QProgressBar();self.progress.setRange(0,0);self.progress.hide();outer.addWidget(self.progress)
         bottom=QHBoxLayout();self.export_button=QPushButton(p('save'));self.export_button.clicked.connect(self.export_file);bottom.addWidget(self.export_button)
         self.open_button=QPushButton(p('open'));self.open_button.setEnabled(False);self.open_button.clicked.connect(self.open_directory);bottom.addWidget(self.open_button)
-        close=QPushButton(p('close'));close.clicked.connect(self.reject);bottom.addWidget(close);layout.addLayout(bottom)
+        close=QPushButton(p('close'));close.clicked.connect(self.reject);bottom.addWidget(close);outer.addLayout(bottom)
         for field in self.fields.values():field.textChanged.connect(self.invalidate)
         self.bgm.toggled.connect(self.invalidate);self.operation.toggled.connect(self.invalidate)
         self.files.itemChanged.connect(lambda _:self.refresh_summary())
     def reject(self):
         if not self.busy:super().reject()
     def invalidate(self,*_):
-        self.plan=None;self.status.setText(p('source_changed'))
+        self.plan=None;self.content_button.setEnabled(False);self.status.setText(p('source_changed'))
     def controls(self,enabled):
         for field in self.fields.values():field.setEnabled(enabled)
         for widget in (self.scan,self.export_button,self.bgm,self.operation,self.files,self.rights):widget.setEnabled(enabled)
@@ -69,14 +71,22 @@ class PackExportDialog(QDialog):
         if config.get('operation_voice_pack_only'):roots=[config.get('operation_voice_dir','')]
         roots=[str(r) for r in roots if str(r).strip()]
         bgm=self.bgm.isChecked()
-        self.run(lambda:plan_export(self.profile,metadata,include_bgm=bgm,operation=operation,operation_roots=roots),self.show_plan)
+        self.run(lambda:plan_export(self.profile,metadata,include_bgm=bgm,operation=operation,operation_roots=roots,excluded_sources=reference_sources(config)),self.show_plan)
     def show_plan(self,plan):
-        self.plan=plan;self.files.blockSignals(True);self.files.setRowCount(len(plan.sources))
+        self.plan=plan;self.content_button.setEnabled(True);self.files.blockSignals(True);self.files.setRowCount(len(plan.sources))
         for row,(name,source) in enumerate(sorted(plan.sources.items())):
             item=QTableWidgetItem(name);item.setFlags(Qt.ItemFlag.ItemIsEnabled|Qt.ItemFlag.ItemIsSelectable|Qt.ItemFlag.ItemIsUserCheckable);item.setCheckState(Qt.CheckState.Checked);item.setToolTip(name);self.files.setItem(row,0,item)
             for col,value in ((1,str(source)),(2,f'{plan.stamps[name][0]/1048576:.3f} MiB')):
                 cell=QTableWidgetItem(value);cell.setFlags(Qt.ItemFlag.ItemIsEnabled|Qt.ItemFlag.ItemIsSelectable);cell.setToolTip(value);self.files.setItem(row,col,cell)
         self.files.blockSignals(False);self.refresh_summary()
+    def show_contents(self):
+        if not self.plan:return
+        from .packs_ui import info_dialog
+        profile=self.plan.preset['profiles'][0]
+        text=p('inventory',lines=len(profile['dialogues']),rules=len(profile['rules']),missing=len(self.plan.missing))+'\n\n'
+        text+='\n'.join(f"{r['name']} · {r['event']} → {r['source'] or 'voice/'}" for r in profile['rules'])
+        text+='\n\n'+'\n'.join(f"{d['category']} · {d['text']}" for d in profile['dialogues'])
+        info_dialog(self,p('content'),text)
     def selected(self):return [self.files.item(row,0).text() for row in range(self.files.rowCount()) if self.files.item(row,0).checkState()==Qt.CheckState.Checked]
     def select_all(self,checked):
         if self.busy:return

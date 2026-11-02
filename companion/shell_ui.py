@@ -158,7 +158,8 @@ class CompanionShellMixin:
         hero_layout.setContentsMargins(24, 19, 24, 20)
         caption = QLabel("YOUR EVERYDAY COMPANION")
         caption.setObjectName("heroCaption")
-        hero_layout.addWidget(caption)
+        from .pack_text import p
+        hero_top=QHBoxLayout();hero_top.addWidget(caption);hero_top.addStretch();hero_top.addWidget(button(p("title"),self.open_companion_packs));hero_layout.addLayout(hero_top)
         hero_layout.addStretch()
         self.current_label = QLabel(tr('ui.e8b970bc3e05', '正在检测…'))
         self.current_label.setObjectName("current")
@@ -184,8 +185,6 @@ class CompanionShellMixin:
         self.detect_button=button(tr('ui.14ca09ce1fd2', '立即检测'), lambda: self.detect(command=True))
         context.addWidget(self.detect_button)
         context.addWidget(button(tr("mode.label","运行模式"),lambda:self.tabs.setCurrentIndex(3)))
-        from .pack_text import p
-        context.addWidget(button(p("title"), self.open_companion_packs))
         work.addLayout(context)
         self.editing_context = hint("")
         work.addWidget(self.editing_context)

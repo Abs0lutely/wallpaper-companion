@@ -1,0 +1,30 @@
+{
+  "format": "wallpaper-companion-included-packs",
+  "version": 1,
+  "packs": [
+    {
+      "id": "gentle-days-zh-CN",
+      "name": "温柔日常 · 中文 / Gentle Days · Chinese",
+      "character": "随附录音（角色未统一标注） / Included recordings (mixed labels)",
+      "language": "zh-CN",
+      "author": "Wallpaper Companion contributors",
+      "description": "F8、鼠标中键、早晚问候和闲置陪伴；可选软件操作回应。 / F8, middle click, greetings and quiet company; optional app responses.",
+      "recordings": 38,
+      "operation_recordings": 52,
+      "bytes": 32010360,
+      "complete": true
+    },
+    {
+      "id": "gentle-days-ja-JP",
+      "name": "温柔日常 · 日本語 / Gentle Days · Japanese",
+      "character": "随附录音（角色未统一标注） / Included recordings (mixed labels)",
+      "language": "ja-JP",
+      "author": "Wallpaper Companion contributors",
+      "description": "F8、鼠标中键、早晚问候和闲置陪伴；可选软件操作回应。 / F8, middle click, greetings and quiet company; optional app responses.",
+      "recordings": 38,
+      "operation_recordings": 52,
+      "bytes": 23138680,
+      "complete": true
+    }
+  ]
+}

@@ -116,4 +116,61 @@ class PackTests(unittest.TestCase):
         with PackPreview(self.archive(),self.root/'tmp') as v:install_and_use(self.store,v.pack)
         self.assertEqual(len(list((self.root/'a/packs').iterdir())),2)
 
+    def test_json_limits_and_duplicate_keys(self):
+        archive=self.archive()
+        for content in (b'{"files":[],"files":[]}', b'[]', b'{"files":0}'):
+            with zipfile.ZipFile(archive,'w') as z:z.writestr('pack.json',content)
+            with self.assertRaises((ValueError,KeyError,TypeError)):PackPreview(archive,self.root/'tmp')
+            self.assertEqual(list((self.root/'tmp').iterdir()),[])
+        archive=self.archive()
+        with patch('companion.packs.MAX_JSON',10),self.assertRaises(ValueError):PackPreview(archive,self.root/'tmp')
+        with patch('companion.packs.MAX_ARCHIVE',10),self.assertRaises(ValueError):PackPreview(archive,self.root/'tmp')
+        with patch('companion.packs.MAX_TOTAL',10),self.assertRaises(ValueError):PackPreview(archive,self.root/'tmp')
+        with patch('companion.packs.MAX_FILES',1),self.assertRaises(ValueError):PackPreview(archive,self.root/'tmp')
+    def test_install_copy_failure_cleans_only_own_directory(self):
+        with PackPreview(self.archive(),self.root/'tmp') as preview:
+            base=self.root/'a/packs';base.mkdir(parents=True);keep=base/'unrelated';keep.mkdir();(keep/'file').write_text('keep')
+            with patch('companion.packs.shutil.copytree',side_effect=OSError('copy failure')):
+                with self.assertRaises(OSError):install_and_use(self.store,preview.pack)
+            self.assertEqual(list(base.iterdir()),[keep]);self.assertEqual((keep/'file').read_text(),'keep')
+            self.assertEqual(self.store.path.read_bytes(),self.before)
+    def test_export_failure_preserves_previous_output(self):
+        target=self.archive();before=target.read_bytes();plan=self.plan()
+        with patch('companion.packs.shutil.copyfile',side_effect=OSError('disk full')):
+            with self.assertRaises(OSError):write_export(plan,target)
+        self.assertEqual(target.read_bytes(),before)
+    def test_text_only_status_and_missing_rule_preserved(self):
+        self.profile['voice_dir']='';archive=self.archive()
+        with PackPreview(archive,self.root/'tmp') as preview:
+            self.assertEqual(preview.pack.recordings,0);self.assertFalse(preview.pack.complete)
+            identifier,_=install_and_use(self.store,preview.pack)
+            profile=self.store.profile(identifier)
+            self.assertEqual(len(profile['rules']),1);self.assertFalse(profile['use_bundled_demo'])
+            self.assertEqual(candidates(profile,profile['rules'][0]),[])
+    def test_relative_temp_path_is_supported(self):
+        relative=(self.root/'relative').relative_to(ROOT)
+        with PackPreview(self.archive(),relative) as preview:self.assertTrue(preview.pack.complete)
+    def test_unavailable_extension_events_are_retained_but_disabled(self):
+        self.profile['rules'][0]['event']='external_test_event'
+        with PackPreview(self.archive(),self.root/'tmp') as preview:
+            identifier,_=install_and_use(self.store,preview.pack)
+            self.assertEqual(self.store.profile(identifier)['rules'][0]['event'],'external_test_event')
+            self.assertFalse(self.store.profile(identifier)['rules'][0]['enabled'])
+            identifier,_=install_and_use(self.store,preview.pack,available_events={'external_test_event'})
+            self.assertTrue(self.store.profile(identifier)['rules'][0]['enabled'])
+    def test_known_tts_reference_is_excluded_from_random_folder_export(self):
+        clip=self.voice/'test/hello-model.wav'
+        config={'tts':dict(project=str(self.voice),reference='test/hello-model.wav')}
+        plan=self.plan(excluded_sources=reference_sources(config))
+        self.assertEqual(plan.sources,{})
+        with PackPreview(write_export(plan,self.root/'without-reference.wcpak'),self.root/'tmp') as preview:
+            self.assertFalse(preview.pack.complete);self.assertEqual(preview.pack.recordings,0)
+            self.assertNotIn(str(clip),json.dumps(preview.pack.manifest,ensure_ascii=False))
+    def test_export_can_run_without_qt(self):
+        # Core exporting imports pure operation lookup, never GUI or service code.
+        import ast
+        source=(ROOT/'companion/packs.py').read_text(encoding='utf-8-sig')
+        modules=[n.module for n in ast.walk(ast.parse(source)) if isinstance(n,ast.ImportFrom)]
+        self.assertFalse(any(m and ('PySide6' in m or m.endswith('_ui') or m.endswith('operation_voices')) for m in modules))
+
 if __name__=='__main__':unittest.main()
