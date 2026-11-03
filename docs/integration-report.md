@@ -1,6 +1,6 @@
 # 性能与自动更新整合记录
 
-**状态：本轮本地验收完成。** 无调用历史模拟函数的最终长测见 `docs/performance-stability.md`。历史关机检查点保留在 `docs/PERFORMANCE_HANDOFF.md`；所有测试进程均已退出。
+**状态：已作为 v0.13.0 正式发布，云端实际包、双版本升级和公开附件校验均通过，见 [发布验收记录](release-v0.13.0.md)。** 下文保留发布前的本地整合记录。 无调用历史模拟函数的最终长测见 `docs/performance-stability.md`。历史关机检查点保留在 `docs/PERFORMANCE_HANDOFF.md`；所有测试进程均已退出。
 
 本地整合分支：`integration/runtime-auto-update`。工作区：`wallpaper-companion-integrated`。
 
