@@ -20,14 +20,7 @@ PLUGIN_DIR = LAYOUT.plugin_dir
 AUDIO_EXTENSIONS = {".wav", ".mp3", ".ogg", ".flac", ".m4a", ".aac", ".wma", ".opus"}
 
 
-def writable_path(path: str | Path, extra_protected=()) -> Path:
-    target = Path(path).expanduser().resolve()
-    for root in [*protected_directories(), *extra_protected]:
-        root = Path(root).resolve()
-        if target == root or root in target.parents:
-            raise ValueError(tr('ui.74730882c969', '此目录只读：请选择 Wallpaper Engine 和工坊目录之外的位置。'))
-    return target
-
+from .paths import writable_path
 
 def identity(path: str) -> str:
     if not path.strip():
@@ -128,7 +121,7 @@ def new_profile(name=None, wallpaper="") -> dict:
 def defaults() -> dict:
     from .operation_rules import default_rules
     we_dir, workshop_dir = discover_wallpaper_engine()
-    return dict(version=4, run_mode="wallpaper_engine", standalone_profile="", ui_language="zh-CN", we_dir=we_dir, workshop_dir=workshop_dir, library_roots=[], library_backend="wallpaper_engine", ffprobe="",
+    return dict(version=4, run_mode="wallpaper_engine", standalone_profile="", ui_language="zh-CN", auto_update_enabled=True, we_dir=we_dir, workshop_dir=workshop_dir, library_roots=[], library_backend="wallpaper_engine", ffprobe="",
                 monitor=0, poll_seconds=4, manual_profile="", profiles=[], hover_help=True, shared_asset_dir="",
                 operation_voice_enabled=True, operation_voice_dir="", operation_voice_pack_only=False,
                 operation_voice_rules=default_rules(), operation_voice_min_interval=1.2, tts_filename_model="",
@@ -153,6 +146,8 @@ class Store:
                 if not isinstance(self.config.get("standalone_profile"),str):self.config["standalone_profile"]=""
                 from .i18n import normalize_language
                 self.config["ui_language"] = normalize_language(self.config.get("ui_language"))
+                if not isinstance(self.config.get("auto_update_enabled"), bool):
+                    self.config["auto_update_enabled"] = True
                 if not isinstance(self.config["operation_voice_enabled"], bool) or not isinstance(self.config["operation_voice_dir"], str):
                     raise ValueError(tr('ui.0ef515b8ebcc', '操作语音开关必须是布尔值，目录必须是文本'))
                 if not isinstance(self.config["tts_filename_model"],str) or len(self.config["tts_filename_model"])>200:

@@ -39,5 +39,5 @@ class DocumentTests(unittest.TestCase):
             self.assertGreater(len(text),1000,name)
             self.assertNotIn("<img",text)
             self.assertNotIn("![",text)
-            for script in ("scripts/build_windows.py","scripts/package_source.py","scripts/update_portable.py"):
+            for script in ("scripts/build_windows.py","scripts/package_source.py","companion/program_update.py"):
                 self.assertIn('"'+name+'"',(root/script).read_text(encoding="utf-8"))

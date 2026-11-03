@@ -74,3 +74,11 @@ python scripts/update_portable.py --target <个人免安装目录> --plan <上�
 ### v0.11.0 正式分发验收
 
 实际 EXE 自检还验证中日两包（各 38 陪伴 + 52 操作）、180 条资源 SHA256、无需 WE 的独立方案、F8/定时调度和导出再导入另一份隔离配置。此检查在云端对便携版及安装版各执行一次，不调用真实 TTS。用户个人数据及现有服务不参与验收。
+
+## v0.12 自动更新发行门槛
+
+构建会额外生成独立 `WallpaperCompanionUpdater.exe`，与 `app-version.txt` 一同随安装版和便携版分发。辅助程序被复制到用户数据更新暂存目录后运行，不占用待替换的程序目录。便携 CLI 与辅助程序复用 `companion/program_update.py`，原 `scripts/update_portable.py` 入口保留。
+
+正式 GitHub Release 在现有安装/卸载验证后，再下载并校验 v0.11.0 的真实历史安装包和便携包，由 `scripts/verify_upgrades.py` 在一次性 Windows runner 中执行两种升级、重启 EXE 自检、安装目录和数据哈希检查。此脚本拒绝在普通本地环境执行；不会为验证操作个人安装。验证不通过就不发布。报告随 `release-verification` Actions artifact 保留。
+
+本地备用构建仍执行原实际包验证；真实历史升级门槛属于正式云端发布流程。更新文件大小和 SHA256 来自同一 GitHub Release，并非独立数字签名；不提供代码签名证书，也不承诺取消 SmartScreen 提示。

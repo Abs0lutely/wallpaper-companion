@@ -47,3 +47,13 @@ def discover_wallpaper_engine():
 
 def protected_directories():
     return [Path(p) for p in discover_wallpaper_engine() if p]
+
+
+def writable_path(path: str | Path, extra_protected=()) -> Path:
+    from .i18n import tr
+    target = Path(path).expanduser().resolve()
+    for root in [*protected_directories(), *extra_protected]:
+        root = Path(root).resolve()
+        if target == root or root in target.parents:
+            raise ValueError(tr('ui.74730882c969', '此目录只读：请选择 Wallpaper Engine 和工坊目录之外的位置。'))
+    return target

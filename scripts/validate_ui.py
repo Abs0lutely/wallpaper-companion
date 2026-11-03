@@ -39,7 +39,7 @@ SMOKES = (
     "smoke_multilingual.py",
     "smoke_multilingual_en.py",
     "smoke_packs.py", "smoke_packs_en.py",
-    "smoke_pack_editing.py",
+    "smoke_pack_editing.py", "smoke_updates.py",
 )
 
 
@@ -118,6 +118,8 @@ def worker(name):
             result = unittest.TextTestRunner(verbosity=1).run(suite)
             passed = result.wasSuccessful()
         else:
+            # Update checks are exercised by dedicated mocks, never live GitHub.
+            stack.enter_context(patch("companion.updates_ui.UpdateController.automatic_check"))
             # GUI tests must never start or stop the actual local TTS service.
             stack.enter_context(patch("companion.managed_api.api"))
             stack.enter_context(patch("companion.ui.foreground_state", return_value=dict(desktop=True, fullscreen=False, own=False)))

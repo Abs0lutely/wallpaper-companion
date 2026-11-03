@@ -43,7 +43,7 @@ class UpdateTests(unittest.TestCase):
     def test_apply_preserves_configuration_audio_plugins_marker_and_backups(self):
         before = personal_snapshot(self.target)
         plan = self.stage()
-        with patch("scripts.update_portable.running_instances", return_value=[]):
+        with patch("companion.program_update.running_instances", return_value=[]):
             result = apply_update(plan, self.target)
         self.assertTrue(result["personal_files_preserved"])
         self.assertEqual(before, personal_snapshot(self.target))
@@ -57,7 +57,7 @@ class UpdateTests(unittest.TestCase):
         self.write_archive(docs)
         before=personal_snapshot(self.target)
         plan=self.stage()
-        with patch("scripts.update_portable.running_instances", return_value=[]):
+        with patch("companion.program_update.running_instances", return_value=[]):
             apply_update(plan, self.target)
         self.assertEqual(before, personal_snapshot(self.target))
         for name,content in docs.items():
@@ -65,7 +65,7 @@ class UpdateTests(unittest.TestCase):
 
     def test_running_application_blocks_apply_without_killing_or_overwriting(self):
         plan = self.stage()
-        with patch("scripts.update_portable.running_instances", return_value=[123]):
+        with patch("companion.program_update.running_instances", return_value=[123]):
             with self.assertRaises(RuntimeError):
                 apply_update(plan, self.target)
         self.assertEqual((self.target / "WallpaperCompanion.exe").read_text(), "old exe")
@@ -80,7 +80,7 @@ class UpdateTests(unittest.TestCase):
     def test_modified_staged_binary_is_rejected(self):
         plan = self.stage()
         (plan.parent / "payload/WallpaperCompanion.exe").write_text("corrupted")
-        with patch("scripts.update_portable.running_instances", return_value=[]):
+        with patch("companion.program_update.running_instances", return_value=[]):
             with self.assertRaises(ValueError):
                 apply_update(plan, self.target)
         self.assertEqual((self.target / "WallpaperCompanion.exe").read_text(), "old exe")
@@ -92,7 +92,7 @@ class UpdateTests(unittest.TestCase):
             if path == plan.parent / "payload/WallpaperCompanion.exe":
                 raise OSError("simulated file lock")
             return original(path, destination)
-        with patch("scripts.update_portable.running_instances", return_value=[]), patch.object(Path, "rename", fail_new_exe):
+        with patch("companion.program_update.running_instances", return_value=[]), patch.object(Path, "rename", fail_new_exe):
             with self.assertRaises(OSError):
                 apply_update(plan, self.target)
         self.assertEqual((self.target / "WallpaperCompanion.exe").read_text(), "old exe")

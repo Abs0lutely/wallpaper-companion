@@ -34,6 +34,8 @@ def worker(args):
         from PySide6.QtCore import QTimer
         from PySide6.QtWidgets import QApplication
         from companion.ui import Window, STYLE
+        if (ROOT / "companion" / "updates_ui.py").exists():
+            stack.enter_context(patch("companion.updates_ui.UpdateController.automatic_check"))
         stack.enter_context(patch("companion.ui.foreground_state", return_value=dict(desktop=True, fullscreen=False, own=False)))
         store = core.Store()
         store.config.update(run_mode=args.mode, we_dir="", workshop_dir="", library_roots=[])

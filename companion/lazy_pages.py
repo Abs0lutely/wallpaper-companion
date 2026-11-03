@@ -2,6 +2,7 @@
 from PySide6.QtWidgets import QWidget, QScrollArea
 
 PAGE_ATTRIBUTES = {
+    **dict.fromkeys(("auto_update_enabled", "check_update_button", "update_status"), 3),
     **dict.fromkeys((
         'provider_choice', 'provider_description', 'provider_fields_widget', 'provider_form',
         'provider_widgets', 'provider_cache', 'rendered_provider', 'tts_output',

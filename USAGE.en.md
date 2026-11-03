@@ -1,5 +1,16 @@
 # Wallpaper Companion: Getting started
 
+## Automatic updates (v0.12.0+)
+
+In Runtime settings, **Enable automatic updates** is on by default. The app checks stable releases shortly after startup, then daily, and downloads the package matching your installed or portable edition. Turning it off cancels background checks and downloads. **Check for updates** remains available manually. The preference supports autosave and undo.
+
+The update window shows the version, release notes and download progress. After size and SHA256 verification, select **Update now** and confirm: the app saves your edits, exits normally, updates and restarts. **Later** lets you keep working. Finish speech generation or local API operations first. A failed save prevents exit; other instances are never force-closed.
+
+Installed editions retain their installation directory. Portable editions replace program files only, keep a program backup and roll back failed replacements. Settings, bindings, dialogues, audio, shared folders, companion packs and personal plugins are preserved. Installer failures retain the package and logs for retry. Source checkouts show the release page without replacing source files. GitHub connectivity is required; no GitHub token is needed. Automatic updates do not bypass Windows security prompts.
+
+**v0.11.0 and earlier do not have an updater: install v0.12.0 manually first**, using setup.exe or the documented portable program-only update process. Later releases can be installed from within the app.
+
+
 ## Multilingual voices and standalone use
 
 Choose **Mode → Standalone sound companion** on home or in Settings. No WE is needed for sound profiles, input / timed voice and BGM. Existing WE bindings and its profile choice are kept.

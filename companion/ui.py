@@ -184,6 +184,8 @@ class Window(LazyPages, PackMixin, ModeMixin, DialogueBindingMixin, LibraryMixin
         if self.is_standalone():self.activate_profile(force=True)
         QTimer.singleShot(200, self.detect)
         QTimer.singleShot(500, self.scan_library)
+        from .updates_ui import UpdateController
+        self.updates = UpdateController(self)
 
     def ensure_editor(self):
         if self._editor_ready:
@@ -365,6 +367,14 @@ class Window(LazyPages, PackMixin, ModeMixin, DialogueBindingMixin, LibraryMixin
         self.ui_language.addItem("English", "en-US")
         self.ui_language.setToolTip(tr("settings.language_next_start", "界面语言将在下次启动时生效。"))
         form.addRow(tr("settings.language", "界面语言 / Interface language"), self.ui_language)
+        from .update_text import ut
+        self.auto_update_enabled = QCheckBox(ut("enabled"))
+        self.auto_update_enabled.setToolTip(ut("help"))
+        self.check_update_button = button(ut("check"), lambda: self.updates.check())
+        self.update_status = hint(self.updates.message if hasattr(self, "updates") else ut("ready"))
+        self.auto_update_enabled.toggled.connect(lambda: self.updates.preference_changed())
+        form.addRow(row(self.auto_update_enabled, self.check_update_button))
+        form.addRow(self.update_status)
         self.language_notice = hint("")
         form.addRow(self.language_notice)
         self.ui_language.currentIndexChanged.connect(self.refresh_language_notice)
@@ -1177,6 +1187,11 @@ class Window(LazyPages, PackMixin, ModeMixin, DialogueBindingMixin, LibraryMixin
             self.refresh_mode_notice()
         self.ui_language.setCurrentIndex(max(0, self.ui_language.findData(c.get("ui_language", "zh-CN"))))
         self.refresh_language_notice()
+        self.auto_update_enabled.blockSignals(True)
+        self.auto_update_enabled.setChecked(c.get("auto_update_enabled", True))
+        self.auto_update_enabled.blockSignals(False)
+        if hasattr(self, "updates"):
+            self.updates.sync()
         self.we_dir.setText(c["we_dir"])
         self.workshop_dir.setText(c["workshop_dir"])
         self.monitor.setValue(c["monitor"])
@@ -1195,7 +1210,7 @@ class Window(LazyPages, PackMixin, ModeMixin, DialogueBindingMixin, LibraryMixin
     def save_settings(self):
         before = copy.deepcopy(self.store.config)
         try:
-            self.store.config.update(ui_language=self.ui_language.currentData(), we_dir=self.we_dir.text().strip(), workshop_dir=self.workshop_dir.text().strip(),
+            self.store.config.update(ui_language=self.ui_language.currentData(), auto_update_enabled=self.auto_update_enabled.isChecked(), we_dir=self.we_dir.text().strip(), workshop_dir=self.workshop_dir.text().strip(),
                                      monitor=self.monitor.value(), poll_seconds=self.poll_seconds.value(), ffprobe=self.ffprobe_path.text().strip(),
                                      operation_voice_enabled=self.operation_voice_enabled.isChecked(), operation_voice_dir=self.operation_voice_dir.text().strip())
             for setting, combo in self.backend_combos.items():
@@ -1204,6 +1219,8 @@ class Window(LazyPages, PackMixin, ModeMixin, DialogueBindingMixin, LibraryMixin
                                                     if self.plugin_list.item(i).checkState() == Qt.CheckState.Checked]
             self.store.save()
             self.poll.setInterval(self.poll_seconds.value() * 1000)
+            if hasattr(self, "updates"):
+                self.updates.sync()
             self.log(tr('ui.787c5a4f0b63', '运行设置已保存；扩展和播放/输入后端变更重启后生效'))
             if before.get("ui_language", "zh-CN") != self.store.config["ui_language"]:
                 self.autosave.show(tr("settings.language_next_start", "界面语言将在下次启动时生效。"))
@@ -1229,7 +1246,7 @@ class Window(LazyPages, PackMixin, ModeMixin, DialogueBindingMixin, LibraryMixin
         try:
             from .core import defaults
             c = defaults()
-            for key in ("ui_language", "monitor", "poll_seconds", "hover_help", "appearance", "operation_voice_enabled", "operation_voice_pack_only", "operation_voice_rules", "operation_voice_min_interval", "enabled_plugins", *self.backend_combos):
+            for key in ("ui_language", "auto_update_enabled", "monitor", "poll_seconds", "hover_help", "appearance", "operation_voice_enabled", "operation_voice_pack_only", "operation_voice_rules", "operation_voice_min_interval", "enabled_plugins", *self.backend_combos):
                 self.store.config[key] = copy.deepcopy(c[key])
             p = self.store.profile(self.editing_id)
             if p:
@@ -1508,6 +1525,8 @@ class Window(LazyPages, PackMixin, ModeMixin, DialogueBindingMixin, LibraryMixin
         if self.quitting:
             return
         self.quitting = True
+        if hasattr(self, "updates"):
+            self.updates.close()
         self.generation_cancel.set()
         if self._editor_ready:
             self.autosave.close()

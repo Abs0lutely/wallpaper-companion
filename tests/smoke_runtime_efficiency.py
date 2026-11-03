@@ -124,6 +124,21 @@ with tempfile.TemporaryDirectory(dir=ROOT / "output") as directory:
                 assert not play.called, "A stale activation replayed input"
         watched = [Path(path) for path in w.audio_index.watcher.directories()]
         assert all(path == voice or voice in path.parents for path in watched), watched
+        import threading
+        release = threading.Event()
+        try:
+            for _ in range(2):
+                w.submit(lambda: release.wait(3), lambda _: None)
+            provider = w.registry.speech[w.provider_choice.currentData()]
+            with patch.object(provider, "check", return_value="isolated query complete"):
+                w.check_api()
+                deadline = time.monotonic() + 1
+                while w.api_busy and time.monotonic() < deadline:
+                    app.processEvents()
+                    time.sleep(.01)
+                assert not w.api_busy, "Real API status action waited behind bulk work"
+        finally:
+            release.set()
         w.cleanup()
         assert not w.audio_index.snapshots and not w.audio_index.watcher.directories()
         print(json.dumps({"deferred_runtime": True, "autosave_without_pages": True,
@@ -137,6 +152,8 @@ with tempfile.TemporaryDirectory(dir=ROOT / "output") as directory:
     tray = Window(store, hooks=False, defer_editor=True)
     try:
         assert not tray._editor_ready and "logs" not in vars(tray)
+        tray.updates.status("isolated update status")
+        assert not tray._editor_ready and "update_status" not in vars(tray)
         assert tray.active_id == profile["id"]
         tray.on_tick()
         tray.toggle_pause()

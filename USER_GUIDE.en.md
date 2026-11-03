@@ -1,5 +1,16 @@
 # Wallpaper Companion: Features and fields user guide
 
+## Automatic updates (v0.12.0+)
+
+In Runtime settings, **Enable automatic updates** is on by default. The app checks stable releases shortly after startup, then daily, and downloads the package matching your installed or portable edition. Turning it off cancels background checks and downloads. **Check for updates** remains available manually. The preference supports autosave and undo.
+
+The update window shows the version, release notes and download progress. After size and SHA256 verification, select **Update now** and confirm: the app saves your edits, exits normally, updates and restarts. **Later** lets you keep working. Finish speech generation or local API operations first. A failed save prevents exit; other instances are never force-closed.
+
+Installed editions retain their installation directory. Portable editions replace program files only, keep a program backup and roll back failed replacements. Settings, bindings, dialogues, audio, shared folders, companion packs and personal plugins are preserved. Installer failures retain the package and logs for retry. Source checkouts show the release page without replacing source files. GitHub connectivity is required; no GitHub token is needed. Automatic updates do not bypass Windows security prompts.
+
+**v0.11.0 and earlier do not have an updater: install v0.12.0 manually first**, using setup.exe or the documented portable program-only update process. Later releases can be installed from within the app.
+
+
 ## Multilingual voices and standalone use
 
 Choose **Mode → Standalone sound companion** from home or Settings. With no profiles, a **My sound space** profile is created. No Wallpaper Engine is required for mouse, hotkey, timed voice or BGM. Desktop-only input remains the default and can be changed. This mode stops WE polling and wallpaper-audio detection, keeps bindings and remembers its own profile choice. Returning to WE preserves its previous manual choice; mode switching supports undo. It does not set the Windows desktop wallpaper.
