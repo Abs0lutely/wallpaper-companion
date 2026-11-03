@@ -6,7 +6,7 @@
 
 双方均完成 904 次配置交替；整合版后两个五分钟内存窗口为 128.453 → 128.457 MiB，差约 4 KiB；最后十分钟未观察到持续增长。详见 `docs/performance-stability.md`，可运行源码和原始证据均保留。无需重跑下文的恢复步骤；本轮仍未推送、发布或替换个人版。
 
-## 当前结论
+## 关机时的历史结论
 
 实现、自动更新整合和功能回归已完成；**性能验收尚未全部完成**。剩余工作是使用不记录调用历史的模拟函数复核长时间内存趋势。用户因可能随时关机要求保存现场，本次不再启动新的长测。
 
@@ -30,7 +30,7 @@
 - 整合版关键数据：`output/performance/integrated-final-*`、`integrated-tray-access`、`integrated-reused-data`、`integrated-stream-stress`。
 - 固定基线在性能工作区 `output/baseline-source`；原始数据在其 `output/performance`。不要用最近的 Git HEAD 代替基线，`SOURCE_REVISION` 固定为 `2055adf...`。
 
-## 尚未解决的验收问题
+## 关机时尚未解决的验收问题（已复核）
 
 落盘采样的三十分钟测试完成约 900 次实际配置交替和刷新。第 20–25 分钟与第 25–30 分钟私有内存中位数：基线 152.88 → 153.88 MiB；整合版 132.63 → 133.63 MiB。双方仍增加约 1 MiB，**不得写“无持续增长/全部验收通过”**。
 
@@ -42,7 +42,7 @@
 
 临时分配追踪探针在 50 ms 触发周期下发生 `processEvents()` 重入与 IndexPending 超时；其数据仅用于找分配来源，不能作为功能/稳定性通过依据。探针与日志保留在 `output/performance/probes` 和 `output/performance/allocation-retention-probe`。
 
-## 下次继续步骤
+## 当时记录的恢复步骤（已执行）
 
 1. 先读本文件、项目 `AGENTS.md` 与两个报告；检查两个 worktree 的 Git 状态，不切换别人的分支。所有必要提交都在本地。
 2. 检查短程 `constant-fakes-check` 与 `baseline-constant-fakes-check` 是否通过，查看 JSON 的 `errors` 和日志中的 `Traceback`。缺少时只补这些短测。

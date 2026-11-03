@@ -5,16 +5,16 @@
   "status": "pass",
   "type": "explainer",
   "quality": "showcase",
-  "startedAt": "2026-11-03T06:04:47.189Z",
+  "startedAt": "2026-11-03T14:17:51.440Z",
   "specification": {
     "path": "E:\\AAA_ChatGPT\\Github项目\\wallpaper-companion-integrated\\.archify\\explainer-runtime-performance-20261103-132800\\candidate.archify.md",
-    "sha256": "13758508dac326da3c27f74ccc15a34f0402642bb857dab7f030b96d0b23c851",
-    "bytes": 3695
+    "sha256": "ea39ebb36b979a47934010f4810e2a0fca5e025abfb2a86cfea651b014386d6e",
+    "bytes": 3723
   },
   "artifact": {
     "path": "E:\\AAA_ChatGPT\\Github项目\\wallpaper-companion-integrated\\.archify\\explainer-runtime-performance-20261103-132800\\runtime-performance.html",
-    "sha256": "53964c5e3ab46933881c3dec827335094152e7941ace69b4f1f0c5fa44345f7e",
-    "bytes": 564119
+    "sha256": "b22be6bf69b9f2de4d9230f8f875dd37c83421d6625117cffe25d6a2638fd0bb",
+    "bytes": 564203
   },
   "stages": {
     "browser-check": {
@@ -44,8 +44,8 @@
         "ok": true,
         "command": "validate",
         "specification": {
-          "sha256": "13758508dac326da3c27f74ccc15a34f0402642bb857dab7f030b96d0b23c851",
-          "bytes": 3695
+          "sha256": "ea39ebb36b979a47934010f4810e2a0fca5e025abfb2a86cfea651b014386d6e",
+          "bytes": 3723
         },
         "validation": {
           "checksPassed": 4,
@@ -60,7 +60,7 @@
     "deliver": {
       "status": "pass",
       "exitCode": 0,
-      "durationMs": 2317,
+      "durationMs": 2356,
       "command": [
         "E:\\nodejs\\node.exe",
         "C:\\Users\\31810\\.codex\\skills\\archify\\bin\\archify.mjs",
@@ -76,20 +76,20 @@
       ],
       "receipt": {
         "schemaVersion": 1,
-        "receiptId": "295ea930-a2b1-450f-babd-6051e8918436",
+        "receiptId": "e839f798-5cb4-4d58-ba49-07570a552804",
         "ok": true,
         "command": "deliver",
         "type": "explainer",
         "input": "E:\\AAA_ChatGPT\\Github项目\\wallpaper-companion-integrated\\.archify\\explainer-runtime-performance-20261103-132800\\candidate.archify.md",
         "output": "E:\\AAA_ChatGPT\\Github项目\\wallpaper-companion-integrated\\.archify\\explainer-runtime-performance-20261103-132800\\runtime-performance.html",
         "explainer": {
-          "preparedSha256": "28159cbf6a8496f12f77c3778a77d893d752e6b50a323af0390f088ee1fcc72c",
+          "preparedSha256": "d6a8360258108ac967ccd8f8703048026d5d79b9c82c80e1436a756a25829d0f",
           "dependencies": [
             {
               "kind": "repository",
               "id": "index",
               "path": "companion/audio_index.py",
-              "revision": "4a2882832a926fb63f2f4223fb4ff7b59c12dc1e",
+              "revision": "90b38e227adbfa5f77245a3b4b300083d276fd95",
               "sha256": "bcb08d829d3f86ae2d2d66254d39a786f117c3661f9cbc68343cb08e866a96f7",
               "bytes": 6005
             },
@@ -103,12 +103,12 @@
           ]
         },
         "specification": {
-          "sha256": "13758508dac326da3c27f74ccc15a34f0402642bb857dab7f030b96d0b23c851",
-          "bytes": 3695
+          "sha256": "ea39ebb36b979a47934010f4810e2a0fca5e025abfb2a86cfea651b014386d6e",
+          "bytes": 3723
         },
         "artifact": {
-          "sha256": "53964c5e3ab46933881c3dec827335094152e7941ace69b4f1f0c5fa44345f7e",
-          "bytes": 564119
+          "sha256": "b22be6bf69b9f2de4d9230f8f875dd37c83421d6625117cffe25d6a2638fd0bb",
+          "bytes": 564203
         },
         "validation": {
           "checksPassed": 4,
@@ -134,7 +134,7 @@
     "check": {
       "status": "pass",
       "exitCode": 0,
-      "durationMs": 942,
+      "durationMs": 939,
       "command": [
         "E:\\nodejs\\node.exe",
         "C:\\Users\\31810\\.codex\\skills\\archify\\bin\\archify.mjs",
@@ -147,8 +147,8 @@
         "file": "E:\\AAA_ChatGPT\\Github项目\\wallpaper-companion-integrated\\.archify\\explainer-runtime-performance-20261103-132800\\runtime-performance.html",
         "family": "explainer",
         "artifact": {
-          "sha256": "53964c5e3ab46933881c3dec827335094152e7941ace69b4f1f0c5fa44345f7e",
-          "bytes": 564119
+          "sha256": "b22be6bf69b9f2de4d9230f8f875dd37c83421d6625117cffe25d6a2638fd0bb",
+          "bytes": 564203
         },
         "checks": [
           {
@@ -192,7 +192,7 @@
               "id": "runtime-flow",
               "receipt": {
                 "ok": true,
-                "file": "C:\\Users\\31810\\AppData\\Local\\Temp\\archify-explainer-check-DzY0IZ\\child.html",
+                "file": "C:\\Users\\31810\\AppData\\Local\\Temp\\archify-explainer-check-YI1KNL\\child.html",
                 "artifact": {
                   "sha256": "fe0dc81bac0f45c03d4ff76d5cafa0309e3015051dbd99075ca2818a1b01b578",
                   "bytes": 833232
@@ -325,7 +325,7 @@
         },
         "diagnostics": [],
         "provenance": "current",
-        "deliveryReceiptId": "295ea930-a2b1-450f-babd-6051e8918436"
+        "deliveryReceiptId": "e839f798-5cb4-4d58-ba49-07570a552804"
       }
     }
   },
@@ -339,8 +339,8 @@
     "summaryReceipt": "E:\\AAA_ChatGPT\\Github项目\\wallpaper-companion-integrated\\.archify\\explainer-runtime-performance-20261103-132800\\runtime-performance.finalize-summary.json"
   },
   "visualReview": "not-requested",
-  "finishedAt": "2026-11-03T06:04:53.100Z",
-  "durationMs": 5911,
+  "finishedAt": "2026-11-03T14:17:57.243Z",
+  "durationMs": 5803,
   "update": {
     "status": "unavailable",
     "installedVersion": null,

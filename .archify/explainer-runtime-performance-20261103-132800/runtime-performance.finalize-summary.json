@@ -7,13 +7,13 @@
   "quality": "showcase",
   "specification": {
     "path": "E:\\AAA_ChatGPT\\Github项目\\wallpaper-companion-integrated\\.archify\\explainer-runtime-performance-20261103-132800\\candidate.archify.md",
-    "sha256": "13758508dac326da3c27f74ccc15a34f0402642bb857dab7f030b96d0b23c851",
-    "bytes": 3695
+    "sha256": "ea39ebb36b979a47934010f4810e2a0fca5e025abfb2a86cfea651b014386d6e",
+    "bytes": 3723
   },
   "artifact": {
     "path": "E:\\AAA_ChatGPT\\Github项目\\wallpaper-companion-integrated\\.archify\\explainer-runtime-performance-20261103-132800\\runtime-performance.html",
-    "sha256": "53964c5e3ab46933881c3dec827335094152e7941ace69b4f1f0c5fa44345f7e",
-    "bytes": 564119
+    "sha256": "b22be6bf69b9f2de4d9230f8f875dd37c83421d6625117cffe25d6a2638fd0bb",
+    "bytes": 564203
   },
   "gates": {
     "validate": "pass",
@@ -32,7 +32,7 @@
     "summaryReceipt": "E:\\AAA_ChatGPT\\Github项目\\wallpaper-companion-integrated\\.archify\\explainer-runtime-performance-20261103-132800\\runtime-performance.finalize-summary.json"
   },
   "visualReview": "not-requested",
-  "durationMs": 5911,
+  "durationMs": 5803,
   "browserCheck": {
     "requested": false,
     "ran": false
