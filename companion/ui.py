@@ -584,10 +584,13 @@ class Window(PackMixin, ModeMixin, DialogueBindingMixin, LibraryMixin, DialogueM
             return self.change_dialogue_file()
         before = copy.deepcopy(self.store.config)
         files = {}
+        pack_channels = []
         try:
             from .dialogues import normalize_dialogues
             p = self.draft_profile()
             p["dialogues"] = normalize_dialogues(p["dialogues"])
+            from .packs import ensure_pack_channels
+            pack_channels = ensure_pack_channels(self.store, p)
             for key in ["voice_dir", "bgm_dir"]:
                 if p[key] and not Path(p[key]).is_dir():
                     raise ValueError(tr('ui.e027f7ba0479', '目录不存在，请先创建或选择已有文件夹：') + p[key])
@@ -609,6 +612,8 @@ class Window(PackMixin, ModeMixin, DialogueBindingMixin, LibraryMixin, DialogueM
             return True
         except Exception as exc:
             self.store.config = before
+            from .packs import rollback_pack_channels
+            rollback_pack_channels(pack_channels)
             from .autosave import Autosave
             try:
                 Autosave.restore_files(files)

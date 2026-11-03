@@ -229,11 +229,46 @@ class PackPreview:
     def __exit__(self,*args):self.close()
 
 
+def rollback_pack_channels(created):
+    """Remove only empty directories created by the current transaction."""
+    for folder in reversed(created):
+        try:Path(folder).rmdir()
+        except OSError:pass  # Never remove files that appeared after creation.
+
+
+def ensure_pack_channels(store,profile):
+    """Repair only this installed pack's own optional channels, never arbitrary paths."""
+    identifier=profile.get('pack_install','')
+    if not isinstance(identifier,str) or not re.fullmatch('[0-9a-f]{32}',identifier):return []
+    base=store.path.parent/'packs'/identifier
+    missing=[]
+    for channel,key in [('voice','voice_dir'),('bgm','bgm_dir')]:
+        value=profile.get(key,'')
+        expected=base/channel
+        if value and Path(value).expanduser().resolve()==expected.resolve() and not expected.is_dir():missing.append(expected)
+    if not missing:return []
+    # Existing app-managed installation metadata proves the ownership boundary.
+    for path in (base.parent,base,*missing):
+        if path.is_symlink() or path.exists() and getattr(path.stat(),'st_file_attributes',0)&0x400:raise ValueError(p('unsafe'))
+    base=writable_path(base,store.protected())
+    if not base.is_dir() or not (base/'pack.json').is_file():return []
+    manifest=read_json(base/'pack.json')
+    if not isinstance(manifest,dict) or manifest.get('format')!=FORMAT or type(manifest.get('version')) is not int or manifest.get('version')!=VERSION:return []
+    created=[]
+    try:
+        for folder in missing:
+            folder=writable_path(folder,store.protected())
+            folder.mkdir();created.append(folder)
+        return created
+    except Exception:
+        rollback_pack_channels(created);raise
+
+
 def install_and_use(store,pack,include_operation=False,available_events=BUILTIN_EVENTS):
     """Save profile + optional global response settings in one transaction."""
     pack=validate_directory(pack.root)
     base=writable_path(store.path.parent/'packs',store.protected());base.mkdir(parents=True,exist_ok=True)
-    created=None;destination=None
+    created=None;destination=None;created_channels=[]
     for item in base.iterdir():
         if item.is_dir() and not item.is_symlink():
             try:
@@ -254,6 +289,7 @@ def install_and_use(store,pack,include_operation=False,available_events=BUILTIN_
         profile.update(imported['settings'],dialogues=copy.deepcopy(imported['dialogues']),rules=copy.deepcopy(imported['rules']))
         profile.update(wallpaper='',voice_dir=str(destination/'voice'),bgm_dir=str(destination/'bgm'),
             asset_dir='',private_asset_dir='',dialogue_file='',use_bundled_demo=False,pack_install=destination.name)
+        created_channels=ensure_pack_channels(store,profile)
         # IDs must be fresh even when the same pack is used twice.
         for rule in profile['rules']:rule['id']=uuid.uuid4().hex
         updated=copy.deepcopy(previous);updated['profiles'].append(profile)
@@ -266,6 +302,7 @@ def install_and_use(store,pack,include_operation=False,available_events=BUILTIN_
         except Exception:store.config=previous;raise
         return profile['id'],previous
     except Exception:
+        rollback_pack_channels(created_channels)
         if created:shutil.rmtree(created)
         raise
 

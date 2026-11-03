@@ -1,3 +1,4 @@
+import time
 """Real navigation, reversible saves and failure protection in disposable data."""
 import copy
 import json
@@ -78,7 +79,10 @@ with tempfile.TemporaryDirectory(dir=output) as tmp, patch("companion.managed_ap
             w.restore_defaults()
         report["reset_preserves_resources_and_bindings"] = len(store.config["profiles"]) == 2 and store.profile(two["id"])["voice_dir"] == resource and w.voice_volume.value() == 80
         report["reset_can_be_undone"] = w.autosave.undo() and w.voice_volume.value() == 43
-        w.autosave.timer.start(20); QTest.qWait(200)
+        w.autosave.timer.start(20)
+        deadline = time.monotonic() + 2
+        while w.autosave.toast.isVisible() and time.monotonic() < deadline:
+            QTest.qWait(20)
         report["toast_dismisses_itself"] = not w.autosave.toast.isVisible()
         report["no_unexpected_errors"] = not errors
     finally:

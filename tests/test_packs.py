@@ -166,6 +166,53 @@ class PackTests(unittest.TestCase):
         with PackPreview(write_export(plan,self.root/'without-reference.wcpak'),self.root/'tmp') as preview:
             self.assertFalse(preview.pack.complete);self.assertEqual(preview.pack.recordings,0)
             self.assertNotIn(str(clip),json.dumps(preview.pack.manifest,ensure_ascii=False))
+    def test_import_provisions_empty_optional_channels(self):
+        for selected in (None,[]):
+            archive=write_export(self.plan(),self.root/'channels.wcpak',selected)
+            with PackPreview(archive,self.root/'tmp') as preview:
+                identifier,_=install_and_use(self.store,preview.pack)
+                profile=self.store.profile(identifier)
+                self.assertTrue(Path(profile['voice_dir']).is_dir())
+                self.assertTrue(Path(profile['bgm_dir']).is_dir())
+                self.assertFalse(list(Path(profile['bgm_dir']).iterdir()))
+                validate_directory(Path(profile['voice_dir']).parent)
+    def test_existing_empty_pack_channel_repair_keeps_inventory_unchanged(self):
+        with PackPreview(write_export(self.plan(),self.root/'text.wcpak',[]),self.root/'tmp') as preview:
+            identifier,_=install_and_use(self.store,preview.pack)
+        profile=self.store.profile(identifier);voice=Path(profile['voice_dir']);bgm=Path(profile['bgm_dir']);base=voice.parent
+        before={f.name:f.read_bytes() for f in base.iterdir() if f.is_file()}
+        voice.rmdir();bgm.rmdir()
+        created=ensure_pack_channels(self.store,profile)
+        self.assertEqual(set(created),{voice,bgm})
+        self.assertEqual({f.name:f.read_bytes() for f in base.iterdir() if f.is_file()},before)
+        self.assertFalse(ensure_pack_channels(self.store,profile))
+    def test_repair_never_creates_custom_or_unowned_paths(self):
+        with PackPreview(self.archive(),self.root/'tmp') as preview:
+            identifier,_=install_and_use(self.store,preview.pack)
+        profile=copy.deepcopy(self.store.profile(identifier));custom=self.root/'custom-missing'
+        profile['voice_dir']=str(custom)
+        self.assertEqual(ensure_pack_channels(self.store,profile),[])
+        self.assertFalse(custom.exists())
+        profile['pack_install']='../outside'
+        self.assertEqual(ensure_pack_channels(self.store,profile),[])
+    def test_failed_reuse_save_removes_only_new_empty_channel(self):
+        with PackPreview(self.archive(),self.root/'tmp') as preview:
+            identifier,_=install_and_use(self.store,preview.pack)
+            profile=self.store.profile(identifier);bgm=Path(profile['bgm_dir']);bgm.rmdir()
+            before=copy.deepcopy(self.store.config);voice=Path(profile['voice_dir'])/'test/hello-model.wav';audio=digest(voice)
+            with patch.object(self.store,'save',side_effect=OSError('disk full')):
+                with self.assertRaises(OSError):install_and_use(self.store,preview.pack)
+            self.assertFalse(bgm.exists());self.assertEqual(self.store.config,before);self.assertEqual(digest(voice),audio)
+    def test_failed_channel_repair_rolls_back_partial_creation(self):
+        with PackPreview(write_export(self.plan(),self.root/'text.wcpak',[]),self.root/'tmp') as preview:
+            identifier,_=install_and_use(self.store,preview.pack)
+        profile=self.store.profile(identifier);voice=Path(profile['voice_dir']);bgm=Path(profile['bgm_dir']);voice.rmdir();bgm.rmdir()
+        mkdir=Path.mkdir
+        def fail(path,*args,**kwargs):
+            if path==bgm:raise OSError('simulated channel creation failure')
+            return mkdir(path,*args,**kwargs)
+        with patch.object(Path,'mkdir',fail),self.assertRaises(OSError):ensure_pack_channels(self.store,profile)
+        self.assertFalse(voice.exists());self.assertFalse(bgm.exists())
     def test_export_can_run_without_qt(self):
         # Core exporting imports pure operation lookup, never GUI or service code.
         import ast

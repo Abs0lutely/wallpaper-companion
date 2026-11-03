@@ -28,6 +28,7 @@ def check_companion_distribution(root, checks):
             store=Store(root/locale/'config.json')
             identifier,_=install_and_use(store,pack)
             profile=store.profile(identifier)
+            checks['pack_audio_channels_exist_'+locale]=all(Path(profile[key]).is_dir() for key in ('voice_dir','bgm_dir'))
             key=next(r for r in profile['rules'] if r['event']=='key')
             checks['pack_standalone_'+locale]=store.config['run_mode']=='standalone' and not profile['wallpaper'] and not profile['dialogue_file'] and not profile['use_bundled_demo']
             checks['pack_key_'+locale]=RuleEngine().choose(profile,'key',now=100,clock=datetime(2026,11,2,12),hotkey=key['id']) is not None
