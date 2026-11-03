@@ -75,6 +75,7 @@ def run(destination):
         checks["default_shared_location"] = shared_root(Store()) == LAYOUT.shared_dir
         fresh_store = Store(root / "fresh/config.json")
         fresh = Window(fresh_store, hooks=False)
+        fresh.updates.close()  # Distribution tests must not contact GitHub.
         try:
             checks["fresh_install_shows_default_dialogues_without_binding"] = not fresh.editing_id and fresh.dialogue_table.rowCount() == 38
             fresh.edit_dialogues = []
@@ -97,6 +98,7 @@ def run(destination):
         store.config.update(profiles=[profile], manual_profile=profile["id"])
         store.save()
         window = Window(store, hooks=False)
+        window.updates.close()
         from .core import save_generated
         named = save_generated(root / "naming", "命名检查", (root / "voice/测试语音.wav").read_bytes(), store.protected(), model_name="测试模型")
         checks["model_tagged_filename_and_control"] = named.name == "命名检查-测试模型.wav" and named.is_file() and window.filename_model.maxLength() == 200
@@ -119,6 +121,8 @@ def run(destination):
         checks["autosave_and_operation_controls_present"] = hasattr(window, "autosave") and window.operation_voice_enabled.isChecked() and not window.selected_dialogues()
         from .operation_pack import require_pack
         if report["frozen"]:
+            from .updates import current_version
+            checks["detached_update_helper_shipped"] = (ROOT / "WallpaperCompanionUpdater.exe").is_file() and bool(current_version(ROOT))
             checks["distributed_operation_voice_actions_covered"] = require_pack(ROOT / "examples/audio/operation-voice")["ready"]
             from .bundled_audio import validate_starter_pack, validate_bundled_manifest
             checks["distributed_starter_voice_pack_verified"] = bool(validate_starter_pack()["files"])

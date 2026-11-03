@@ -7,7 +7,7 @@ import uuid
 import zipfile
 from pathlib import Path, PureWindowsPath
 import psutil
-from .core import writable_path
+from .paths import writable_path
 
 PROGRAM_ROOTS = {"WallpaperCompanion.exe", "WallpaperCompanionUpdater.exe", "app-version.txt", "_internal", "examples", "licenses", "readme-assets", "README.md", "README.en.md", "USER_GUIDE.md", "USER_GUIDE.en.md", "USAGE.md", "USAGE.en.md", "COMPANION_PACKS.md", "COMPANION_PACKS.en.md",
                  "EXTENSIONS.md", "THIRD_PARTY.md", "LICENSE", "BUILDING.md", "RELEASE_GUIDE.md"}

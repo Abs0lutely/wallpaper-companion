@@ -92,8 +92,15 @@ def main():
     if not args.skip_freeze:
         subprocess.run([sys.executable, "-m", "PyInstaller", "--noconfirm", "--clean", "--distpath", str(ROOT / "dist"),
                         "--workpath", str(ROOT / "build/pyinstaller"), str(ROOT / "packaging/wallpaper-companion.spec")], cwd=ROOT, check=True)
+        subprocess.run([sys.executable, "-m", "PyInstaller", "--noconfirm", "--clean", "--onefile", "--windowed",
+                        "--name", "WallpaperCompanionUpdater", "--distpath", str(ROOT / "dist/updater"),
+                        "--workpath", str(ROOT / "build/updater"), "--specpath", str(ROOT / "build"),
+                        "--paths", str(ROOT), "--exclude-module", "PySide6", "--exclude-module", "tkinter",
+                        "--icon", str(ROOT / "build/app.ico"), str(ROOT / "scripts/update_helper_entry.py")], cwd=ROOT, check=True)
     bundle = ROOT / "dist/WallpaperCompanion"
     assert (bundle / "WallpaperCompanion.exe").is_file()
+    shutil.copy2(ROOT / "dist/updater/WallpaperCompanionUpdater.exe", bundle / "WallpaperCompanionUpdater.exe")
+    (bundle / "app-version.txt").write_text(version(), encoding="utf-8")
     for name in ["README.md", "README.en.md", "USER_GUIDE.md", "USER_GUIDE.en.md", "USAGE.md", "USAGE.en.md", "COMPANION_PACKS.md", "COMPANION_PACKS.en.md", "EXTENSIONS.md", "THIRD_PARTY.md", "LICENSE", "BUILDING.md", "RELEASE_GUIDE.md"]:
         shutil.copy2(ROOT / name, bundle / name)
     shutil.copytree(ROOT / "examples", bundle / "examples", ignore=shutil.ignore_patterns("__pycache__"), dirs_exist_ok=True)

@@ -2190,3 +2190,7 @@ SOURCES = {
 from .pack_text import TEXT as _PACK_TEXT
 EN.update({'packs.' + key: value[1] for key, value in _PACK_TEXT.items()})
 SOURCES.update({'packs.' + key: value[0] for key, value in _PACK_TEXT.items()})
+
+from .update_text import TEXT as _UPDATE_TEXT
+EN.update({"updates." + key: value[1] for key, value in _UPDATE_TEXT.items()})
+SOURCES.update({"updates." + key: value[0] for key, value in _UPDATE_TEXT.items()})
