@@ -30,6 +30,7 @@ class Audio(QObject):
         self.media_devices.audioOutputsChanged.connect(self.sync_output_device)
         self.sync_output_device()
         self.profile = None
+        self.profile_epoch = 0
         self.paused = False
         self.bgm_paused = False
         self.bgm_blocked = False
@@ -56,6 +57,7 @@ class Audio(QObject):
                 output.setDevice(device)
 
     def set_profile(self, profile):
+        self.profile_epoch += 1
         self.stop()
         self.profile = profile
         self.bgm_paused = bool(profile and profile.get("bgm_paused", False))
@@ -113,8 +115,8 @@ class Audio(QObject):
         try:
             self.files = self.scan(self.profile.get("bgm_dir", ""))
         except IndexPending as pending:
-            profile = self.profile
-            self.index.defer(pending, "bgm", lambda: self.next_bgm() if self.profile is profile else None)
+            epoch = self.profile_epoch
+            self.index.defer(pending, "bgm", lambda: self.next_bgm() if self.profile_epoch == epoch else None)
             return
         available = [p for p in self.files if str(p) not in self.failed]
         if not available:

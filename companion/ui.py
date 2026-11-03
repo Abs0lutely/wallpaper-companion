@@ -128,6 +128,7 @@ class Window(LazyPages, PackMixin, ModeMixin, DialogueBindingMixin, LibraryMixin
         self.generation_state.connect(self.generation_update)
         self.api_stage.connect(self.api_message)
         self.mode_epoch=0
+        self.playback_epoch = 0
         self.query_busy = False
         self.tts_busy = False
         self.api_busy = False
@@ -1042,6 +1043,7 @@ class Window(LazyPages, PackMixin, ModeMixin, DialogueBindingMixin, LibraryMixin
         p = self.store.profile(manual) if manual else self.store.bound_profile(self.current["path"])
         next_id = p["id"] if p else None
         if force or next_id != self.active_id:
+            self.playback_epoch += 1
             self.active_id = next_id
             self.engine.reset()
             if hasattr(self.audio, "set_bgm_blocked"):
@@ -1111,7 +1113,8 @@ class Window(LazyPages, PackMixin, ModeMixin, DialogueBindingMixin, LibraryMixin
         self.audio.set_paused(self.paused or self.fullscreen)
         self.refresh_status()
 
-    def input_event(self, event, hotkey):
+    def input_event(self, event, hotkey, event_clock=None):
+        event_clock = event_clock or datetime.now()
         p = self.store.profile(self.active_id)
         if not p or self.paused or self.fullscreen or self.audio.busy:
             return
@@ -1125,12 +1128,12 @@ class Window(LazyPages, PackMixin, ModeMixin, DialogueBindingMixin, LibraryMixin
         from .audio_index import IndexPending
         schedule_before = self.engine.next_due.copy()
         try:
-            chosen = self.engine.choose(p, event, hotkey=hotkey)
+            chosen = self.engine.choose(p, event, hotkey=hotkey, clock=event_clock)
         except IndexPending as pending:
             self.engine.next_due = schedule_before
-            identifier, epoch = self.active_id, self.mode_epoch
-            self.audio_index.defer(pending, (event, hotkey), lambda: self.input_event(event, hotkey)
-                                   if self.active_id == identifier and self.mode_epoch == epoch else None)
+            identifier, epoch = self.active_id, self.playback_epoch
+            self.audio_index.defer(pending, (event, hotkey), lambda: self.input_event(event, hotkey, event_clock)
+                                   if self.active_id == identifier and self.playback_epoch == epoch else None)
             return
         if chosen:
             rule, path = chosen

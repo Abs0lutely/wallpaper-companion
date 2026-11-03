@@ -49,8 +49,9 @@ def migrate_categories(entries):
     return result,changes
 
 
-def legacy_candidates(voice_root, category):
+def legacy_candidates(voice_root, category, scan=None):
     from .core import audio_files
+    scan = scan or audio_files
     from .audio_names import matches_any_model
     if not voice_root:
         return []
@@ -60,4 +61,4 @@ def legacy_candidates(voice_root, category):
     entries=[e for pack in ("starter","operation") for e in translated_lines(pack,locale) if e["category"]==category]
     if not entries:
         return []
-    return [p for p in audio_files(str(Path(voice_root)/category.rsplit("·",1)[0])) if any(matches_any_model(p.stem,e["text"]) for e in entries)]
+    return [p for p in scan(str(Path(voice_root)/category.rsplit("·",1)[0])) if any(matches_any_model(p.stem,e["text"]) for e in entries)]

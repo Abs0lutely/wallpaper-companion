@@ -81,6 +81,40 @@ with tempfile.TemporaryDirectory(dir=ROOT / "output") as directory:
                 app.processEvents()
                 time.sleep(.01)
         assert len(played) == 1, "Cold index lost or duplicated a scheduled trigger"
+        from datetime import datetime
+        scheduled = new_rule("scheduled")
+        scheduled.update(at="09:00", cooldown=0)
+        store.profile(profile["id"])["rules"] = [scheduled]
+        w.engine.reset()
+        w.audio_index.invalidate()
+        played.clear()
+        with patch.object(w.audio, "play_voice", side_effect=played.append):
+            w.input_event("scheduled", "", datetime(2026, 1, 1, 9, 0, 59))
+            deadline = time.monotonic() + 5
+            while not played and time.monotonic() < deadline:
+                app.processEvents()
+                time.sleep(.01)
+        assert len(played) == 1, "Scheduled continuation lost its trigger clock"
+        hotkey = new_rule("key")
+        store.profile(profile["id"])["rules"] = [hotkey]
+        other = new_profile("Other")
+        other.update(bgm_enabled=False, use_bundled_demo=False)
+        store.config["profiles"].append(other)
+        for same_id in (False, True):
+            w.engine.reset()
+            with patch.object(w.audio_index, "files", side_effect=IndexPending((str(voice), True))), patch.object(w.audio_index, "_submit"):
+                # RuleEngine retains the bound method, so inject at its real scan seam.
+                with patch.object(w.engine, "scan", side_effect=IndexPending((str(voice), True))):
+                    w.input_event("key", hotkey["id"])
+                continuation = w.audio_index.callbacks.pop(("key", hotkey["id"]))[1]
+            if not same_id:
+                store.config["standalone_profile"] = other["id"]
+                w.activate_profile()
+                store.config["standalone_profile"] = profile["id"]
+            w.activate_profile(force=True)
+            with patch.object(w.audio, "play_voice") as play:
+                continuation()
+                assert not play.called, "A stale activation replayed input"
         watched = [Path(path) for path in w.audio_index.watcher.directories()]
         assert all(path == voice or voice in path.parents for path in watched), watched
         w.cleanup()

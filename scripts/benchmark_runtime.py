@@ -198,7 +198,9 @@ def main():
     output.mkdir(parents=True, exist_ok=True)
     import hashlib
     source_hashes = {str(path.relative_to(ROOT)): hashlib.sha256(path.read_bytes()).hexdigest() for path in [ROOT / "main.py", *sorted((ROOT / "companion").glob("*.py"))]}
-    metadata = dict(source_hashes=source_hashes, commit=subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=ROOT, text=True).strip(),
+    marker = ROOT / "SOURCE_REVISION"
+    source_revision = marker.read_text().strip() if marker.exists() else subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=ROOT, text=True).strip()
+    metadata = dict(source_revision=source_revision, benchmark_sha256=hashlib.sha256(Path(__file__).read_bytes()).hexdigest(), source_hashes=source_hashes, commit=subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=ROOT, text=True).strip(),
                     python=sys.version, executable=sys.executable, arguments=vars(args), reports=[])
     for i in range(args.rounds):
         report = output / f"round-{i+1}.json"

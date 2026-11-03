@@ -90,7 +90,7 @@ def candidates(profile: dict, rule: dict, scan=None) -> list[Path]:
         files = [p for p in files if root is None or not p.relative_to(root).parts or p.relative_to(root).parts[0] not in operation_categories]
     if not files and rule.get("source", ""):
         from .voice_locales import legacy_candidates
-        files=legacy_candidates(profile.get("voice_dir", ""), rule["source"])
+        files=legacy_candidates(profile.get("voice_dir", ""), rule["source"], scan=scan)
     if not files and profile.get("use_bundled_demo", False) and not scan(profile.get("voice_dir", "")):
         from .bundled_audio import bundled_root
         relative = rule.get("source", "").strip()
