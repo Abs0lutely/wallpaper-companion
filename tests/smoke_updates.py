@@ -76,6 +76,12 @@ with tempfile.TemporaryDirectory(dir=ROOT / "output", prefix="updates-ui-") as t
             with patch.object(store, "save", side_effect=OSError("disk full")), patch.object(w, "report_error"):
                 w.auto_update_enabled.setChecked(False)
             assert w.auto_update_enabled.isChecked() and store.config["auto_update_enabled"] is True
+            # A later section may fail after runtime settings temporarily stopped the timer.
+            old_label = w.filename_model.text(); w.filename_model.setText("unsaved model label")
+            with patch.object(w, "save_tts", return_value=False):
+                w.auto_update_enabled.setChecked(False)
+            assert w.auto_update_enabled.isChecked() and controller.timer.isActive()
+            w.filename_model.setText(old_label)
             # Restore defaults and undo include the new preference.
             w.auto_update_enabled.setChecked(False)
             with patch.object(QMessageBox, "question", return_value=QMessageBox.StandardButton.Yes):

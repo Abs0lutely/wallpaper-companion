@@ -64,6 +64,7 @@ class UpdateController(QObject):
             self.w.auto_update_enabled.blockSignals(True)
             self.w.auto_update_enabled.setChecked(self.w.store.config.get("auto_update_enabled", True))
             self.w.auto_update_enabled.blockSignals(False)
+            self.sync()
 
     def status(self, message):
         self.w.update_status.setText(message)
