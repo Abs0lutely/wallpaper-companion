@@ -6,7 +6,7 @@ import random
 import time
 import traceback
 import threading
-from concurrent.futures import ThreadPoolExecutor
+from .jobs import Jobs
 from datetime import datetime
 from pathlib import Path
 
@@ -24,6 +24,7 @@ from .file_dialogs import FileDialogs as QFileDialog
 from .i18n import tr, language
 from .core import DATA, ROOT, PLUGIN_DIR, Store, RuleEngine, audio_files, candidates, identity, new_profile, new_rule, writable_path
 from .audio import Audio
+from .lazy_pages import LazyPages
 from .services import InputHooks, api_status, current_wallpaper, foreground_state, generate, start_api
 from .extensions import load_extensions
 from .library_ui import LibraryMixin, DialogueMixin
@@ -103,22 +104,25 @@ def app_icon():
 from .rules_ui import RuleDialog
 
 
-class Window(PackMixin, ModeMixin, DialogueBindingMixin, LibraryMixin, DialogueMixin, AudioLibraryMixin, CharacterMixin, SpeechFeedbackMixin, GenerationReviewMixin, CompanionShellMixin, QMainWindow):
+class Window(LazyPages, PackMixin, ModeMixin, DialogueBindingMixin, LibraryMixin, DialogueMixin, AudioLibraryMixin, CharacterMixin, SpeechFeedbackMixin, GenerationReviewMixin, CompanionShellMixin, QMainWindow):
     job_done = Signal(object, object, object)
     hook_event = Signal(str, str)
     progress = Signal(str)
     generation_state = Signal(object)
     api_stage = Signal(str)
 
-    def __init__(self, store=None, hooks=True):
+    def __init__(self, store=None, hooks=True, defer_editor=False):
         super().__init__()
+        from collections import deque
+        self._editor_ready = False
+        self._pending_logs = deque(maxlen=500)
         self.store = store or Store()
         self.setWindowTitle(tr('ui.b9fcd7be6aa6', '壁纸声伴 · Wallpaper Companion'))
         self.setWindowIcon(app_icon())
         self.resize(1180, 840)
         available = QApplication.primaryScreen().availableGeometry()
         self.resize(min(1180, available.width() - 60), min(840, available.height() - 60))
-        self.executor = ThreadPoolExecutor(max_workers=3, thread_name_prefix="companion")
+        self.executor = Jobs()
         self.job_done.connect(self.finish_job)
         self.progress.connect(self.log)
         self.generation_state.connect(self.generation_update)
@@ -140,7 +144,9 @@ class Window(PackMixin, ModeMixin, DialogueBindingMixin, LibraryMixin, DialogueM
         self.fullscreen = False
         self.original_audio = dict(state="unknown", detail=tr('ui.420b7c1e3709', '尚未检测原壁纸音频'))
         self.original_audio_request = 0
-        self.engine = RuleEngine()
+        from .audio_index import AudioIndex
+        self.audio_index = AudioIndex(self)
+        self.engine = RuleEngine(scan=self.audio_index.files)
         self.registry = load_extensions(self.store.config)
         for setting, mapping, fallback in [("audio_backend", self.registry.audio, "qt"),
                                            ("input_backend", self.registry.inputs, "pynput"),
@@ -156,23 +162,9 @@ class Window(PackMixin, ModeMixin, DialogueBindingMixin, LibraryMixin, DialogueM
         self.audio.message.connect(self.log)
         self.hooks = self.registry.inputs[self.store.config.get("input_backend", "pynput")][1](lambda event, key: self.hook_event.emit(event, key))
         self.hook_event.connect(self.input_event)
-        self.build_ui()
+        if not defer_editor:
+            self.ensure_editor()
         self.build_tray()
-        self.wrap_form_labels()
-        self.refresh_profiles()
-        self.load_settings()
-        self.load_tts()
-        from .feedback import ActionFeedback
-        self.action_feedback = ActionFeedback(self)
-        from .motion import ButtonMotion
-        self.button_motion = ButtonMotion(self)
-        from .help_ui import HoverHelp
-        self.hover_help = HoverHelp(self)
-        from .autosave import Autosave
-        self.autosave = Autosave(self)
-        self.bgm_enabled.toggled.connect(self.bgm_enabled_changed)
-        from .operation_voices import OperationVoices
-        self.operation_voices = OperationVoices(self)
         for error in self.registry.errors:
             self.log(tr('ui.96f66c64d189', '扩展加载失败：') + error)
         self.audio.changed.connect(self.refresh_status)
@@ -191,6 +183,30 @@ class Window(PackMixin, ModeMixin, DialogueBindingMixin, LibraryMixin, DialogueM
         if self.is_standalone():self.activate_profile(force=True)
         QTimer.singleShot(200, self.detect)
         QTimer.singleShot(500, self.scan_library)
+
+    def ensure_editor(self):
+        if self._editor_ready:
+            return
+        self._editor_ready = True
+        self.build_ui()
+        self.wrap_form_labels()
+        self.refresh_profiles()
+        from .feedback import ActionFeedback
+        self.action_feedback = ActionFeedback(self)
+        from .motion import ButtonMotion
+        self.button_motion = ButtonMotion(self)
+        from .help_ui import HoverHelp
+        self.hover_help = HoverHelp(self)
+        from .autosave import Autosave
+        self.autosave = Autosave(self)
+        self.bgm_enabled.toggled.connect(self.bgm_enabled_changed)
+        from .operation_voices import OperationVoices
+        self.operation_voices = OperationVoices(self)
+        for message in self._pending_logs:
+            self.logs.appendPlainText(message)
+        self._pending_logs.clear()
+        if self.paused:
+            self.pause_button.setText(tr('ui.9f7a28a515d1', '继续伴随'))
 
     def wrap_form_labels(self):
         for form in self.findChildren(QFormLayout):
@@ -438,10 +454,14 @@ class Window(PackMixin, ModeMixin, DialogueBindingMixin, LibraryMixin, DialogueM
     def log(self, text):
         if hasattr(self, "action_feedback"):
             self.action_feedback.show_message(text)
-        self.logs.appendPlainText(datetime.now().strftime("%H:%M:%S") + "  " + str(text))
+        message = datetime.now().strftime("%H:%M:%S") + "  " + str(text)
+        if self._editor_ready and "logs" in self.__dict__:
+            self.logs.appendPlainText(message)
+        else:
+            self._pending_logs.append(message)
 
-    def submit(self, task, callback, error=None):
-        future = self.executor.submit(task)
+    def submit(self, task, callback, error=None, lane="work"):
+        future = self.executor.submit(task, lane=lane)
         def done(f):
             if self.quitting:
                 return
@@ -556,7 +576,7 @@ class Window(PackMixin, ModeMixin, DialogueBindingMixin, LibraryMixin, DialogueM
         self.edit_dialogues = copy.deepcopy(p.get("dialogues", []))
         self.render_dialogues()
         self.render_rules()
-        if not self.tts_output.text() or self.tts_output.text() == old_voice_dir:
+        if not self.page_pending(2) and (not self.tts_output.text() or self.tts_output.text() == old_voice_dir):
             self.tts_output.setText(p["voice_dir"])
         if self.is_standalone():
             self.select_standalone_profile(p["id"])
@@ -815,7 +835,8 @@ class Window(PackMixin, ModeMixin, DialogueBindingMixin, LibraryMixin, DialogueM
         blocked = bool(not self.is_standalone() and profile and should_block_bgm(profile, self.original_audio))
         if hasattr(self.audio, "set_bgm_blocked"):
             self.audio.set_bgm_blocked(blocked)
-        self.original_audio_label.setText(self.original_audio["detail"] + (tr('ui.7373ed1d1ab4', '；防冲突暂停伴随 BGM') if blocked else ""))
+        if self._editor_ready:
+            self.original_audio_label.setText(self.original_audio["detail"] + (tr('ui.7373ed1d1ab4', '；防冲突暂停伴随 BGM') if blocked else ""))
         self.refresh_status()
 
     def refresh_startup_button(self, enabled):
@@ -990,7 +1011,7 @@ class Window(PackMixin, ModeMixin, DialogueBindingMixin, LibraryMixin, DialogueM
         if backend == "wallpaper_engine":
             config["_wallpaper_command_query"] = bool(command)
         epoch=self.mode_epoch
-        self.submit(lambda: query(config), lambda result:self.detected(result) if epoch==self.mode_epoch else None,lambda error:self.detect_error(error) if epoch==self.mode_epoch else None)
+        self.submit(lambda: query(config), lambda result:self.detected(result) if epoch==self.mode_epoch else None,lambda error:self.detect_error(error) if epoch==self.mode_epoch else None, lane="query")
 
     def detected(self, result, epoch=None):
         if self.is_standalone() or epoch is not None and epoch!=self.mode_epoch:return
@@ -1024,6 +1045,8 @@ class Window(PackMixin, ModeMixin, DialogueBindingMixin, LibraryMixin, DialogueM
             self.engine.reset()
             if hasattr(self.audio, "set_bgm_blocked"):
                 self.audio.set_bgm_blocked(True)
+            if p:
+                self.audio_index.prewarm([p.get("voice_dir", ""), p.get("bgm_dir", "")])
             self.audio.set_profile(p)
             self.probe_original_audio()
             try:
@@ -1072,14 +1095,17 @@ class Window(PackMixin, ModeMixin, DialogueBindingMixin, LibraryMixin, DialogueM
             self.current_label.setToolTip(self.current_display_tooltip)
 
     def showEvent(self, event):
+        self.ensure_editor()
         super().showEvent(event)
+        self.refresh_album_art()
         self.render_current_wallpaper()
         self.refresh_status()
 
     def toggle_pause(self):
         self.paused = not self.paused
         title = tr('ui.9f7a28a515d1', '继续伴随') if self.paused else tr('ui.a555aecaab24', '暂停伴随')
-        self.pause_button.setText(title)
+        if self._editor_ready:
+            self.pause_button.setText(title)
         self.tray_pause.setText(title)
         self.audio.set_paused(self.paused or self.fullscreen)
         self.refresh_status()
@@ -1125,10 +1151,13 @@ class Window(PackMixin, ModeMixin, DialogueBindingMixin, LibraryMixin, DialogueM
         self.language_notice.setText(tr("settings.language_next_start", "界面语言将在下次启动时生效。") if pending else "")
         self.language_notice.setVisible(pending)
 
-    def load_settings(self):
+    def load_settings(self, apply_mode=True):
         c = self.store.config
         self.run_mode.blockSignals(True);self.run_mode.setCurrentIndex(max(0,self.run_mode.findData(c.get("run_mode","wallpaper_engine"))));self.run_mode.blockSignals(False)
-        self.apply_run_mode()
+        if apply_mode:
+            self.apply_run_mode()
+        else:
+            self.refresh_mode_notice()
         self.ui_language.setCurrentIndex(max(0, self.ui_language.findData(c.get("ui_language", "zh-CN"))))
         self.refresh_language_notice()
         self.we_dir.setText(c["we_dir"])
@@ -1412,6 +1441,7 @@ class Window(PackMixin, ModeMixin, DialogueBindingMixin, LibraryMixin, DialogueM
         self.begin_generation_review(lines, output, settings, provider, self.skip_existing_tts_audio.isChecked(), entries)
 
     def generated(self, paths):
+        self.audio_index.invalidate()
         self.tts_busy = False
         if hasattr(self, "operation_voices"):
             self.operation_voices.refresh()
@@ -1425,6 +1455,7 @@ class Window(PackMixin, ModeMixin, DialogueBindingMixin, LibraryMixin, DialogueM
             self.log(tr('ui.97f2f7671059', '已生成：') + path)
 
     def generation_error(self, error):
+        self.audio_index.invalidate()
         self.tts_busy = False
         self.update_api_controls()
         self.generate_button.setEnabled(True)
@@ -1451,7 +1482,7 @@ class Window(PackMixin, ModeMixin, DialogueBindingMixin, LibraryMixin, DialogueM
         if self.tts_busy:
             if QMessageBox.question(self, tr('ui.83ed743b5b1b', '退出并取消生成'), tr('ui.277994b82fa3', '退出将取消剩余生成并停止声伴启动的本地 API；已经保存的音频保留。继续退出？')) != QMessageBox.StandardButton.Yes:
                 return
-        if not self.autosave.flush():
+        if self._editor_ready and not self.autosave.flush():
             return
         self.cleanup()
         QApplication.quit()
@@ -1460,14 +1491,16 @@ class Window(PackMixin, ModeMixin, DialogueBindingMixin, LibraryMixin, DialogueM
         if self.quitting:
             return
         self.quitting = True
-        self.autosave.close()
-        self.operation_voices.close()
-        self.character_scan_timer.stop()
-        self.commit_player_volume()
-        self.player_volume_timer.stop()
         self.generation_cancel.set()
-        self.action_feedback.close()
-        self.button_motion.close()
+        if self._editor_ready:
+            self.autosave.close()
+            self.operation_voices.close()
+            if not self.page_pending(2):
+                self.character_scan_timer.stop()
+            self.commit_player_volume()
+            self.player_volume_timer.stop()
+            self.action_feedback.close()
+            self.button_motion.close()
         from .managed_api import api
         try:
             api.shutdown()
@@ -1477,5 +1510,6 @@ class Window(PackMixin, ModeMixin, DialogueBindingMixin, LibraryMixin, DialogueM
         self.tick.stop()
         self.hooks.stop()
         self.audio.stop()
+        self.audio_index.close()
         self.tray.hide()
         self.executor.shutdown(wait=False, cancel_futures=True)

@@ -8,7 +8,7 @@ from pathlib import Path
 
 from PySide6.QtCore import QObject, QEvent, QTimer
 from PySide6.QtWidgets import (QApplication, QAbstractButton, QAbstractSpinBox, QComboBox,
-    QLineEdit, QPlainTextEdit, QAbstractSlider, QTableWidget)
+    QLineEdit, QPlainTextEdit, QAbstractSlider, QTableView)
 from .action_lines import EVENT_LINES
 from .core import ROOT, AUDIO_EXTENSIONS, filename_for
 
@@ -70,7 +70,7 @@ class OperationVoices(QObject):
         return obj is self.w
 
     def attach(self, widget):
-        if not isinstance(widget, (QAbstractButton, QLineEdit, QPlainTextEdit, QAbstractSpinBox, QComboBox, QAbstractSlider, QTableWidget)) or not self.owns(widget) or id(widget) in self.widgets:
+        if not isinstance(widget, (QAbstractButton, QLineEdit, QPlainTextEdit, QAbstractSpinBox, QComboBox, QAbstractSlider, QTableView)) or not self.owns(widget) or id(widget) in self.widgets:
             return
         key = id(widget); self.widgets[key] = widget
         widget.destroyed.connect(lambda *_: self.widgets.pop(key, None))
@@ -88,8 +88,8 @@ class OperationVoices(QObject):
             widget.editingFinished.connect(lambda: self.request("change", delayed=True) if widget.hasFocus() else None)
         elif isinstance(widget, QPlainTextEdit):
             widget.textChanged.connect(lambda: widget.setProperty("voiceEdited", True) if widget.hasFocus() else None)
-        elif isinstance(widget, QTableWidget):
-            widget.itemSelectionChanged.connect(lambda: self.request("select", delayed=True) if widget.hasFocus() else None)
+        elif isinstance(widget, QTableView):
+            widget.selectionModel().selectionChanged.connect(lambda *_: self.request("select", delayed=True) if widget.hasFocus() else None)
 
     def finish_edit(self, widget):
         if widget is not None and shiboken6.isValid(widget) and widget.property("voiceEdited"):
@@ -125,7 +125,8 @@ class OperationVoices(QObject):
             self.scanning = False
             self.clips = clips
             count = sum(bool(paths) for paths in clips.values())
-            self.w.operation_voice_status.setText(tr('ui.21e1f8615b62', '操作语音：已找到 {value0}/{value1} 类。', value0=count, value1=len(EVENT_LINES)) + (tr('ui.1b0b41411191', '缺少的分类保持静音；请导入操作台词并生成音频。') if count < len(EVENT_LINES) else tr('ui.f9e30640af36', '已准备好。')))
+            if not self.w.page_pending(3):
+                self.w.operation_voice_status.setText(tr('ui.21e1f8615b62', '操作语音：已找到 {value0}/{value1} 类。', value0=count, value1=len(EVENT_LINES)) + (tr('ui.1b0b41411191', '缺少的分类保持静音；请导入操作台词并生成音频。') if count < len(EVENT_LINES) else tr('ui.f9e30640af36', '已准备好。')))
             if self.refresh_pending:
                 self.refresh_pending = False
                 self.refresh()
@@ -133,7 +134,8 @@ class OperationVoices(QObject):
 
     def scan_failed(self, error):
         self.scanning = False
-        self.w.operation_voice_status.setText(tr('ui.476f066fd195', '操作语音读取失败：') + str(error))
+        if not self.w.page_pending(3):
+            self.w.operation_voice_status.setText(tr('ui.476f066fd195', '操作语音读取失败：') + str(error))
 
     def request(self, event, delayed=False):
         if self.closed or not self.w.store.config.get("operation_voice_enabled", True) or not self.w.isVisible():

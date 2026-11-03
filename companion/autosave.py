@@ -35,14 +35,14 @@ class Autosave(QObject):
 
     def forms(self):
         w = self.w
-        return dict(runtime=dict(ui_language=w.ui_language.currentData(), we_dir=w.we_dir.text().strip(), workshop_dir=w.workshop_dir.text().strip(),
+        return dict(runtime=None if w.page_pending(3) else dict(ui_language=w.ui_language.currentData(), we_dir=w.we_dir.text().strip(), workshop_dir=w.workshop_dir.text().strip(),
                     monitor=w.monitor.value(), poll_seconds=w.poll_seconds.value(), ffprobe=w.ffprobe_path.text().strip(),
                     operation_voice_enabled=w.operation_voice_enabled.isChecked(), operation_voice_dir=w.operation_voice_dir.text().strip(),
                     **{k: c.currentData() for k, c in w.backend_combos.items()},
                     enabled_plugins=[w.plugin_list.item(i).text() for i in range(w.plugin_list.count())
                                      if w.plugin_list.item(i).checkState() == Qt.CheckState.Checked]),
-                    tts=(w.provider_choice.currentData(), w.tts_settings(), w.filename_model.text().strip()),
-                    shared=w.shared_audio_root.text().strip(), roots=w.extra_library_roots.toPlainText())
+                    tts=None if w.page_pending(2) else (w.provider_choice.currentData(), w.tts_settings(), w.filename_model.text().strip()),
+                    shared=None if w.page_pending(6) else w.shared_audio_root.text().strip(), roots=None if w.page_pending(4) else w.extra_library_roots.toPlainText())
 
     def remember(self, key):
         if hasattr(self, "baseline"):

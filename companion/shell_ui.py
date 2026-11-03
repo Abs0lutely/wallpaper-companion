@@ -209,12 +209,23 @@ class CompanionShellMixin:
         self.tabs.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Ignored)
         self.tabs.setMinimumHeight(150)
         work.addWidget(self.tabs, 1)
+        self._page_builders = {}
+        self.library_records = []
+        self.library_busy = False
+        self.audio_records = []
+        self.audio_library_busy = False
+        self.audio_refresh_pending = False
+        self.edit_dialogues = []
+        self.shared_dialogue_snapshot = None
+        self.shared_dialogue_error = False
+        self.library_tab_index, self.dialogue_tab_index, self.audio_library_tab_index = 4, 5, 6
         self.build_profile_tab()
-        self.build_tts_tab()
-        self.build_settings_tab()
-        self.build_library_tab()
-        self.build_dialogue_tab()
-        self.build_audio_library_tab()
+        self.defer_page(2, tr('ui.4c403b5c0b50', '生成语音'), self.build_tts_tab)
+        self.defer_page(3, tr('ui.078e20eb558e', '运行设置'), self.build_settings_tab)
+        self.defer_page(4, tr('ui.99ffa5dff575', '壁纸库'), self.build_library_tab)
+        self.defer_page(5, tr('ui.40949e0e28ee', '台词库'), self.build_dialogue_tab)
+        self.defer_page(6, tr('ui.4f0534b98d95', '音频库'), self.build_audio_library_tab)
+        self.tabs.currentChanged.connect(self.ensure_page)
         from PySide6.QtWidgets import QPlainTextEdit
         self.logs = QPlainTextEdit()
         self.logs.setReadOnly(True)
@@ -222,7 +233,7 @@ class CompanionShellMixin:
         self.tabs.addTab(self.logs, tr('ui.6e55e0f207bf', '运行记录'))
         # Long provider forms and library toolbars must not set the window's
         # minimum size. Keep stable tab indices for host mixins and extensions.
-        for index in (1, 2, 4, 5, 6, 7):
+        for index in (1, 7):
             title = self.tabs.tabText(index)
             content = self.tabs.widget(index)
             self.tabs.removeTab(index)
@@ -231,7 +242,6 @@ class CompanionShellMixin:
             scroll.setWidget(content)
             scroll.setMinimumSize(0, 0)
             self.tabs.insertTab(index, scroll, title)
-        self.build_appearance_settings()
         self.tabs.currentChanged.connect(self.shell_page_changed)
         self.profile_sections.currentChanged.connect(lambda _: self.shell_page_changed(self.tabs.currentIndex()))
         self.profiles.currentRowChanged.connect(lambda _: QTimer.singleShot(0, self.refresh_shell))
@@ -390,6 +400,11 @@ class CompanionShellMixin:
             self._label(self.player_volume_label, f"BGM {value}%")
 
     def refresh_album_art(self, clear=False):
+        if not self.isVisible():
+            return
+        from collections import OrderedDict
+        if "_cover_cache" not in self.__dict__:
+            self._cover_cache = OrderedDict()
         from PySide6.QtMultimedia import QMediaMetaData
         from PySide6.QtGui import QImageReader
         image = QImage()
@@ -407,11 +422,20 @@ class CompanionShellMixin:
                 for name in ("cover.jpg", "cover.png", "folder.jpg", "folder.png"):
                     path = Path(track).parent / name
                     if path.is_file() and path.stat().st_size <= 8 * 1024 * 1024:
-                        reader = QImageReader(str(path))
-                        size = reader.size()
-                        if size.isValid():
-                            reader.setScaledSize(size.scaled(256, 256, Qt.AspectRatioMode.KeepAspectRatio))
-                            image = reader.read()
+                        stat = path.stat()
+                        key = (str(path), stat.st_mtime_ns, stat.st_size)
+                        image = self._cover_cache.get(key, QImage())
+                        if image.isNull():
+                            reader = QImageReader(str(path))
+                            size = reader.size()
+                            if size.isValid():
+                                reader.setScaledSize(size.scaled(44, 44, Qt.AspectRatioMode.KeepAspectRatioByExpanding))
+                                image = reader.read()
+                                self._cover_cache[key] = image
+                                while len(self._cover_cache) > 32:
+                                    self._cover_cache.popitem(last=False)
+                        else:
+                            self._cover_cache.move_to_end(key)
                         if not image.isNull():
                             break
         if image.isNull():
@@ -503,6 +527,8 @@ class CompanionShellMixin:
         image = image if image is not None else QImage(str(target)) if target and target.is_file() else QImage()
         self.hero.set_image(image)
         self.refresh_album_art()
+        if self.page_pending(3):
+            return
         self.auto_color.blockSignals(True)
         self.auto_color.setChecked(settings["auto_color"])
         self.auto_color.blockSignals(False)

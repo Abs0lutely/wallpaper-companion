@@ -56,7 +56,9 @@ def worker(args):
         app.setQuitOnLastWindowClosed(False)
         app.setStyle("Fusion")
         app.setStyleSheet(STYLE)
-        w = Window(store, hooks=False)
+        import inspect
+        options = {"defer_editor": args.tray} if "defer_editor" in inspect.signature(Window).parameters else {}
+        w = Window(store, hooks=False, **options)
         errors = []
         w.report_error = errors.append
         if not args.tray:
@@ -68,13 +70,15 @@ def worker(args):
             return dict(private=info.private, rss=info.rss, peak_rss=info.peak_wset,
                         cpu=sum(process.cpu_times()[:2]), threads=process.num_threads())
         result = dict(items=args.items, mode=args.mode, tray=args.tray,
-                      startup_ms=(ready-setup_end)*1000, imports_ms=(setup_end-started)*1000,
+                      startup_ms=(ready-setup_end)*1000, setup_and_imports_ms=(setup_end-started)*1000,
                       initial=memory(), deferred_pages=list(getattr(w, "_page_builders", {})), operations={}, samples=[])
         def timed(name, fn):
             begin = time.perf_counter()
             fn()
             result["operations"].setdefault(name, []).append((time.perf_counter()-begin)*1000)
         if not args.resident:
+            if hasattr(w, "ensure_editor"):
+                timed("first_editor_access", w.ensure_editor)
             timed("first_library_access", lambda: (w.audio_table, w.library_table))
         # Native table population uses the same public callbacks as real scans.
         records = [dict(name=f"clip-{i:05}.wav", path=str(audio / str(i//100) / f"clip-{i:05}.wav"),
@@ -82,6 +86,8 @@ def worker(args):
         wallpapers = [dict(path=str(root / "wallpapers" / str(i)), title=f"Wallpaper {i}", type="scene", workshop_id=str(i)) for i in range(args.items)]
         def exercise():
             timed("audio_scan", lambda: core.audio_files(str(audio)))
+            lookup = w.audio_index.files if hasattr(w, "audio_index") else core.audio_files
+            timed("playback_file_lookup", lambda: lookup(str(audio)))
             timed("audio_table", lambda: w.audio_library_scanned(dict(records=records, warnings=[])))
             w.library_records = wallpapers
             timed("wallpaper_table", w.render_library)
@@ -94,6 +100,36 @@ def worker(args):
                 exercise()
                 app.processEvents()
             result["after_operations"] = memory()
+        if not args.resident:
+            timed("profile_switch", lambda: w.refresh_profiles())
+            if args.items:
+                from PySide6.QtMultimedia import QMediaPlayer
+                track = audio / "0" / "clip-00000.wav"
+                w.audio.voice_output.setVolume(0)
+                begin = time.perf_counter()
+                w.audio.play_voice(track)
+                deadline = begin + 3
+                while w.audio.voice.playbackState() != QMediaPlayer.PlaybackState.PlayingState and time.perf_counter() < deadline:
+                    app.processEvents()
+                    time.sleep(.002)
+                result["playback_started"] = w.audio.voice.playbackState() == QMediaPlayer.PlaybackState.PlayingState
+                result["operations"]["playback_start"] = [(time.perf_counter()-begin)*1000]
+                w.audio.stop()
+            import threading
+            release = threading.Event()
+            for _ in range(3):
+                w.submit(lambda: release.wait(.15), lambda _: None)
+            completed = []
+            begin = time.perf_counter()
+            options = {"lane": "query"} if "lane" in inspect.signature(w.submit).parameters else {}
+            w.submit(lambda: time.perf_counter(), lambda stamp: completed.append(stamp), **options)
+            deadline = begin + 3
+            while not completed and time.perf_counter() < deadline:
+                app.processEvents()
+                time.sleep(.002)
+            release.set()
+            assert completed, "Query did not complete"
+            result["operations"]["query_queue"] = [(completed[0]-begin)*1000]
         last = time.perf_counter()
         lags = []
         heartbeat = QTimer()

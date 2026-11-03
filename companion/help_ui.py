@@ -5,7 +5,7 @@ import weakref
 from PySide6.QtCore import QObject, QEvent, QTimer, QPoint, QRect
 from PySide6.QtGui import QCursor
 from PySide6.QtWidgets import (QApplication, QWidget, QToolTip, QPushButton, QLineEdit,
-    QPlainTextEdit, QComboBox, QAbstractSpinBox, QCheckBox, QTableWidget, QListWidget, QTabWidget)
+    QPlainTextEdit, QComboBox, QAbstractSpinBox, QCheckBox, QTableView, QTableWidget, QListWidget, QTabWidget)
 import shiboken6
 
 CONTROL_HELP = {
@@ -170,7 +170,7 @@ PROVIDER_HELP = {
 
 def annotate_controls(root):
     for name, text in CONTROL_HELP.items():
-        widget = getattr(root, name, None)
+        widget = vars(root).get(name)
         if isinstance(widget, QWidget):
             widget.setToolTip(widget.property("help_override") or text)
     for widget in root.findChildren(QWidget):
@@ -257,7 +257,7 @@ class HoverHelp(QObject):
 
     def table_detail(self, widget, position):
         table = widget
-        while table is not None and not isinstance(table, QTableWidget):
+        while table is not None and not isinstance(table, QTableView):
             table = table.parentWidget()
         if table is None or not self.window.isAncestorOf(table) or not table.property("itemHoverDetails"):
             return None

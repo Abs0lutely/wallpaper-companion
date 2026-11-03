@@ -41,7 +41,7 @@ def main():
             QMessageBox.information(None, tr('ui.6d92e61e4fc8', '壁纸声伴已运行'), tr('ui.0e4dffd38490', '程序已在运行，请双击系统托盘中的粉发耳机少女图标打开配置。'))
         return 0
     try:
-        window = Window(store)
+        window = Window(store, defer_editor="--tray" in sys.argv)
     except Exception as exc:
         QMessageBox.critical(None, tr('ui.0cf642cf998c', '启动失败'), str(exc))
         return 1

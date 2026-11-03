@@ -53,14 +53,25 @@ def audio_files(folder: str, recursive=True) -> list[Path]:
     root = Path(folder).expanduser()
     if not root.is_dir():
         return []
+    files = []
+    pending = [root]
     try:
-        return sorted((p for p in (root.rglob("*") if recursive else root.iterdir())
-                       if p.is_file() and p.suffix.lower() in AUDIO_EXTENSIONS), key=lambda p: str(p).casefold())
+        while pending:
+            directory = pending.pop()
+            with os.scandir(directory) as entries:
+                for entry in entries:
+                    if recursive and entry.is_dir(follow_symlinks=False):
+                        pending.append(Path(entry.path))
+                    elif Path(entry.name).suffix.lower() in AUDIO_EXTENSIONS and entry.is_file():
+                        files.append(Path(entry.path))
+        return sorted(files, key=lambda path: str(path).casefold())
     except OSError:
         return []
 
 
-def candidates(profile: dict, rule: dict) -> list[Path]:
+
+def candidates(profile: dict, rule: dict, scan=None) -> list[Path]:
+    scan = scan or audio_files
     source = rule.get("source", "").strip() or profile.get("voice_dir", "")
     if source and not Path(source).is_absolute():
         base = profile.get("voice_dir", "")
@@ -70,7 +81,7 @@ def candidates(profile: dict, rule: dict) -> list[Path]:
     if source and Path(source).is_file():
         files = [Path(source)] if Path(source).suffix.lower() in AUDIO_EXTENSIONS else []
     else:
-        files = audio_files(source)
+        files = scan(source)
     if not rule.get("source", "").strip():
         from .action_lines import EVENT_LINES
         from .voice_locales import category_for, LOCALES
@@ -80,7 +91,7 @@ def candidates(profile: dict, rule: dict) -> list[Path]:
     if not files and rule.get("source", ""):
         from .voice_locales import legacy_candidates
         files=legacy_candidates(profile.get("voice_dir", ""), rule["source"])
-    if not files and profile.get("use_bundled_demo", False) and not audio_files(profile.get("voice_dir", "")):
+    if not files and profile.get("use_bundled_demo", False) and not scan(profile.get("voice_dir", "")):
         from .bundled_audio import bundled_root
         relative = rule.get("source", "").strip()
         if not relative or not Path(relative).is_absolute() and ".." not in Path(relative).parts and ":" not in relative:
@@ -90,7 +101,7 @@ def candidates(profile: dict, rule: dict) -> list[Path]:
                 from .dialogues import CATEGORIES
                 if relative in CATEGORIES:relative += "·ja-JP"
             fallback = bundled_root()/("starter-voice-ja-JP" if locale=="ja-JP" else "starter-voice")/relative
-            files = [fallback] if fallback.is_file() and fallback.suffix.lower() in AUDIO_EXTENSIONS else audio_files(str(fallback))
+            files = [fallback] if fallback.is_file() and fallback.suffix.lower() in AUDIO_EXTENSIONS else scan(str(fallback))
     keyword = rule.get("keyword", "").strip().casefold()
     return [p for p in files if not keyword or keyword in p.stem.casefold()]
 
@@ -189,7 +200,8 @@ class Store:
 
 class RuleEngine:
     """Pure scheduling logic; no audio or hooks on the listener thread."""
-    def __init__(self, rng=None):
+    def __init__(self, rng=None, scan=None):
+        self.scan = scan
         self.rng = rng or random.Random()
         self.daily_fired = {}
         self.reset()
@@ -230,7 +242,7 @@ class RuleEngine:
                 self.schedule(rule, now)
             if not self.eligible(profile, rule, now, clock):
                 continue
-            files = candidates(profile, rule)
+            files = candidates(profile, rule, self.scan)
             if not files:
                 continue
             self.last[rule["id"]] = now

@@ -16,6 +16,7 @@ class Audio(QObject):
 
     def __init__(self, parent=None):
         super().__init__(parent)
+        self.scan = parent.audio_index.files if parent is not None and hasattr(parent, "audio_index") else audio_files
         self.voice_output = QAudioOutput(self)
         self.bgm_output = QAudioOutput(self)
         self.voice = QMediaPlayer(self)
@@ -58,7 +59,7 @@ class Audio(QObject):
         self.profile = profile
         self.bgm_paused = bool(profile and profile.get("bgm_paused", False))
         self.failed.clear()
-        self.files = audio_files(profile.get("bgm_dir", "")) if profile else []
+        self.files = self.scan(profile.get("bgm_dir", "")) if profile else []
         self.last_bgm = None
         self.set_volumes()
         if self.bgm_allowed():
@@ -107,7 +108,7 @@ class Audio(QObject):
         if not self.bgm_allowed():
             return
         self.sync_output_device()
-        self.files = audio_files(self.profile.get("bgm_dir", ""))
+        self.files = self.scan(self.profile.get("bgm_dir", ""))
         available = [p for p in self.files if str(p) not in self.failed]
         if not available:
             self.bgm.stop()

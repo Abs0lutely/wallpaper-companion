@@ -51,6 +51,8 @@ class ModeMixin:
             self.query_busy=False
             self.original_audio_request+=1
         self.applied_mode=standalone
+        if not self._editor_ready:
+            return
         for b in self.findChildren(QPushButton):
             if b.property("requiresWE"):b.setVisible(not standalone)
         self.manual.setVisible(not standalone)
@@ -62,9 +64,7 @@ class ModeMixin:
         self.original_audio_card.setVisible(not standalone)
         self.profile_list_heading.setText(tr("mode.profiles","声音配置 · 可多选管理") if standalone else tr('ui.a154bc5ed5be','壁纸配置 · 可多选管理'))
         self.profile_identity_title.setText(tr("mode.sound_profile","声音配置") if standalone else tr('ui.180dafedd38c','壁纸与配置'))
-        self.mode_notice.setText(tr("mode.standalone_help","独立声音伴随：无需 Wallpaper Engine，选择声音配置即可使用。") if standalone else tr("mode.we_help","跟随 WE 壁纸；未安装 WE 时可选择独立声音伴随。"))
-        if not standalone and not self.store.config.get("we_dir"):
-            self.mode_notice.setText(tr("mode.recommend","未发现 WE 安装目录，推荐选择独立声音伴随；不需要安装 WE。"))
+        self.refresh_mode_notice()
         if standalone:
             self.current_display_text=tr("mode.standalone","独立声音伴随")
             self.current_display_tooltip=""
@@ -76,3 +76,10 @@ class ModeMixin:
             if standalone:self.poll.stop()
             elif not self.poll.isActive():self.poll.start(self.store.config.get("poll_seconds",4)*1000)
         self.refresh_shell()
+
+    def refresh_mode_notice(self):
+        standalone = self.is_standalone()
+        if not self.page_pending(3):
+            self.mode_notice.setText(tr("mode.standalone_help","独立声音伴随：无需 Wallpaper Engine，选择声音配置即可使用。") if standalone else tr("mode.we_help","跟随 WE 壁纸；未安装 WE 时可选择独立声音伴随。"))
+            if not standalone and not self.store.config.get("we_dir"):
+                self.mode_notice.setText(tr("mode.recommend","未发现 WE 安装目录，推荐选择独立声音伴随；不需要安装 WE。"))

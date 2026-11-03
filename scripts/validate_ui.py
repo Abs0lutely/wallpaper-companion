@@ -20,6 +20,7 @@ VALIDATION = ROOT / "output" / "ui-validation"
 _RUN_TOKEN = os.environ.setdefault("WALLPAPER_COMPANION_VALIDATION_TOKEN", uuid.uuid4().hex)
 DATA = VALIDATION / ("data-" + _RUN_TOKEN)
 SMOKES = (
+    "smoke_runtime_efficiency.py",
     "smoke_redesign.py", "smoke_ui.py", "smoke_controls.py",
     "smoke_polling_flicker.py", "smoke_library.py", "smoke_rules.py",
     "smoke_audio_library.py", "smoke_help.py", "smoke_resource_confirmation.py", "smoke_characters.py", "smoke_fresh_dialogues.py",

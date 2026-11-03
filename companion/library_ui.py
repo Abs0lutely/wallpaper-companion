@@ -1,3 +1,4 @@
+from .record_table import RecordTable
 """Library and dialogue widgets, kept separate from the host window."""
 from .i18n import tr
 import copy
@@ -115,7 +116,7 @@ class DialogueDialog(QDialog):
 class LibraryMixin:
     def build_library_tab(self):
         from .ui import button, hint, row
-        self.library_records = []
+        self.library_records = getattr(self, "library_records", [])
         self.library_busy = False
         page = QWidget()
         layout = QVBoxLayout(page)
@@ -124,7 +125,7 @@ class LibraryMixin:
         self.library_search.setPlaceholderText(tr('ui.bc4442ffd430', '搜索标题、工坊 ID 或路径…'))
         self.library_search.textChanged.connect(self.filter_library)
         layout.addWidget(row(self.library_search, button(tr('ui.22d62264011f', '扫描壁纸库'), self.scan_library, True)))
-        self.library_table = QTableWidget(0, 7)
+        self.library_table = RecordTable(0, 7)
         self.library_table.setHorizontalHeaderLabels([tr('ui.c6cdcd00b6a5', '勾选'), tr('ui.bbaa9f06378b', '壁纸'), tr('ui.ba40014ff496', '类型'), tr('ui.03abec8bf212', '工坊 ID'), tr('ui.6781efe68e80', '绑定状态'), tr('ui.35740c0c431d', '语音目录'), tr('ui.d1f147aa4d10', 'BGM 目录')])
         self.library_table.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
         self.library_table.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
@@ -172,11 +173,12 @@ class LibraryMixin:
             return False
 
     def scan_library(self):
-        if self.is_standalone():return
+        if self.is_standalone() or not self._editor_ready:return
         if self.library_busy:
             return
         self.library_busy = True
-        self.library_status.setText(tr('ui.fd46291980eb', '正在后台扫描…'))
+        if not self.page_pending(4):
+            self.library_status.setText(tr('ui.fd46291980eb', '正在后台扫描…'))
         scanner = self.registry.libraries[self.store.config.get("library_backend", "wallpaper_engine")][1]
         config = copy.deepcopy(self.store.config)
         self.submit(lambda: scanner(config), self.library_scanned, self.library_scan_error)
@@ -185,6 +187,8 @@ class LibraryMixin:
         self.library_busy = False
         self.library_records = result["records"]
         self.render_library()
+        if self.page_pending(4):
+            return
         warnings = result.get("warnings", [])
         self.library_status.setText(tr('ui.3f7def6201d9', '发现 {value0} 张壁纸；{value1} 项目录或项目提示。勾选不会修改壁纸文件。', value0=len(self.library_records), value1=len(warnings)))
         for warning in warnings[:15]:
@@ -192,26 +196,24 @@ class LibraryMixin:
 
     def library_scan_error(self, error):
         self.library_busy = False
+        if self.page_pending(4):
+            self.log(str(error))
+            return
         self.library_status.setText(tr('ui.bdf9f50cd8db', '扫描失败：') + str(error))
         self.log(self.library_status.text())
 
     def render_library(self):
-        checked = {self.library_table.item(i, 0).data(Qt.ItemDataRole.UserRole) for i in range(self.library_table.rowCount())
-                   if self.library_table.item(i, 0).checkState() == Qt.CheckState.Checked}
-        self.library_table.setRowCount(len(self.library_records))
-        for i, record in enumerate(self.library_records):
-            key = identity(record["path"])
-            p = self.store.bound_profile(record["path"])
-            check = QTableWidgetItem()
-            check.setFlags(Qt.ItemFlag.ItemIsEnabled | Qt.ItemFlag.ItemIsUserCheckable | Qt.ItemFlag.ItemIsSelectable)
-            check.setData(Qt.ItemDataRole.UserRole, key)
-            check.setCheckState(Qt.CheckState.Checked if key in checked else Qt.CheckState.Unchecked)
-            self.library_table.setItem(i, 0, check)
-            values = [record["title"], record["type"], record["workshop_id"], p["name"] if p else tr('ui.e026c6693dc5', '未绑定'), p["voice_dir"] if p else "", p["bgm_dir"] if p else ""]
-            for j, value in enumerate(values, 1):
-                item = QTableWidgetItem(value)
-                item.setToolTip(value + ("\n" + record["path"] if j == 1 else ""))
-                self.library_table.setItem(i, j, item)
+        if self.page_pending(4):
+            return
+        bindings = {identity(p["wallpaper"]): p for p in reversed(self.store.config["profiles"]) if p.get("wallpaper")}
+        def value(record, column, role):
+            if role not in (Qt.ItemDataRole.DisplayRole, Qt.ItemDataRole.ToolTipRole):
+                return None
+            p = bindings.get(identity(record["path"]))
+            values = ["", record["title"], record["type"], record["workshop_id"],
+                      p["name"] if p else tr('ui.e026c6693dc5', '未绑定'), p["voice_dir"] if p else "", p["bgm_dir"] if p else ""]
+            return values[column] + ("\n" + record["path"] if column == 1 and role == Qt.ItemDataRole.ToolTipRole else "")
+        self.library_table.set_records(self.library_records, value, lambda record: identity(record["path"]))
         self.filter_library()
 
     def filter_library(self):
@@ -275,9 +277,7 @@ class LibraryMixin:
 class DialogueMixin:
     def build_dialogue_tab(self):
         from .ui import button, hint, row
-        self.edit_dialogues = []
-        self.shared_dialogue_snapshot = None
-        self.shared_dialogue_error = False
+        # Dialogue drafts live independently of this deferred view.
         page = QWidget()
         layout = QVBoxLayout(page)
         self.dialogue_context = hint(tr('ui.b0ca891589cd', '未选择壁纸时编辑共享台词；选择壁纸后编辑其台词库。保存文字不会调用语音服务。'))
@@ -303,8 +303,7 @@ class DialogueMixin:
                              button(tr('ui.ac45d38300d9', '补充默认台词'), self.add_starter_dialogues), button(tr('ui.30898e1ec4d0', '保存台词库'), self.save_dialogue_library, True)))
         self.skip_existing_dialogue_audio = QCheckBox(tr('ui.3f28002fa210', '生成时跳过已存在的同名音频'))
         self.skip_existing_dialogue_audio.setChecked(True)
-        self.skip_existing_dialogue_audio.toggled.connect(self.skip_existing_tts_audio.setChecked)
-        self.skip_existing_tts_audio.toggled.connect(self.skip_existing_dialogue_audio.setChecked)
+        self.skip_existing_dialogue_audio.toggled.connect(lambda checked: self.skip_existing_tts_audio.setChecked(checked) if not self.page_pending(2) else None)
         layout.addWidget(self.skip_existing_dialogue_audio)
         layout.addWidget(row(button(tr('ui.3b8118a7c3de', '将勾选台词送到生成页'), self.send_dialogues_to_tts, True)))
         self.rules_locale=QComboBox()
@@ -381,6 +380,8 @@ class DialogueMixin:
         self.dialogue_table.blockSignals(False)
 
     def render_dialogues(self):
+        if self.page_pending(5):
+            return
         scope_id = self.editing_id or "shared"
         selected = {self.dialogue_table.item(i, 0).data(Qt.ItemDataRole.UserRole)
                     for i in range(self.dialogue_table.rowCount()) if self.dialogue_table.item(i, 0) and self.dialogue_table.item(i, 0).checkState() == Qt.CheckState.Checked}

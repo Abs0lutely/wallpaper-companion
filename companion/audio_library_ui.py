@@ -8,6 +8,7 @@ from PySide6.QtWidgets import (QAbstractItemView, QComboBox, QFileDialog, QHeade
     QLabel, QLineEdit, QMessageBox, QTableWidget, QTableWidgetItem, QVBoxLayout, QWidget)
 from .file_dialogs import FileDialogs as QFileDialog
 
+from .record_table import RecordTable
 from .assets import shared_root
 from .audio_library import copy_audio, destination, inventory, locations, recycle_audio
 from .core import identity, writable_path
@@ -26,7 +27,7 @@ class AudioLibraryMixin:
         self.audio_search = QLineEdit()
         self.audio_search.setPlaceholderText(tr('ui.fa82f51665f3', '按文件名、路径或配置名称搜索…'))
         layout.addWidget(row(QLabel(tr('ui.a9c1deca85be', '查看范围')), self.audio_scope, self.audio_search, button(tr('ui.f1832518f4fd', '刷新音频库'), self.refresh_audio_library)))
-        self.audio_table = QTableWidget(0, 5)
+        self.audio_table = RecordTable(0, 5)
         self.audio_table.setHorizontalHeaderLabels([tr('ui.a6e48adc26d6', '文件名'), tr('ui.f61c51806feb', '用途 / 目录'), tr('ui.02fb1f090dae', '引用配置数'), tr('ui.50db7447b966', '大小'), tr('ui.778f9ad05aae', '实际路径')])
         self.audio_table.setProperty("itemHoverDetails", True)
         self.audio_table.setMouseTracking(True)
@@ -109,24 +110,28 @@ class AudioLibraryMixin:
         self.submit(lambda: inventory(sources), lambda result: self.audio_library_scanned(result, selected), self.audio_library_error)
 
     def audio_library_scanned(self, result, scope=None):
+        self.ensure_page(6)
         self.audio_library_busy = False
         if scope is not None and scope != self.audio_scope.currentData():
             self.audio_refresh_pending = False
             self.refresh_audio_library()
             return
         self.audio_records = result["records"]
-        self.audio_table.setRowCount(len(self.audio_records))
-        for index, record in enumerate(self.audio_records):
+        def value(record, column, role):
+            if role == Qt.ItemDataRole.UserRole and column == 0:
+                return record
+            if role not in (Qt.ItemDataRole.DisplayRole, Qt.ItemDataRole.ToolTipRole):
+                return None
             values = [record["name"], "；".join(record["locations"]), str(len(record["profiles"])),
                       f"{record['bytes'] / 1024 / 1024:.2f} MB", record["path"]]
-            for column, value in enumerate(values):
-                item = QTableWidgetItem(value)
-                detail = "\n".join(u["label"] + "\n" + u["directory"] for u in record.get("usages", [])) if column == 1 else tr('ui.aac6cffe85e4', '{value0:,} 字节（{value1}）', value0=record['bytes'], value1=value) if column == 3 else value
-                item.setToolTip(detail or value)
-                if column == 0:
-                    item.setData(Qt.ItemDataRole.UserRole, record)
-                self.audio_table.setItem(index, column, item)
-        self.filter_audio_library()
+            if role == Qt.ItemDataRole.ToolTipRole:
+                if column == 1:
+                    return "\n".join(u["label"] + "\n" + u["directory"] for u in record.get("usages", [])) or values[column]
+                if column == 3:
+                    return tr('ui.aac6cffe85e4', '{value0:,} 字节（{value1}）', value0=record['bytes'], value1=values[column])
+            return values[column]
+        self.audio_table.set_records(self.audio_records, value)
+        self.filter_audio_library(preserve_selection=True)
         self.audio_library_status.setText(tr('ui.349038c0569a', '{value0} 个音频文件；{value1} 项目录提示。共享文件按实际路径去重。', value0=len(self.audio_records), value1=len(result['warnings'])))
         if result["warnings"]:
             self.audio_library_status.setToolTip("\n".join(result["warnings"][:20]))
@@ -144,12 +149,12 @@ class AudioLibraryMixin:
         self.audio_library_status.setText(tr('ui.f2ea5b177673', '音频库操作失败：') + str(error))
         self.report_error(str(error))
 
-    def filter_audio_library(self):
+    def filter_audio_library(self, *_args, preserve_selection=False):
         text = self.audio_search.text().strip().casefold()
-        self.audio_table.clearSelection()
-        for index in range(self.audio_table.rowCount()):
-            self.audio_table.setRowHidden(index, bool(text and text not in " ".join(
-                self.audio_table.item(index, c).text() for c in (0, 1, 4)).casefold()))
+        if not preserve_selection:
+            self.audio_table.clearSelection()
+        for index, record in enumerate(self.audio_records):
+            self.audio_table.setRowHidden(index, bool(text and text not in (record["name"] + " " + " ".join(record["locations"]) + " " + record["path"]).casefold()))
 
     def selected_library_audio(self):
         return [self.audio_table.item(index.row(), 0).data(Qt.ItemDataRole.UserRole)
@@ -218,6 +223,7 @@ class AudioLibraryMixin:
         self.submit(lambda: copy_audio(paths, target, protected), self.audio_files_changed, self.audio_library_error)
 
     def audio_files_changed(self, paths):
+        self.audio_index.invalidate()
         self.audio_library_busy = False
         if hasattr(self.audio, "sync_bgm"):
             self.audio.sync_bgm()
