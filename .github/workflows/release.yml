@@ -44,10 +44,12 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release download v0.11.0 --repo $env:GITHUB_REPOSITORY --dir output/upgrade-baseline --pattern '*-portable.zip' --pattern '*-setup.exe' --pattern SHA256SUMS.txt
-          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          python scripts/verify_upgrades.py
-          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          foreach ($baseline in @('v0.11.0', 'v0.12.0')) {
+            gh release download $baseline --repo $env:GITHUB_REPOSITORY --dir "output/upgrade-baseline/$baseline" --pattern '*-portable.zip' --pattern '*-setup.exe' --pattern SHA256SUMS.txt
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+            python scripts/verify_upgrades.py --baseline $baseline
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          }
       - name: Preserve verification reports
         if: always()
         uses: actions/upload-artifact@v4
@@ -58,6 +60,8 @@ jobs:
             output/upgrade-*-restart.json
             output/*-helper/result.json
             output/*-helper/install-update.log
+            output/upgrade-verification/**/*.json
+            output/upgrade-verification/**/install-update.log
       - uses: actions/upload-artifact@v4
         with:
           name: windows-x64

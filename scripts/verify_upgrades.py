@@ -1,5 +1,5 @@
 """Cloud-only gate: upgrade actual previous binaries using the new detached helper."""
-import hashlib
+import argparse
 import json
 import os
 from pathlib import Path
@@ -15,7 +15,12 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 from companion.program_update import digest, personal_snapshot
 from companion.update_helper import atomic_json, launch_environment
-from verify_windows import check_exe
+
+
+def parse_args(argv=None):
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--baseline", choices=("v0.11.0", "v0.12.0"), default="v0.11.0")
+    return parser.parse_args(argv)
 
 
 def check_assets(directory):
@@ -88,6 +93,7 @@ def add_personal_files(app, data):
 
 
 def main():
+    args = parse_args()
     if os.environ.get("GITHUB_ACTIONS") != "true" or sys.platform != "win32":
         raise RuntimeError("Run upgrade installation tests only on a disposable Windows Actions runner")
     import winreg
@@ -97,10 +103,11 @@ def main():
             raise RuntimeError("An installation already exists; refusing to replace it")
     except FileNotFoundError:
         pass
-    old_zip, old_setup = check_assets(ROOT / "output/upgrade-baseline")
+    old_zip, old_setup = check_assets(ROOT / "output/upgrade-baseline" / args.baseline)
     archive, installer = check_assets(ROOT / "dist/release")
     version = tomllib.loads((ROOT / "pyproject.toml").read_text(encoding="utf-8"))["project"]["version"]
-    output = ROOT / "output"
+    output = ROOT / "output/upgrade-verification" / args.baseline
+    output.mkdir(parents=True, exist_ok=False)
     with tempfile.TemporaryDirectory(prefix="upgrade 中文 ", dir=output) as tmp:
         temp = Path(tmp)
         env = launch_environment()
@@ -133,7 +140,7 @@ def main():
             if path.name == "personal.py":
                 continue  # User plugin is not installer-owned and is separately verified above.
             assert digest(path) == checksum
-        report = dict(passed=True, baseline="v0.11.0", target=version, detached_frozen_helper=True,
+        report = dict(passed=True, baseline=args.baseline, target=version, detached_frozen_helper=True,
                       portable_upgrade=True, installed_upgrade=True, restarted_exe_selftests=True,
                       data_audio_plugins_packs_preserved=True, same_install_directory=True)
         atomic_json(output / "upgrade-verification.json", report)
