@@ -10,6 +10,7 @@ import subprocess
 import sys
 import tempfile
 import time
+from types import SimpleNamespace
 from unittest.mock import patch
 import wave
 
@@ -43,18 +44,20 @@ def worker(args):
         root = Path(directory)
         os.environ.update(WALLPAPER_COMPANION_DATA=str(root / "data"), GPT_SOVITS_DIR="")
         from companion import paths
-        stack.enter_context(patch.object(paths, "discover_wallpaper_engine", return_value=("", "")))
+        stack.enter_context(patch.object(paths, "discover_wallpaper_engine", new=lambda: ("", "")))
         from companion import core, services
-        stack.enter_context(patch.object(core, "discover_wallpaper_engine", return_value=("", "")))
-        stack.enter_context(patch.object(services, "running_wallpaper_processes", return_value=[]))
-        stack.enter_context(patch("companion.managed_api.api"))
-        stack.enter_context(patch("requests.Session.request", side_effect=AssertionError("Network forbidden in benchmark")))
+        stack.enter_context(patch.object(core, "discover_wallpaper_engine", new=lambda: ("", "")))
+        stack.enter_context(patch.object(services, "running_wallpaper_processes", new=lambda: []))
+        stack.enter_context(patch("companion.managed_api.api", new=SimpleNamespace(owns_service=lambda: False, shutdown=lambda: None)))
+        def forbidden_request(*args, **kwargs):
+            raise AssertionError("Network forbidden in benchmark")
+        stack.enter_context(patch("requests.Session.request", new=forbidden_request))
         from PySide6.QtCore import QTimer
         from PySide6.QtWidgets import QApplication
         from companion.ui import Window, STYLE
         if (ROOT / "companion" / "updates_ui.py").exists():
-            stack.enter_context(patch("companion.updates_ui.UpdateController.automatic_check"))
-        stack.enter_context(patch("companion.ui.foreground_state", return_value=dict(desktop=True, fullscreen=False, own=False)))
+            stack.enter_context(patch("companion.updates_ui.UpdateController.automatic_check", new=lambda self: None))
+        stack.enter_context(patch("companion.ui.foreground_state", new=lambda: dict(desktop=True, fullscreen=False, own=False)))
         store = core.Store()
         store.config.update(run_mode=args.mode, we_dir="", workshop_dir="", library_roots=[])
         fixture_started = time.perf_counter()

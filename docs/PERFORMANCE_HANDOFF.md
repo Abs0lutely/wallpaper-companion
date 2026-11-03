@@ -32,6 +32,8 @@
 
 最新 `scripts/benchmark_runtime.py` 已把这些 Mock 替换为普通函数，并用无状态对象隔离语音服务；下一步必须用它重测。应用逻辑没有为此改动。
 
+关机前短程检查 `constant-fakes-check` / `baseline-constant-fakes-check` 均已完成，进程退出码为 0；下一次不必重复这些检查，只需先核对报告与日志。两组新的三十分钟任务尚未启动。
+
 临时分配追踪探针在 50 ms 触发周期下发生 `processEvents()` 重入与 IndexPending 超时；其数据仅用于找分配来源，不能作为功能/稳定性通过依据。探针与日志保留在 `output/performance/probes` 和 `output/performance/allocation-retention-probe`。
 
 ## 下次继续步骤
