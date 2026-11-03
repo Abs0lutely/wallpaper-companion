@@ -57,6 +57,7 @@ jobs:
           name: release-verification
           path: |
             output/*verification.json
+            output/frozen-*.json
             output/upgrade-*-restart.json
             output/*-helper/result.json
             output/*-helper/install-update.log

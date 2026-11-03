@@ -11,6 +11,21 @@ import wave
 from pathlib import Path
 
 
+def check_button_feedback(window):
+    """Exercise the deferred speech page before checking its interactive buttons."""
+    from PySide6.QtWidgets import QApplication
+    from .motion import ButtonScaleEffect
+    previous = window.tabs.currentIndex()
+    try:
+        window.tabs.setCurrentIndex(2)
+        QApplication.processEvents()
+        button = window.start_api_button
+        return (isinstance(button.graphicsEffect(), ButtonScaleEffect)
+                and id(button) in window.action_feedback.buttons)
+    finally:
+        window.tabs.setCurrentIndex(previous)
+
+
 def check_companion_distribution(root, checks):
     """Verify the shipped pack resources and roundtrip using disposable data only."""
     from datetime import datetime
@@ -116,8 +131,7 @@ def run(destination):
         window.finish_generation_progress(False, "自检结束；没有调用语音服务")
         window.tts_busy = False
         checks["generation_progress_preserves_partial_result"] = window.tts_progress.value() == 1 and window.tts_progress.maximum() == 2 and "已保存一条" in window.tts_stage_output.toPlainText()
-        from .motion import ButtonScaleEffect
-        checks["button_motion_and_feedback_loaded"] = isinstance(window.start_api_button.graphicsEffect(), ButtonScaleEffect) and bool(window.action_feedback.buttons)
+        checks["button_motion_and_feedback_loaded"] = check_button_feedback(window)
         checks["autosave_and_operation_controls_present"] = hasattr(window, "autosave") and window.operation_voice_enabled.isChecked() and not window.selected_dialogues()
         from .operation_pack import require_pack
         if report["frozen"]:

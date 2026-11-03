@@ -21,6 +21,11 @@ report={}
 with patch("companion.managed_api.api"),patch("companion.secrets.read_secret",return_value=""):
     w=Window(store,hooks=False);w.show();QTest.qWait(100)
     try:
+        from companion.diagnostics import check_button_feedback
+        report["speech_page_initially_deferred"]=w.page_pending(2)
+        previous=w.tabs.currentIndex()
+        report["packaged_check_visits_deferred_page"]=check_button_feedback(w)
+        report["packaged_check_restores_navigation"]=w.tabs.currentIndex()==previous
         report["all_existing_app_buttons_attached"]=all(id(b) in w.button_motion.springs for b in w.findChildren(QAbstractButton))
         dialog=QDialog(w);layout=QVBoxLayout(dialog)
         button=QPushButton("弹簧动画测试",dialog);layout.addWidget(button)
