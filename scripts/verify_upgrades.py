@@ -39,6 +39,9 @@ def run_helper(helper, target, archive, version, portable, output, env):
     folder.mkdir()
     detached = folder / helper.name
     shutil.copy2(helper, detached)
+    if not portable:
+        # Inno writes its log next to the package. Keep test artifacts out of dist/release.
+        archive = Path(shutil.copy2(archive, folder / archive.name))
     # A real exited process gives the handoff a concrete, non-running parent identity.
     import psutil
     parent = subprocess.Popen([sys.executable, "-c", "import time; time.sleep(0.5)"], creationflags=subprocess.CREATE_NO_WINDOW)
