@@ -37,9 +37,9 @@ QLineEdit, QPlainTextEdit, QTextBrowser, QSpinBox, QDoubleSpinBox, QComboBox, QT
 QLineEdit:focus, QPlainTextEdit:focus, QComboBox:focus, QSpinBox:focus, QDoubleSpinBox:focus { border-color:ACCENT; }
 QComboBox::drop-down { width:22px; border:0; }
 QComboBox QAbstractItemView { background:#232129; selection-background-color:SOFT; color:#f3edf0; }
-QListWidget, QTableWidget { background:#201d26; border:1px solid #39333e; border-radius:9px; alternate-background-color:#26212c; gridline-color:#39333e; }
+QListWidget, QTableView { background:#201d26; border:1px solid #39333e; border-radius:9px; alternate-background-color:#26212c; gridline-color:#39333e; }
 QListWidget::item { padding:10px 7px; border-radius:6px; }
-QListWidget::item:selected, QTableWidget::item:selected { background:SOFT; color:ACCENT; }
+QListWidget::item:selected, QTableView::item:selected { background:SOFT; color:ACCENT; }
 QHeaderView::section { background:#2b2531; border:0; border-bottom:1px solid #39333e; padding:10px 7px; color:#c5b9ca; }
 QTabWidget::pane { border:0; background:transparent; }
 QTabBar::tab { background:transparent; color:#b7adbd; padding:10px 16px; border-bottom:2px solid transparent; }

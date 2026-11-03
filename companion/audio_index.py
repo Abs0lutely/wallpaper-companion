@@ -105,7 +105,7 @@ class AudioIndex(QObject):
                 except Exception:
                     files = []
                 try:
-                    self.ready.emit((key, epoch), future, files)
+                    self.ready.emit((key, epoch), result, files)
                 except RuntimeError:
                     pass  # QObject was destroyed after close().
         future.add_done_callback(done)
