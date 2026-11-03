@@ -2,8 +2,14 @@
 from collections import OrderedDict
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
+import os
 from PySide6.QtCore import QFileSystemWatcher, QObject, QTimer, Signal
 from .core import audio_files, identity
+
+
+class IndexPending(Exception):
+    def __init__(self, key):
+        self.key = key
 
 
 class AudioIndex(QObject):
@@ -14,6 +20,8 @@ class AudioIndex(QObject):
         self.max_roots, self.max_files = max_roots, max_files
         self.snapshots = OrderedDict()
         self.pending = {}
+        self.callbacks = OrderedDict()
+        self.transient = {}
         self.epoch = 0
         self.closed = False
         self.pool = ThreadPoolExecutor(max_workers=1, thread_name_prefix="audio-index")
@@ -29,14 +37,26 @@ class AudioIndex(QObject):
         if not folder:
             return []
         key = (identity(str(Path(folder).expanduser().absolute())), recursive)
+        if key in self.transient:
+            return list(self.transient[key])
         if key in self.snapshots:
             self.snapshots.move_to_end(key)
             return list(self.snapshots[key])
-        # Preserve first-trigger semantics on a cold directory. Subsequent reads
-        # use snapshots; active roots are prewarmed and reconciled in a worker.
-        files = audio_files(folder, recursive)
-        self._store(key, files)
-        return list(files)
+        for (root, recurse), files in reversed(self.snapshots.items()):
+            prefix = root.rstrip("/\\") + os.sep
+            if recurse and key[0].startswith(prefix):
+                return [path for path in files if identity(str(path)).startswith(key[0].rstrip("/\\") + os.sep)
+                        and (recursive or identity(str(path.parent)) == key[0])]
+        raise IndexPending(key)
+
+    def defer(self, request, token, callback):
+        if self.closed:
+            return
+        # A new request from the same playback/event consumer supersedes its old one.
+        self.callbacks[token] = (request.key, callback)
+        if len(self.callbacks) > 128:
+            self.callbacks.popitem(last=False)
+        self._submit(request.key)
 
     def _store(self, key, files):
         if self.closed or len(files) > self.max_files:
@@ -54,9 +74,8 @@ class AudioIndex(QObject):
             while not path.is_dir() and path != path.parent:
                 path = path.parent
             directories.add(str(path))
-            for file in files:
-                path = file.parent
-                while str(path) != root and path != path.parent:
+            for path in {file.parent for file in files}:
+                while identity(str(path)) != root and path != path.parent:
                     directories.add(str(path))
                     path = path.parent
         wanted = set(sorted(directories)[:256])
@@ -85,7 +104,10 @@ class AudioIndex(QObject):
                     files = result.result()
                 except Exception:
                     files = []
-                self.ready.emit((key, epoch), future, files)
+                try:
+                    self.ready.emit((key, epoch), future, files)
+                except RuntimeError:
+                    pass  # QObject was destroyed after close().
         future.add_done_callback(done)
 
     def _accept(self, token, future, files):
@@ -94,13 +116,24 @@ class AudioIndex(QObject):
             self.pending.pop(key)
         if not self.closed and epoch == self.epoch:
             self._store(key, files)
+            self.transient[key] = tuple(files)
+            try:
+                callbacks = [(token, callback) for token, (requested, callback) in self.callbacks.items() if requested == key]
+                for token, callback in callbacks:
+                    self.callbacks.pop(token, None)
+                    if not self.closed:
+                        callback()
+            finally:
+                self.transient.pop(key, None)
+            for requested, _ in list(self.callbacks.values()):
+                self._submit(requested)
 
     def refresh(self):
         for key in list(self.snapshots):
             self._submit(key)
 
     def invalidate(self):
-        keys = list(self.snapshots)
+        keys = list(dict.fromkeys([*self.snapshots, *(key for key, _ in self.callbacks.values())]))
         self.epoch += 1
         self.snapshots.clear()
         for future in self.pending.values():
@@ -116,4 +149,6 @@ class AudioIndex(QObject):
             self.watcher.removePaths(self.watcher.directories())
         self.snapshots.clear()
         self.pending.clear()
+        self.callbacks.clear()
+        self.transient.clear()
         self.pool.shutdown(wait=False, cancel_futures=True)

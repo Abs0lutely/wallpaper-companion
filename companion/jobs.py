@@ -1,6 +1,7 @@
 """Bounded queues reserve a worker for short status queries."""
 from concurrent.futures import Future, ThreadPoolExecutor
 from threading import BoundedSemaphore
+from .i18n import tr
 
 
 class Jobs:
@@ -14,7 +15,7 @@ class Jobs:
         slot = self.slots[lane]
         if self.closed or not slot.acquire(blocking=False):
             future = Future()
-            future.set_exception(RuntimeError("Too many pending operations; please retry after completion."))
+            future.set_exception(RuntimeError(tr("runtime.queue_full", "当前操作较多，请稍候重试。")))
             return future
         try:
             future = self.pools[lane].submit(task)

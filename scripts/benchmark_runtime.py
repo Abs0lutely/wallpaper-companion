@@ -17,7 +17,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 def worker(args):
-    started = time.perf_counter()
+    started = float(args.started) if args.started else time.perf_counter()
     sys.path.insert(0, str(ROOT))
     import psutil
     process = psutil.Process()
@@ -37,6 +37,7 @@ def worker(args):
         stack.enter_context(patch("companion.ui.foreground_state", return_value=dict(desktop=True, fullscreen=False, own=False)))
         store = core.Store()
         store.config.update(run_mode=args.mode, we_dir="", workshop_dir="", library_roots=[])
+        fixture_started = time.perf_counter()
         audio = root / "audio"
         audio.mkdir()
         for i in range(args.items):
@@ -52,6 +53,7 @@ def worker(args):
             store.config["standalone_profile"] = profile["id"]
         store.save()
         setup_end = time.perf_counter()
+        fixture_seconds = setup_end - fixture_started
         app = QApplication([])
         app.setQuitOnLastWindowClosed(False)
         app.setStyle("Fusion")
@@ -70,12 +72,16 @@ def worker(args):
             return dict(private=info.private, rss=info.rss, peak_rss=info.peak_wset,
                         cpu=sum(process.cpu_times()[:2]), threads=process.num_threads())
         result = dict(items=args.items, mode=args.mode, tray=args.tray,
-                      startup_ms=(ready-setup_end)*1000, setup_and_imports_ms=(setup_end-started)*1000,
+                      startup_ms=(ready-started-fixture_seconds)*1000, window_ms=(ready-setup_end)*1000, fixture_ms=fixture_seconds*1000,
                       initial=memory(), deferred_pages=list(getattr(w, "_page_builders", {})), operations={}, samples=[])
+        operation_lags = []
         def timed(name, fn):
+            queued = time.perf_counter()
+            QTimer.singleShot(0, lambda: operation_lags.append((time.perf_counter()-queued)*1000))
             begin = time.perf_counter()
             fn()
             result["operations"].setdefault(name, []).append((time.perf_counter()-begin)*1000)
+            app.processEvents()
         if not args.resident:
             if hasattr(w, "ensure_editor"):
                 timed("first_editor_access", w.ensure_editor)
@@ -87,7 +93,18 @@ def worker(args):
         def exercise():
             timed("audio_scan", lambda: core.audio_files(str(audio)))
             lookup = w.audio_index.files if hasattr(w, "audio_index") else core.audio_files
-            timed("playback_file_lookup", lambda: lookup(str(audio)))
+            def resolve_lookup():
+                deadline = time.perf_counter() + 5
+                while True:
+                    try:
+                        return lookup(str(audio))
+                    except Exception as exc:
+                        if type(exc).__name__ != "IndexPending" or time.perf_counter() > deadline:
+                            raise
+                        w.audio_index.defer(exc, "benchmark", lambda: None)
+                        app.processEvents()
+                        time.sleep(.001)
+            timed("playback_file_lookup", resolve_lookup)
             timed("audio_table", lambda: w.audio_library_scanned(dict(records=records, warnings=[])))
             w.library_records = wallpapers
             timed("wallpaper_table", w.render_library)
@@ -152,7 +169,7 @@ def worker(args):
             repeater.start()
         QTimer.singleShot(int(args.seconds*1000), app.quit)
         app.exec()
-        result.update(final=memory(), errors=errors, heartbeat_p95_ms=sorted(lags)[int(.95*(len(lags)-1))] if lags else 0)
+        result.update(final=memory(), errors=errors, operation_gui_max_ms=max(operation_lags, default=0), operation_gui_p95_ms=sorted(operation_lags)[int(.95*(len(operation_lags)-1))] if operation_lags else 0, heartbeat_p95_ms=sorted(lags)[int(.95*(len(lags)-1))] if lags else 0)
         w.cleanup()
         w.close()
         app.processEvents()
@@ -162,6 +179,7 @@ def worker(args):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--worker", action="store_true")
+    parser.add_argument("--started")
     parser.add_argument("--label", default="baseline")
     parser.add_argument("--report")
     parser.add_argument("--items", type=int, default=1000)
@@ -178,7 +196,9 @@ def main():
         return
     output = ROOT / "output" / "performance" / args.label
     output.mkdir(parents=True, exist_ok=True)
-    metadata = dict(commit=subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=ROOT, text=True).strip(),
+    import hashlib
+    source_hashes = {str(path.relative_to(ROOT)): hashlib.sha256(path.read_bytes()).hexdigest() for path in [ROOT / "main.py", *sorted((ROOT / "companion").glob("*.py"))]}
+    metadata = dict(source_hashes=source_hashes, commit=subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=ROOT, text=True).strip(),
                     python=sys.version, executable=sys.executable, arguments=vars(args), reports=[])
     for i in range(args.rounds):
         report = output / f"round-{i+1}.json"
@@ -186,6 +206,7 @@ def main():
                    "--items", str(args.items), "--seconds", str(args.seconds), "--mode", args.mode]
         command += [flag for flag, enabled in [("--tray", args.tray), ("--resident", args.resident), ("--stress", args.stress)] if enabled]
         with (output / f"round-{i+1}.log").open("w", encoding="utf-8") as log:
+            command += ["--started", str(time.perf_counter())]
             subprocess.run(command, cwd=ROOT, stdout=log, stderr=subprocess.STDOUT, check=True, timeout=args.seconds+120)
         data = json.loads(report.read_text(encoding="utf-8"))
         metadata["reports"].append(data)

@@ -205,6 +205,7 @@ class Window(LazyPages, PackMixin, ModeMixin, DialogueBindingMixin, LibraryMixin
         for message in self._pending_logs:
             self.logs.appendPlainText(message)
         self._pending_logs.clear()
+        self.apply_run_mode()
         if self.paused:
             self.pause_button.setText(tr('ui.9f7a28a515d1', '继续伴随'))
 
@@ -1121,7 +1122,16 @@ class Window(LazyPages, PackMixin, ModeMixin, DialogueBindingMixin, LibraryMixin
                 return
         if p.get("fullscreen_mute", True) and state["fullscreen"]:
             return
-        chosen = self.engine.choose(p, event, hotkey=hotkey)
+        from .audio_index import IndexPending
+        schedule_before = self.engine.next_due.copy()
+        try:
+            chosen = self.engine.choose(p, event, hotkey=hotkey)
+        except IndexPending as pending:
+            self.engine.next_due = schedule_before
+            identifier, epoch = self.active_id, self.mode_epoch
+            self.audio_index.defer(pending, (event, hotkey), lambda: self.input_event(event, hotkey)
+                                   if self.active_id == identifier and self.mode_epoch == epoch else None)
+            return
         if chosen:
             rule, path = chosen
             self.log(tr('ui.0ea8aca65cd3', '触发：') + rule["name"])
@@ -1383,7 +1393,7 @@ class Window(LazyPages, PackMixin, ModeMixin, DialogueBindingMixin, LibraryMixin
                 if provider.id == "gpt_sovits":
                     raise ValueError(tr('ui.28a3e494e7e0', '本地 API 尚未启动或暂时无法连接。请点击“启动本地 API”，等待就绪后再检测；也可直接生成以自动启动。请同时核对地址和端口。')) from exc
                 raise ValueError(tr('ui.e2f0b148f402', '接口连接失败，请检查服务地址与网络。')) from exc
-        self.submit(check, self.api_finished, self.api_error)
+        self.submit(check, self.api_finished, self.api_error, lane="query")
 
     def launch_api(self):
         if self.api_busy or self.tts_busy:

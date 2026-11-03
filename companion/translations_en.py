@@ -2190,3 +2190,6 @@ SOURCES = {
 from .pack_text import TEXT as _PACK_TEXT
 EN.update({'packs.' + key: value[1] for key, value in _PACK_TEXT.items()})
 SOURCES.update({'packs.' + key: value[0] for key, value in _PACK_TEXT.items()})
+
+EN["runtime.queue_full"] = "Too many pending operations; please retry shortly."
+SOURCES["runtime.queue_full"] = "当前操作较多，请稍候重试。"
