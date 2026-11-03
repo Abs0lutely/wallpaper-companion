@@ -1,6 +1,6 @@
 # 性能与自动更新整合记录
 
-**状态：实现与功能回归完成，内存稳定性验收尚未完成。** 关机前交接与恢复命令见 `docs/PERFORMANCE_HANDOFF.md`；没有新的长测在后台运行。
+**状态：本轮本地验收完成。** 无调用历史模拟函数的最终长测见 `docs/performance-stability.md`。历史关机检查点保留在 `docs/PERFORMANCE_HANDOFF.md`；所有测试进程均已退出。
 
 本地整合分支：`integration/runtime-auto-update`。工作区：`wallpaper-companion-integrated`。
 
@@ -51,6 +51,10 @@
 字体预热探针的首次开窗约 1.16 秒，但私有内存升至 100.7 MiB，故未采用。原始数据位于 `output/performance/integrated-tray-access`；基线在性能工作区 `output/baseline-source/output/performance/baseline-tray-access`。
 
 ## 长时间运行与测量范围
+
+最终复核完成：904 次实际配置交替与刷新，整合版最后两个五分钟窗口为 128.453 → 128.457 MiB，未观察到持续内存增长。十分钟托盘末一分钟约 67.24 MiB，基线约 116.92 MiB；CPU 与 GUI 延迟对照、逐分钟趋势和验证边界见 `docs/performance-stability.md`。
+
+以下为此前测量污染的排查记录，已由上述复核完成验收：
 
 落盘采样的三十分钟配置交替/刷新已完成约 900 次。整合版后两个五分钟窗口私有内存为 132.63 → 133.63 MiB，基线为 152.88 → 153.88 MiB，双方仍增加约 1 MiB。分配追踪发现 Mock 调用历史不断保留，当前测量脚本已改用无历史的普通模拟函数；尚未完成修正后的长测，因此**不宣称内存稳定或全部验收通过**。
 

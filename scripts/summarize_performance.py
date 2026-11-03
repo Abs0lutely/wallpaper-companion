@@ -15,7 +15,7 @@ def summarize(root, output, integrated=None):
     optimized = root / "output/performance"
     baseline = root / "output/baseline-source/output/performance"
     lines = ["# 运行性能重构实测报告", "",
-             "**状态：实现与功能回归完成，内存稳定性验收待复核。** 长测发现模拟服务 Mock 会累积调用历史；当前基准已改为普通函数，尚未完成修正后的三十分钟复测。用户因可能关机要求保存交接。下文历史长测不能作为无持续增长的证明。", "",
+             "**状态：本轮本地验收完成。** 最终无调用历史模拟函数的十分钟与三十分钟复核见 `docs/performance-stability.md`。下文保留历史轮次，含 Mock 的长测不作为稳定性证明。", "",
              "基线源码：`2055adf594949747f4ac47d5396311efd95eb0f2`。测量使用同一台 Windows 机器、独立复制的 Python 3.11 / PySide6 6.10 环境和合成资源。", "",
              "WE、系统输入和模型服务未接入真实个人环境；播放延迟使用真实 Qt 播放器与静音 WAV。结论针对源码运行，不代表冻结发行包、真实壁纸查询或 GPT-SoVITS 推理性能。", "",
              "启动时间包含创建测试进程、模块导入、Store 初始化和窗口/托盘运行层就绪，扣除合成夹具写盘时间；未包含真实输入钩子和单实例锁。短测每组五个新进程且各用新数据目录；另补充同一数据目录首次创建与后续复用的对照。没有清空操作系统文件缓存，不能称为磁盘冷启动。", "",
@@ -131,7 +131,7 @@ def summarize(root, output, integrated=None):
         folders = [baseline / "baseline-stream-stress", integrated / "output/performance/integrated-stream-stress"]
         runs = [read(folder / "summary.json") for folder in folders]
         assert runs[0]["benchmark_sha256"] == runs[1]["benchmark_sha256"]
-        lines += ["## 最终整合版：落盘采样复核", "",
+        lines += ["## 历史落盘采样复核（仍含 Mock 调用历史）", "",
                   "同一脚本把采样与计时写入 JSONL，最后一次内存快照之后才读回。每两秒刷新资源，并实际交替启用两个配置；保留播放器、日志和索引复核。此轮负载比前面的仅刷新长测更完整，分别与同脚本基线比较。", "",
                   "| 指标 | 基线 | 最终整合版 |", "|---|---:|---:|"]
         final_metrics = []
