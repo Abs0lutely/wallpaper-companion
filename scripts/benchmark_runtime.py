@@ -16,6 +16,23 @@ import wave
 ROOT = Path(__file__).resolve().parents[1]
 
 
+class DiskSeries:
+    """Keep measurements out of the measured heap; replay after the final snapshot."""
+    def __init__(self, path, stack):
+        path.parent.mkdir(parents=True, exist_ok=True)
+        self.path = path
+        self.stream = stack.enter_context(path.open("w", encoding="utf-8"))
+
+    def append(self, value):
+        self.stream.write(json.dumps(value) + "\n")
+
+    def __iter__(self):
+        self.stream.flush()
+        with self.path.open(encoding="utf-8") as source:
+            for line in source:
+                yield json.loads(line)
+
+
 def worker(args):
     started = float(args.started) if args.started else time.perf_counter()
     sys.path.insert(0, str(ROOT))
@@ -53,6 +70,10 @@ def worker(args):
             profile.update(voice_dir=str(audio), bgm_dir="", use_bundled_demo=False)
             store.config["profiles"] = [profile]
             store.config["standalone_profile"] = profile["id"]
+            if args.switch_profiles:
+                second = core.new_profile("Benchmark alternate")
+                second.update(voice_dir=str(audio), bgm_dir="", use_bundled_demo=False)
+                store.config["profiles"].append(second)
         store.save()
         setup_end = time.perf_counter()
         fixture_seconds = setup_end - fixture_started
@@ -73,16 +94,20 @@ def worker(args):
             info = process.memory_info()
             return dict(private=info.private, rss=info.rss, peak_rss=info.peak_wset,
                         cpu=sum(process.cpu_times()[:2]), threads=process.num_threads())
+        def series(name):
+            return DiskSeries(Path(args.report).with_suffix("") / (name + ".jsonl"), stack) if args.stream_metrics else []
         result = dict(items=args.items, mode=args.mode, tray=args.tray,
                       startup_ms=(ready-started-fixture_seconds)*1000, window_ms=(ready-setup_end)*1000, fixture_ms=fixture_seconds*1000,
-                      initial=memory(), deferred_pages=list(getattr(w, "_page_builders", {})), operations={}, samples=[])
-        operation_lags = []
+                      initial=memory(), deferred_pages=list(getattr(w, "_page_builders", {})), operations={}, samples=series("samples"))
+        operation_lags = series("operation_lags")
         def timed(name, fn):
             queued = time.perf_counter()
             QTimer.singleShot(0, lambda: operation_lags.append((time.perf_counter()-queued)*1000))
             begin = time.perf_counter()
             fn()
-            result["operations"].setdefault(name, []).append((time.perf_counter()-begin)*1000)
+            if name not in result["operations"]:
+                result["operations"][name] = series(name)
+            result["operations"][name].append((time.perf_counter()-begin)*1000)
             app.processEvents()
         if not args.resident:
             if hasattr(w, "ensure_editor"):
@@ -114,6 +139,15 @@ def worker(args):
             assert w.library_table.rowCount() == args.items
             timed("audio_search", lambda: w.audio_search.setText("999" if not w.audio_search.text() else ""))
             timed("wallpaper_search", lambda: w.library_search.setText("999" if not w.library_search.text() else ""))
+            if args.switch_profiles and args.items:
+                def switch_profile():
+                    index = 1 - w.profiles.currentRow()
+                    w.profiles.setCurrentRow(index)
+                    key = "standalone_profile" if args.mode == "standalone" else "manual_profile"
+                    store.config[key] = store.config["profiles"][index]["id"]
+                    w.activate_profile()
+                    assert w.active_id == store.config[key]
+                timed("profile_transition", switch_profile)
         if not args.resident:
             for _ in range(5):
                 exercise()
@@ -150,7 +184,7 @@ def worker(args):
             assert completed, "Query did not complete"
             result["operations"]["query_queue"] = [(completed[0]-begin)*1000]
         last = time.perf_counter()
-        lags = []
+        lags = series("heartbeat_lags")
         heartbeat = QTimer()
         heartbeat.setInterval(50)
         def beat():
@@ -171,11 +205,14 @@ def worker(args):
             repeater.start()
         QTimer.singleShot(int(args.seconds*1000), app.quit)
         app.exec()
-        result.update(final=memory(), errors=errors, operation_gui_max_ms=max(operation_lags, default=0), operation_gui_p95_ms=sorted(operation_lags)[int(.95*(len(operation_lags)-1))] if operation_lags else 0, heartbeat_p95_ms=sorted(lags)[int(.95*(len(lags)-1))] if lags else 0)
+        result.update(final=memory(), errors=errors)
+        # Only replay the potentially large metrics after measuring final memory.
+        operation_lags, lags = list(operation_lags), list(lags)
+        result.update(operation_gui_max_ms=max(operation_lags, default=0), operation_gui_p95_ms=sorted(operation_lags)[int(.95*(len(operation_lags)-1))] if operation_lags else 0, heartbeat_p95_ms=sorted(lags)[int(.95*(len(lags)-1))] if lags else 0)
         w.cleanup()
         w.close()
         app.processEvents()
-        Path(args.report).write_text(json.dumps(result, indent=2), encoding="utf-8")
+        Path(args.report).write_text(json.dumps(result, indent=2, default=list), encoding="utf-8")
 
 
 def main():
@@ -191,6 +228,8 @@ def main():
     parser.add_argument("--tray", action="store_true")
     parser.add_argument("--resident", action="store_true")
     parser.add_argument("--stress", action="store_true")
+    parser.add_argument("--stream-metrics", action="store_true", help="Write samples to JSONL instead of retaining them in the measured heap")
+    parser.add_argument("--switch-profiles", action="store_true", help="Alternate two real profiles during each resource refresh")
     args = parser.parse_args()
     (ROOT / "output").mkdir(exist_ok=True)
     if args.worker:
@@ -208,7 +247,7 @@ def main():
         report = output / f"round-{i+1}.json"
         command = [sys.executable, str(Path(__file__)), "--worker", "--report", str(report),
                    "--items", str(args.items), "--seconds", str(args.seconds), "--mode", args.mode]
-        command += [flag for flag, enabled in [("--tray", args.tray), ("--resident", args.resident), ("--stress", args.stress)] if enabled]
+        command += [flag for flag, enabled in [("--tray", args.tray), ("--resident", args.resident), ("--stress", args.stress), ("--stream-metrics", args.stream_metrics), ("--switch-profiles", args.switch_profiles)] if enabled]
         with (output / f"round-{i+1}.log").open("w", encoding="utf-8") as log:
             command += ["--started", str(time.perf_counter())]
             subprocess.run(command, cwd=ROOT, stdout=log, stderr=subprocess.STDOUT, check=True, timeout=args.seconds+120)
