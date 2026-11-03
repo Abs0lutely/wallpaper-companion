@@ -158,7 +158,7 @@ with tempfile.TemporaryDirectory(dir=ROOT / "output") as directory:
         tray.on_tick()
         tray.toggle_pause()
         assert tray.paused
-        tray.show()
+        tray.show_window()
         app.processEvents()
         assert tray._editor_ready and tray.paused
         assert not tray.manual.isVisible() and not tray.navigation[4].isVisible()

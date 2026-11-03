@@ -459,6 +459,7 @@ class Window(LazyPages, PackMixin, ModeMixin, DialogueBindingMixin, LibraryMixin
         self.tray.show()
 
     def show_window(self):
+        self.ensure_editor()
         self.showNormal()
         self.raise_()
         self.activateWindow()

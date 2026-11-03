@@ -110,7 +110,10 @@ def worker(args):
             result["operations"][name].append((time.perf_counter()-begin)*1000)
             app.processEvents()
         if not args.resident:
-            if hasattr(w, "ensure_editor"):
+            if args.tray:
+                timed("first_window_access", lambda: (w.show_window(), app.processEvents()))
+                result["after_first_window"] = memory()
+            elif hasattr(w, "ensure_editor"):
                 timed("first_editor_access", w.ensure_editor)
             timed("first_library_access", lambda: (w.audio_table, w.library_table))
         # Native table population uses the same public callbacks as real scans.
