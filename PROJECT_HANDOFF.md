@@ -1,5 +1,16 @@
 # 项目维护交接
 
+## 2026-11-03：v0.12.0 自动更新
+
+- 从 2055adf 创建 `feature/auto-update`，包含已推 main 的陪伴包空音频目录修复。
+- `companion/updates.py`：正式版发现、匹配安装方式、取消下载、大小和 SHA256 校验、独立 state.json；配置新增布尔 `auto_update_enabled`，默认 true。
+- `companion/updates_ui.py` / `update_text.py`：双语设置、自动保存与撤销、后台下载及用户确认安装。源码只提供发布入口。
+- `companion/update_helper.py` / `scripts/update_helper_entry.py`：独立冻结辅助进程，等待主进程退出，不终止其他实例；安装版沿用 Inno、便携版复用 `companion/program_update.py` 的白名单替换和回退。原 CLI 保持兼容。
+- 更新包和 handoff/result 日志位于用户数据 `updates/`，程序备份位于便携目录 `.program-backups/`；这些运行状态不导出为陪伴包。下载失败只清理自己创建的 .part，不删除个人资源。
+- `scripts/verify_upgrades.py`：只允许一次性 Windows Actions runner，校验真实 v0.11.0 旧包、升级、重启自检及用户数据哈希；正式发布必须通过。未做真实 TTS / WE 操作，也不操作个人安装。
+- 首次安装 v0.12.0 需要手动升级，旧版无内置检查入口；未签名信誉提示仍可能出现。GitHub不可达时保留旧版；发布附件不完整或校验失败不安装。安装器失败不承诺完整事务回退，保留日志及包以便重试。
+
+
 此文件描述可公开的源码状态，不包含开发者本机配置和路径。
 
 ## 陪伴包修改规则保存失败修复（2026-11-03）

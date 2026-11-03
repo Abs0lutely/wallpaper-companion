@@ -76,6 +76,12 @@ with tempfile.TemporaryDirectory(dir=ROOT / "output", prefix="updates-ui-") as t
             with patch.object(store, "save", side_effect=OSError("disk full")), patch.object(w, "report_error"):
                 w.auto_update_enabled.setChecked(False)
             assert w.auto_update_enabled.isChecked() and store.config["auto_update_enabled"] is True
+            # Restore defaults and undo include the new preference.
+            w.auto_update_enabled.setChecked(False)
+            with patch.object(QMessageBox, "question", return_value=QMessageBox.StandardButton.Yes):
+                w.restore_defaults()
+            assert store.config["auto_update_enabled"] is True
+            assert w.autosave.undo() and store.config["auto_update_enabled"] is False
             # Background cancellation leaves manual checking available.
             controller.cancel = threading.Event(); controller.manual = False
             store.config["auto_update_enabled"] = False; controller.sync()
@@ -89,6 +95,16 @@ with tempfile.TemporaryDirectory(dir=ROOT / "output", prefix="updates-ui-") as t
                 assert helper.is_file() and json.loads(plan.read_text(encoding="utf-8"))["target"] == str(target)
                 launch.assert_not_called(); cleanup.assert_not_called()
             assert not w.quitting
+            with patch("companion.updates_ui.subprocess.Popen") as launch, patch.object(QMessageBox, "question", return_value=QMessageBox.StandardButton.Yes), patch("companion.program_update.running_instances", return_value=[]), patch.object(w, "cleanup") as cleanup, patch.object(QApplication, "quit") as quit_app:
+                controller.install()
+                launch.assert_called_once(); cleanup.assert_called_once(); quit_app.assert_called_once()
+            # Source checkouts only show release information, never download or install.
+            controller.close()
+            source = w.updates = UpdateController(w, layout=replace(LAYOUT, app_dir=target, frozen=False, portable=False),
+                                                  client_factory=lambda: ReleaseClient(session))
+            source.check(); wait_until(lambda: source.cancel is None)
+            assert source.release and source.download is None and not source.install_button.isEnabled()
+            assert ("源码" if locale == "zh-CN" else "Source") in w.update_status.text()
             print(locale + ": verified download / bilingual dialog / busy guard / save failure / opt-out / undo / isolated handoff PASS")
         finally:
             w.cleanup(); shiboken6.delete(w)

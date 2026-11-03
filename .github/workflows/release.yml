@@ -39,6 +39,25 @@ jobs:
           Start-Service Audiosrv -ErrorAction SilentlyContinue
           python scripts/verify_windows.py
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Verify real portable and installed upgrades
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release download v0.11.0 --repo $env:GITHUB_REPOSITORY --dir output/upgrade-baseline --pattern '*-portable.zip' --pattern '*-setup.exe' --pattern SHA256SUMS.txt
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          python scripts/verify_upgrades.py
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Preserve verification reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-verification
+          path: |
+            output/*verification.json
+            output/upgrade-*-restart.json
+            output/*-helper/result.json
+            output/*-helper/install-update.log
       - uses: actions/upload-artifact@v4
         with:
           name: windows-x64
