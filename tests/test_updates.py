@@ -84,6 +84,16 @@ class ReleaseTests(unittest.TestCase):
                 with self.assertRaises(ValueError): client.download(r, tmp, threading.Event())
                 self.assertFalse(list(Path(tmp).iterdir()))
 
+    def test_daily_and_restarted_downloads_reuse_only_hash_verified_cache(self):
+        client, r = self.client()
+        with tempfile.TemporaryDirectory(dir=TEST_TEMP) as tmp:
+            path, checksum = client.download(r, tmp, threading.Event())
+            # A second check can read checksums but must not fetch the package again.
+            client.session.responses[r.url] = AssertionError("Package should be reused")
+            self.assertEqual(client.download(r, tmp, threading.Event()), (path, checksum))
+            path.write_bytes(b"corrupted")
+            with self.assertRaises(AssertionError): client.download(r, tmp, threading.Event())
+
     def test_cancel_and_wrong_size_remove_partial_file(self):
         client, r = self.client()
         for cancel_after_start in (False, True):

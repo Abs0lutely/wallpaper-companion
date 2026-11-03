@@ -12,6 +12,7 @@ import psutil
 
 from .paths import writable_path
 from .program_update import apply_update, digest, running_instances, stage_update
+from .update_text import ut
 
 
 def launch_environment():
@@ -39,7 +40,7 @@ def wait_for_parent(pid, started, timeout=90):
         except psutil.NoSuchProcess:
             return
         time.sleep(0.2)
-    raise RuntimeError("Application did not exit; update was not applied")
+    raise RuntimeError(ut("parent_timeout"))
 
 
 def apply_plan(plan, *, installer_runner=subprocess.run):
@@ -48,27 +49,37 @@ def apply_plan(plan, *, installer_runner=subprocess.run):
     archive = Path(plan["archive"]).resolve()
     version = plan["version"]
     if not re.fullmatch(r"\d+\.\d+\.\d+", version):
-        raise ValueError("Invalid update version")
+        raise ValueError(ut("invalid_version"))
     if type(plan["portable"]) is not bool or bool((target / "portable.flag").is_file()) != plan["portable"]:
-        raise ValueError("Installation layout changed")
+        raise ValueError(ut("layout_changed"))
     if not (target / "WallpaperCompanion.exe").is_file():
-        raise ValueError("Application executable is missing")
+        raise ValueError(ut("exe_missing"))
     if running_instances(target):
-        raise RuntimeError("Another instance is running; no application was closed")
+        raise RuntimeError(ut("instances"))
     suffix = "portable.zip" if plan["portable"] else "setup.exe"
     if archive.name != f"WallpaperCompanion-{version}-windows-x64-{suffix}":
-        raise ValueError("Package name does not match version or layout")
+        raise ValueError(ut("package_name"))
     if archive.stat().st_size != plan["size"] or digest(archive) != plan["sha256"]:
-        raise ValueError("Downloaded package changed; size or SHA256 mismatch")
+        raise ValueError(ut("package_changed"))
     marker = target / "app-version.txt"
     if marker.is_file():
         current = marker.read_text(encoding="utf-8").strip()
-        if not re.fullmatch(r"\d+\.\d+\.\d+", current) or tuple(map(int, version.split("."))) <= tuple(map(int, current.split("."))):
-            raise ValueError("Update must be newer than the installed version")
+        recorded = {}
+        try:
+            recorded = json.loads((archive.parent / "result.json").read_text(encoding="utf-8"))
+        except (OSError, ValueError):
+            pass
+        repair = (not plan["portable"] and plan.get("repair") is True and isinstance(recorded, dict)
+                  and recorded.get("success") is False and recorded.get("version") == version
+                  and recorded.get("sha256") == plan["sha256"] and recorded.get("target") == str(target))
+        if (not re.fullmatch(r"\d+\.\d+\.\d+", current)
+                or tuple(map(int, version.split("."))) < tuple(map(int, current.split(".")))
+                or version == current and not repair):
+            raise ValueError(ut("not_newer"))
     if plan["portable"]:
         with zipfile.ZipFile(archive) as source:
             if source.read("WallpaperCompanion/app-version.txt").decode("utf-8").strip() != version:
-                raise ValueError("Portable package version does not match release")
+                raise ValueError(ut("marker_mismatch"))
         staged = stage_update(archive, target, plan["sha256"])
         result = apply_update(staged, target)
     else:
@@ -78,10 +89,10 @@ def apply_plan(plan, *, installer_runner=subprocess.run):
         completed = installer_runner(command, timeout=600, env=launch_environment(),
                                      creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0))
         if completed.returncode != 0:
-            raise RuntimeError(f"Installer failed (exit {completed.returncode}); see install-update.log")
+            raise RuntimeError(ut("installer_failed", code=completed.returncode))
         result = dict(applied=True, version=version)
     if (target / "app-version.txt").read_text(encoding="utf-8").strip() != version:
-        raise RuntimeError("Installed version marker does not match requested version")
+        raise RuntimeError(ut("marker_mismatch"))
     return result
 
 
@@ -90,6 +101,10 @@ def run_plan(plan_path, verify_restart=None):
     result_path = plan_path.parent / "result.json"
     try:
         plan = json.loads(plan_path.read_text(encoding="utf-8"))
+        if not isinstance(plan, dict):
+            raise ValueError(ut("invalid_response"))
+        from .i18n import set_language
+        set_language(plan.get("language"))
         wait_for_parent(plan["parent_pid"], plan["parent_started"])
         result = apply_plan(plan)
         atomic_json(result_path, {**result, "success": True})
@@ -100,11 +115,15 @@ def run_plan(plan_path, verify_restart=None):
                          creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0))
         return 0
     except Exception as exc:
-        atomic_json(result_path, dict(success=False, error=str(exc)))
+        context = locals().get("plan", {})
+        if not isinstance(context, dict):
+            context = {}
+        atomic_json(result_path, dict(success=False, error=str(exc), version=context.get("version"),
+                                      target=context.get("target"), sha256=context.get("sha256")))
         # Helper has no Qt dependency and remains usable if the application cannot start.
         if not verify_restart and os.name == "nt":
             import ctypes
-            english = locals().get("plan", {}).get("language") == "en-US"
+            english = context.get("language") == "en-US"
             caption = "Update failed" if english else "更新未完成"
             message = ("Update was not completed. Files and logs have been retained.\n" if english else
                        "更新未完成，安装包和日志已保留。\n") + str(exc) + "\n" + str(result_path)

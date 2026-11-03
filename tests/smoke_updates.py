@@ -105,6 +105,23 @@ with tempfile.TemporaryDirectory(dir=ROOT / "output", prefix="updates-ui-") as t
             source.check(); wait_until(lambda: source.cancel is None)
             assert source.release and source.download is None and not source.install_button.isEnabled()
             assert ("源码" if locale == "zh-CN" else "Source") in w.update_status.text()
+            # A recorded partial installation survives restart even if its version marker is new.
+            source.close()
+            from companion.update_helper import atomic_json
+            state = json.loads(controller.state_path.read_text(encoding="utf-8"))
+            old_plan = json.loads(plan.read_text(encoding="utf-8"))
+            atomic_json(Path(state["pending_result"]), dict(success=False, error="partial installer failure",
+                         version=release.version, target=str(target), sha256=old_plan["sha256"]))
+            (target / "app-version.txt").write_text("0.12.0")
+            repaired = w.updates = UpdateController(w, layout=replace(LAYOUT, app_dir=target, frozen=True, portable=False),
+                                                    client_factory=lambda: (_ for _ in ()).throw(AssertionError("Repair must not rediscover equal version")))
+            repaired.previous_result()
+            assert repaired.repair and repaired.install_button.isEnabled()
+            repaired.automatic_check(); repaired.check()
+            assert repaired.cancel is None and repaired.dialog.isVisible()
+            with patch("companion.program_update.running_instances", return_value=[]):
+                _, retry_plan = repaired.prepare_handoff()
+            assert json.loads(retry_plan.read_text(encoding="utf-8"))["repair"] is True
             print(locale + ": verified download / bilingual dialog / busy guard / save failure / opt-out / undo / isolated handoff PASS")
         finally:
             w.cleanup(); shiboken6.delete(w)

@@ -81,8 +81,24 @@ class HelperTests(unittest.TestCase):
         with patch("companion.update_helper.wait_for_parent", side_effect=RuntimeError("still running")), patch("companion.update_helper.subprocess.Popen") as launch:
             self.assertEqual(run_plan(path, self.root / "test.json"), 1)
             launch.assert_not_called()
-        self.assertFalse(json.loads((self.root / "result.json").read_text())["success"])
+        self.assertFalse(json.loads((self.root / "result.json").read_text(encoding="utf-8"))["success"])
         self.assertEqual((self.target / "WallpaperCompanion.exe").read_text(), "old")
+
+    def test_partially_written_installer_can_retry_same_version_only_after_recorded_failure(self):
+        (self.target / "portable.flag").unlink()
+        archive = self.root / "WallpaperCompanion-0.12.0-windows-x64-setup.exe"; archive.write_bytes(b"installer")
+        plan = {**self.plan, "portable": False, "archive": str(archive), "size": 9, "sha256": digest(archive)}
+        def partial_install(*args, **kwargs):
+            (self.target / "app-version.txt").write_text("0.12.0")
+            return SimpleNamespace(returncode=5)
+        with patch("companion.update_helper.running_instances", return_value=[]):
+            with self.assertRaises(RuntimeError): apply_plan(plan, installer_runner=partial_install)
+            with self.assertRaises(ValueError): apply_plan({**plan, "repair": True})
+            failure = dict(success=False, version="0.12.0", target=str(self.target.resolve()), sha256=plan["sha256"])
+            (self.root / "result.json").write_text(json.dumps(failure))
+            self.assertTrue(apply_plan({**plan, "repair": True}, installer_runner=lambda *a, **kw: SimpleNamespace(returncode=0))["applied"])
+            (self.target / "app-version.txt").write_text("0.13.0")
+            with self.assertRaises(ValueError): apply_plan({**plan, "repair": True})
 
     def test_parent_wait_does_not_wait_for_reused_pid(self):
         with patch("companion.update_helper.psutil.Process", return_value=SimpleNamespace(create_time=lambda: 222)):

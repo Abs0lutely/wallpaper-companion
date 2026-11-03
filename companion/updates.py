@@ -11,6 +11,9 @@ from pathlib import Path
 from urllib.parse import urlparse
 
 import requests
+from .update_text import ut
+from .program_update import checked_child
+from .paths import writable_path
 
 REPOSITORY = "Abs0lutely/wallpaper-companion"
 RELEASES_URL = f"https://github.com/{REPOSITORY}/releases"
@@ -25,7 +28,7 @@ class UpdateCancelled(Exception):
 
 def version_tuple(value):
     if not isinstance(value, str) or not re.fullmatch(r"v?\d+\.\d+\.\d+", value):
-        raise ValueError("Invalid release version")
+        raise ValueError(ut("invalid_version"))
     return tuple(map(int, value.removeprefix("v").split(".")))
 
 
@@ -44,7 +47,7 @@ def trusted_url(url, *, asset=False):
     p = urlparse(url)
     prefix = f"/{REPOSITORY}/releases/" + ("download/" if asset else "tag/")
     if p.scheme != "https" or p.netloc != "github.com" or not p.path.startswith(prefix) or p.query or p.fragment:
-        raise ValueError("Unexpected release URL")
+        raise ValueError(ut("invalid_url"))
     return url
 
 
@@ -73,18 +76,18 @@ def parse_release(payload, current, portable):
     matches = [a for a in assets if a.get("name") == name]
     sums = [a for a in assets if a.get("name") == "SHA256SUMS.txt"]
     if len(matches) != 1 or len(sums) != 1:
-        raise ValueError("Release is missing unique package or checksum assets")
+        raise ValueError(ut("missing_assets"))
     item, checksum = matches[0], sums[0]
     size = item.get("size")
     if type(size) is not int or not 0 < size <= MAX_DOWNLOAD:
-        raise ValueError("Release package size is invalid")
+        raise ValueError(ut("size_limit"))
     for asset in (item, checksum):
         trusted_url(asset.get("browser_download_url", ""), asset=True)
         if urlparse(asset["browser_download_url"]).path != f"/{REPOSITORY}/releases/download/{tag}/{asset['name']}":
-            raise ValueError("Asset does not belong to the selected release")
+            raise ValueError(ut("invalid_url"))
     digest = item.get("digest") or ""
     if digest and not re.fullmatch(r"sha256:[a-fA-F0-9]{64}", digest):
-        raise ValueError("Invalid asset digest")
+        raise ValueError(ut("invalid_response"))
     return Release(version, str(payload.get("body") or "")[:100_000],
                    trusted_url(payload.get("html_url", "")), name, item["browser_download_url"],
                    size, checksum["browser_download_url"], digest.removeprefix("sha256:").lower())
@@ -110,7 +113,7 @@ class ReleaseClient:
                 _check_cancel(cancel)
                 total += len(chunk)
                 if total > limit:
-                    raise ValueError("Update response is too large")
+                    raise ValueError(ut("size_limit"))
                 chunks.append(chunk)
         return b"".join(chunks)
 
@@ -125,11 +128,20 @@ class ReleaseClient:
             if match and match[2] == release.name:
                 matches.append(match[1].lower())
         if len(matches) != 1 or release.digest and release.digest != matches[0]:
-            raise ValueError("Package checksum is missing, duplicated or inconsistent")
-        directory = Path(directory)
+            raise ValueError(ut("invalid_response"))
+        directory = writable_path(directory)
         directory.mkdir(parents=True, exist_ok=True)
-        destination = directory / release.name
-        partial = destination.with_suffix(destination.suffix + ".part")
+        destination = checked_child(directory, release.name)
+        partial = checked_child(directory, release.name + ".part")
+        if destination.is_file() and destination.stat().st_size == release.size:
+            cached = hashlib.sha256()
+            with destination.open("rb") as source:
+                for block in iter(lambda: source.read(1024 * 1024), b""):
+                    _check_cancel(cancel)
+                    cached.update(block)
+            if cached.hexdigest() == matches[0]:
+                progress(release.size, release.size)
+                return destination, matches[0]
         checksum = hashlib.sha256()
         count = 0
         try:
@@ -140,13 +152,13 @@ class ReleaseClient:
                         _check_cancel(cancel)
                         count += len(chunk)
                         if count > release.size:
-                            raise ValueError("Downloaded package exceeds release size")
+                            raise ValueError(ut("checksum_failed"))
                         output.write(chunk)
                         checksum.update(chunk)
                         progress(count, release.size)
             _check_cancel(cancel)
             if count != release.size or checksum.hexdigest() != matches[0]:
-                raise ValueError("Package size or SHA256 verification failed")
+                raise ValueError(ut("checksum_failed"))
             partial.replace(destination)
             return destination, matches[0]
         finally:

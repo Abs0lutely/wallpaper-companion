@@ -4,7 +4,7 @@ import shutil
 import subprocess
 import threading
 import time
-import uuid
+from dataclasses import asdict
 from pathlib import Path
 
 import psutil
@@ -17,7 +17,7 @@ from .i18n import language
 from .runtime import LAYOUT
 from .update_helper import atomic_json, launch_environment
 from .update_text import ut
-from .updates import ReleaseClient, UpdateCancelled, check_due, current_version, read_state, write_state
+from .updates import Release, ReleaseClient, UpdateCancelled, check_due, current_version, read_state, write_state
 
 
 class UpdateController(QObject):
@@ -37,6 +37,7 @@ class UpdateController(QObject):
         self.manual = False
         self.release = None
         self.download = None
+        self.repair = False
         self.dialog = None
         self.timer = QTimer(self)
         self.timer.setInterval(60_000)
@@ -68,7 +69,7 @@ class UpdateController(QObject):
         self.w.update_status.setText(message)
 
     def automatic_check(self):
-        if not self.closed and self.w.store.config.get("auto_update_enabled", True) and check_due(self.state):
+        if not self.closed and not self.repair and self.w.store.config.get("auto_update_enabled", True) and check_due(self.state):
             self.check(manual=False)
 
     def check(self, manual=True):
@@ -104,7 +105,7 @@ class UpdateController(QObject):
                 release = client.latest(self.version, self.layout.portable, cancel)
                 emit("release", release)
                 if release and self.layout.frozen:
-                    folder = self.root / (release.version + "-" + uuid.uuid4().hex)
+                    folder = writable_path(self.root / ("download-" + release.version), self.w.store.protected())
                     last = [0.0]
                     def progress(done, total):
                         now = time.monotonic()
@@ -128,6 +129,7 @@ class UpdateController(QObject):
         if kind == "release":
             self.release = value
             self.download = None
+            self.repair = False
             self.state["last_check"] = time.time()
             try:
                 write_state(self.state_path, self.state)
@@ -196,6 +198,7 @@ class UpdateController(QObject):
         self.notes.setPlainText(r.notes if r else "")
         self.dialog_status.setText(self.w.update_status.text() + ("\n" + ut("verified") if self.download else ""))
         self.open_button.setEnabled(r is not None)
+        self.install_button.setText(ut("repair") if self.repair else ut("install"))
         self.install_button.setEnabled(bool(r and self.download and self.layout.frozen and self.cancel is None))
 
     def open_page(self):
@@ -208,15 +211,20 @@ class UpdateController(QObject):
             raise RuntimeError(ut("instances"))
         package, checksum = self.download
         if package.stat().st_size != self.release.size:
-            raise ValueError("Downloaded package changed; check again")
+            raise ValueError(ut("package_changed"))
         folder = package.parent
         helper = folder / "WallpaperCompanionUpdater.exe"
-        shutil.copy2(self.layout.app_dir / helper.name, helper)
+        original_helper = self.layout.app_dir / helper.name
+        if original_helper.is_file():
+            shutil.copy2(original_helper, helper)
+        elif not (self.repair and helper.is_file()):
+            raise FileNotFoundError(ut("exe_missing"))
         plan = dict(target=str(self.layout.app_dir), archive=str(package), version=self.release.version,
                     sha256=checksum, size=self.release.size, portable=self.layout.portable,
-                    parent_pid=os.getpid(), parent_started=psutil.Process().create_time(), language=language())
+                    parent_pid=os.getpid(), parent_started=psutil.Process().create_time(), language=language(), repair=self.repair)
         path = folder / "handoff.json"
         atomic_json(path, plan)
+        self.state["pending_release"] = asdict(self.release)
         self.state["pending_result"] = str(folder / "result.json")
         write_state(self.state_path, self.state)
         return helper, path
@@ -260,10 +268,32 @@ class UpdateController(QObject):
             return
         message = (ut("success", version=result.get("version", self.version)) if result.get("success") else
                    ut("previous_failed", error=result.get("error", "")))
-        self.state.pop("pending_result", None)
-        write_state(self.state_path, self.state)
+        if result.get("success"):
+            self.state.pop("pending_result", None)
+            self.state.pop("pending_release", None)
+        elif self.layout.frozen and not self.layout.portable:
+            try:
+                release = Release(**self.state.get("pending_release", {}))
+                plan = read_state(path.parent / "handoff.json")
+                package = Path(plan["archive"]).resolve()
+                if (package.parent != path.parent or not package.is_relative_to(self.root.resolve())
+                        or package.name != release.name or not package.is_file()
+                        or result.get("sha256") != plan["sha256"]
+                        or result.get("version") != release.version
+                        or Path(plan["target"]).resolve() != self.layout.app_dir.resolve()):
+                    raise ValueError(ut("invalid_response"))
+                self.release, self.download = release, (package, plan["sha256"])
+                self.repair = True
+            except (KeyError, TypeError, OSError, ValueError) as exc:
+                self.w.log(ut("failed", error=exc))
+        try:
+            write_state(self.state_path, self.state)
+        except OSError as exc:
+            self.w.log(ut("failed", error=exc))
         self.status(message)
         self.w.autosave.show(message)
+        if self.repair:
+            self.show_dialog()
 
     def close(self):
         self.closed = True
