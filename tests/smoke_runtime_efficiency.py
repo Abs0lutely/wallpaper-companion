@@ -100,7 +100,8 @@ with tempfile.TemporaryDirectory(dir=ROOT / "output") as directory:
         other = new_profile("Other")
         other.update(bgm_enabled=False, use_bundled_demo=False)
         store.config["profiles"].append(other)
-        for same_id in (False, True):
+        for change in ("switch", "force", "save"):
+            same_id = change != "switch"
             w.engine.reset()
             with patch.object(w.audio_index, "files", side_effect=IndexPending((str(voice), True))), patch.object(w.audio_index, "_submit"):
                 # RuleEngine retains the bound method, so inject at its real scan seam.
@@ -111,7 +112,13 @@ with tempfile.TemporaryDirectory(dir=ROOT / "output") as directory:
                 store.config["standalone_profile"] = other["id"]
                 w.activate_profile()
                 store.config["standalone_profile"] = profile["id"]
-            w.activate_profile(force=True)
+            if change == "save":
+                import copy
+                before = copy.deepcopy(store.config)
+                store.profile(profile["id"])["voice_dir"] = str(voice) + "/"
+                w.apply_saved_playback(before)
+            else:
+                w.activate_profile(force=True)
             with patch.object(w.audio, "play_voice") as play:
                 continuation()
                 assert not play.called, "A stale activation replayed input"

@@ -651,6 +651,10 @@ class Window(LazyPages, PackMixin, ModeMixin, DialogueBindingMixin, LibraryMixin
         if not current or not old or not hasattr(self.audio, "sync_bgm"):
             self.activate_profile(force=True)
             return
+        event_keys = ("rules", "voice_dir", "use_bundled_demo", "demo_language", "enabled",
+                      "desktop_only", "fullscreen_mute", "global_cooldown")
+        if any(current.get(key) != old.get(key) for key in event_keys):
+            self.playback_epoch += 1
         if current.get("bgm_dir") != old.get("bgm_dir"):
             self.audio.set_profile(current)
         else:
