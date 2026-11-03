@@ -1,0 +1,37 @@
+{
+  "schemaVersion": 1,
+  "receiptId": "295ea930-a2b1-450f-babd-6051e8918436",
+  "status": "current",
+  "command": "deliver",
+  "type": "explainer",
+  "input": "E:\\AAA_ChatGPT\\Github项目\\wallpaper-companion-integrated\\.archify\\explainer-runtime-performance-20261103-132800\\candidate.archify.md",
+  "output": "E:\\AAA_ChatGPT\\Github项目\\wallpaper-companion-integrated\\.archify\\explainer-runtime-performance-20261103-132800\\runtime-performance.html",
+  "specification": {
+    "sha256": "13758508dac326da3c27f74ccc15a34f0402642bb857dab7f030b96d0b23c851",
+    "bytes": 3695
+  },
+  "artifact": {
+    "sha256": "53964c5e3ab46933881c3dec827335094152e7941ace69b4f1f0c5fa44345f7e",
+    "bytes": 564119
+  },
+  "explainer": {
+    "preparedSha256": "28159cbf6a8496f12f77c3778a77d893d752e6b50a323af0390f088ee1fcc72c",
+    "dependencies": [
+      {
+        "kind": "repository",
+        "id": "index",
+        "path": "companion/audio_index.py",
+        "revision": "4a2882832a926fb63f2f4223fb4ff7b59c12dc1e",
+        "sha256": "bcb08d829d3f86ae2d2d66254d39a786f117c3661f9cbc68343cb08e866a96f7",
+        "bytes": 6005
+      },
+      {
+        "kind": "diagram-spec",
+        "id": "runtime-flow",
+        "inline": true,
+        "sha256": "61992669a55675d25cf9d2369e36034af3280dfb50daa2ea43fe156bc4e83070",
+        "bytes": 1026
+      }
+    ]
+  }
+}
