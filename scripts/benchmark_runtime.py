@@ -113,6 +113,10 @@ def worker(args):
             if args.tray:
                 timed("first_window_access", lambda: (w.show_window(), app.processEvents()))
                 result["after_first_window"] = memory()
+                for _ in range(5):
+                    w.hide()
+                    app.processEvents()
+                    timed("reopen_window", lambda: (w.show_window(), app.processEvents()))
             elif hasattr(w, "ensure_editor"):
                 timed("first_editor_access", w.ensure_editor)
             timed("first_library_access", lambda: (w.audio_table, w.library_table))
