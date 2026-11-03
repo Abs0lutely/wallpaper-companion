@@ -1,7 +1,7 @@
 """Isolated, repeatable native Qt benchmark; never connects to personal services."""
 from __future__ import annotations
 import argparse
-from contextlib import ExitStack
+from contextlib import ExitStack, nullcontext
 import json
 import os
 from pathlib import Path
@@ -38,7 +38,8 @@ def worker(args):
     sys.path.insert(0, str(ROOT))
     import psutil
     process = psutil.Process()
-    with tempfile.TemporaryDirectory(prefix="bench-", dir=ROOT / "output") as directory, ExitStack() as stack:
+    fixture = nullcontext(args.fixture_dir) if args.fixture_dir else tempfile.TemporaryDirectory(prefix="bench-", dir=ROOT / "output")
+    with fixture as directory, ExitStack() as stack:
         root = Path(directory)
         os.environ.update(WALLPAPER_COMPANION_DATA=str(root / "data"), GPT_SOVITS_DIR="")
         from companion import paths
@@ -58,7 +59,7 @@ def worker(args):
         store.config.update(run_mode=args.mode, we_dir="", workshop_dir="", library_roots=[])
         fixture_started = time.perf_counter()
         audio = root / "audio"
-        audio.mkdir()
+        audio.mkdir(exist_ok=True)
         for i in range(args.items):
             folder = audio / str(i // 100)
             folder.mkdir(exist_ok=True)
@@ -237,6 +238,8 @@ def main():
     parser.add_argument("--stress", action="store_true")
     parser.add_argument("--stream-metrics", action="store_true", help="Write samples to JSONL instead of retaining them in the measured heap")
     parser.add_argument("--switch-profiles", action="store_true", help="Alternate two real profiles during each resource refresh")
+    parser.add_argument("--reuse-data", action="store_true", help="Use one isolated fixture across rounds to compare fresh and existing data")
+    parser.add_argument("--fixture-dir", help=argparse.SUPPRESS)
     args = parser.parse_args()
     (ROOT / "output").mkdir(exist_ok=True)
     if args.worker:
@@ -244,6 +247,9 @@ def main():
         return
     output = ROOT / "output" / "performance" / args.label
     output.mkdir(parents=True, exist_ok=True)
+    shared_fixture = output / "fixture" if args.reuse_data else None
+    if shared_fixture:
+        shared_fixture.mkdir()  # Refuse an existing label: round one must start with fresh data.
     import hashlib
     source_hashes = {str(path.relative_to(ROOT)): hashlib.sha256(path.read_bytes()).hexdigest() for path in [ROOT / "main.py", *sorted((ROOT / "companion").glob("*.py"))]}
     marker = ROOT / "SOURCE_REVISION"
@@ -255,6 +261,8 @@ def main():
         command = [sys.executable, str(Path(__file__)), "--worker", "--report", str(report),
                    "--items", str(args.items), "--seconds", str(args.seconds), "--mode", args.mode]
         command += [flag for flag, enabled in [("--tray", args.tray), ("--resident", args.resident), ("--stress", args.stress), ("--stream-metrics", args.stream_metrics), ("--switch-profiles", args.switch_profiles)] if enabled]
+        if shared_fixture:
+            command += ["--fixture-dir", str(shared_fixture)]
         with (output / f"round-{i+1}.log").open("w", encoding="utf-8") as log:
             command += ["--started", str(time.perf_counter())]
             subprocess.run(command, cwd=ROOT, stdout=log, stderr=subprocess.STDOUT, check=True, timeout=args.seconds+120)
